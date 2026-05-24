@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { SpendBar } from './components/SpendBar';
 import { SmokeTest } from './components/SmokeTest';
 import { CharacterCreation } from './components/CharacterCreation';
+import { NpcChat } from './components/NpcChat';
 
-type Tab = 'character' | 'smoke';
+type Tab = 'character' | 'npc' | 'smoke';
 
 export function App() {
   const [tab, setTab] = useState<Tab>('character');
@@ -31,6 +32,14 @@ export function App() {
           </button>
           <button
             role="tab"
+            aria-selected={tab === 'npc'}
+            className="coa-tab"
+            onClick={() => setTab('npc')}
+          >
+            ◆ Tavern
+          </button>
+          <button
+            role="tab"
             aria-selected={tab === 'smoke'}
             className="coa-tab"
             onClick={() => setTab('smoke')}
@@ -41,6 +50,7 @@ export function App() {
 
         <div style={{ marginTop: '2rem' }}>
           {tab === 'character' && <CharacterCreation />}
+          {tab === 'npc' && <NpcChat />}
           {tab === 'smoke' && <SmokeTest />}
         </div>
       </main>
