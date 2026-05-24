@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { SpendBar } from './components/SpendBar';
 import { SmokeTest } from './components/SmokeTest';
 import { CharacterCreation } from './components/CharacterCreation';
@@ -9,6 +9,17 @@ type Tab = 'character' | 'npc' | 'smoke';
 
 export function App() {
   const [tab, setTab] = useState<Tab>('character');
+
+  useEffect(() => {
+    function handler(e: Event) {
+      const target = (e as CustomEvent<string>).detail;
+      if (target === 'tavern' || target === 'npc') setTab('npc');
+      else if (target === 'character') setTab('character');
+      else if (target === 'smoke') setTab('smoke');
+    }
+    window.addEventListener('coa:request-tab', handler);
+    return () => window.removeEventListener('coa:request-tab', handler);
+  }, []);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

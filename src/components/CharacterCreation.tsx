@@ -22,7 +22,6 @@ import {
 } from '../lib/wowData';
 import {
   bibleValidationErrors,
-  clearBible,
   loadBible,
   saveBible,
   validateBible,
@@ -78,6 +77,7 @@ export function CharacterCreation() {
   const [draftBible, setDraftBible] = useState<CharacterBible | null>(null);
   const [rawBibleText, setRawBibleText] = useState('');
   const [parseErrors, setParseErrors] = useState<string[]>([]);
+  const [isEditingExisting, setIsEditingExisting] = useState(false);
 
   // Refresh existingBible if another tab updates it.
   useEffect(() => {
@@ -103,13 +103,36 @@ export function CharacterCreation() {
   // ----------------------------------------------------------------
 
   function handleStartNew() {
+    setIsEditingExisting(false);
+    setDraftBible(null);
+    setRawBibleText('');
+    setParseErrors([]);
+    setError(null);
+    setTranscript([]);
+    setName('');
+    setFaction('');
+    setRace('');
+    setClassName('');
+    setHomeland('');
+    setAgeStr('');
     setStep('identity');
   }
 
-  function handleClearAndStart() {
-    clearBible();
-    setExistingBible(null);
-    setStep('identity');
+  function handleEditBible() {
+    if (!existingBible) return;
+    setDraftBible(existingBible);
+    setIsEditingExisting(true);
+    setStep('review');
+  }
+
+  function handleCancelEdit() {
+    setIsEditingExisting(false);
+    setDraftBible(null);
+    setStep('banner');
+  }
+
+  function handleGoToTavern() {
+    window.dispatchEvent(new CustomEvent('coa:request-tab', { detail: 'tavern' }));
   }
 
   // ----------------------------------------------------------------
@@ -555,16 +578,24 @@ export function CharacterCreation() {
     const toSave: CharacterBible = { ...draftBible, updatedAt: Date.now() };
     saveBible(toSave);
     setExistingBible(toSave);
+    setIsEditingExisting(false);
     setStep('saved');
   }
 
   function handleStartOver() {
+    setIsEditingExisting(false);
     setStep('identity');
     setTranscript([]);
     setDraftBible(null);
     setRawBibleText('');
     setParseErrors([]);
     setError(null);
+    setName('');
+    setFaction('');
+    setRace('');
+    setClassName('');
+    setHomeland('');
+    setAgeStr('');
   }
 
   // ----------------------------------------------------------------
@@ -604,10 +635,12 @@ export function CharacterCreation() {
       )}
 
       {step === 'banner' && existingBible && (
-        <ExistingBibleBanner
+        <CharacterSheet
           bible={existingBible}
-          onStartNew={handleStartNew}
-          onClear={handleClearAndStart}
+          mode="existing"
+          onEdit={handleEditBible}
+          onRollAnother={handleStartNew}
+          onTalkToNpcs={handleGoToTavern}
         />
       )}
 
@@ -669,7 +702,8 @@ export function CharacterCreation() {
           bible={draftBible}
           onChange={setDraftBible}
           onSave={handleSave}
-          onStartOver={handleStartOver}
+          onStartOver={isEditingExisting ? handleCancelEdit : handleStartOver}
+          isEditing={isEditingExisting}
         />
       )}
 
@@ -680,7 +714,20 @@ export function CharacterCreation() {
       )}
 
       {step === 'saved' && draftBible && (
-        <SavedView bible={draftBible} onStartOver={handleStartOver} />
+        <div style={{ display: 'grid', gap: '1rem' }}>
+          <div className="coa-callout coa-callout-success">
+            <p style={{ margin: 0, color: 'var(--success)', fontSize: 16 }}>
+              ✓ Saved. <strong style={{ color: 'var(--gold-bright)' }}>{draftBible.name}</strong> is ready to walk Azeroth.
+            </p>
+          </div>
+          <CharacterSheet
+            bible={draftBible}
+            mode="just-saved"
+            onEdit={handleEditBible}
+            onRollAnother={handleStartOver}
+            onTalkToNpcs={handleGoToTavern}
+          />
+        </div>
       )}
     </section>
   );
@@ -690,35 +737,134 @@ export function CharacterCreation() {
 // Sub-components (kept in-file for Phase 0; will refactor when they grow)
 // ============================================================================
 
-function ExistingBibleBanner({
+function CharacterSheet({
   bible,
-  onStartNew,
-  onClear,
+  mode,
+  onEdit,
+  onRollAnother,
+  onTalkToNpcs,
 }: {
   bible: CharacterBible;
-  onStartNew: () => void;
-  onClear: () => void;
+  mode: 'existing' | 'just-saved';
+  onEdit: () => void;
+  onRollAnother: () => void;
+  onTalkToNpcs: () => void;
 }) {
+  const initial = (bible.name.trim()[0] ?? '?').toUpperCase();
+  const factionClass =
+    bible.faction === 'Alliance' ? 'coa-faction-alliance' : 'coa-faction-horde';
+  const factionGlyph = bible.faction === 'Alliance' ? '⚜' : '⛧';
+  const updated = formatSheetTimestamp(bible.updatedAt);
+  const created = formatSheetTimestamp(bible.createdAt);
+
   return (
-    <div className="coa-callout coa-callout-success">
-      <p style={{ marginTop: 0 }}>
-        You already have a saved bible: <strong style={{ color: 'var(--gold-bright)' }}>{bible.name}</strong>,{' '}
-        the {bible.race} {bible.class} of the {bible.faction}.
-      </p>
-      <p className="muted" style={{ fontSize: 13 }}>
-        Phase 0 keeps a single bible at <code>coa.bible.current</code>. Starting a new one will overwrite
-        the saved bible <strong>when you click Save</strong> on the new draft.
-      </p>
-      <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
-        <button className="coa-btn coa-btn-primary" onClick={onStartNew}>
-          Roll a new character
-        </button>
-        <button className="coa-btn coa-btn-danger" onClick={onClear}>
-          Clear saved bible & start fresh
-        </button>
+    <div className="coa-sheet">
+      <header className="coa-sheet-header">
+        <div className={`coa-sheet-portrait ${factionClass}`}>
+          <span className="coa-sheet-portrait-monogram">{initial}</span>
+        </div>
+        <div className="coa-sheet-title">
+          <h2 className="coa-sheet-name">{bible.name}</h2>
+          <div className="coa-sheet-subtitle">
+            <span>
+              {bible.race} {bible.class}
+            </span>
+            <span className="coa-sheet-dot">•</span>
+            <span className={`coa-sheet-faction ${factionClass}`}>
+              {factionGlyph} {bible.faction}
+            </span>
+            {bible.homeland && (
+              <>
+                <span className="coa-sheet-dot">•</span>
+                <span>{bible.homeland}</span>
+              </>
+            )}
+            {typeof bible.age === 'number' && (
+              <>
+                <span className="coa-sheet-dot">•</span>
+                <span>Age {bible.age}</span>
+              </>
+            )}
+          </div>
+          <div className="coa-sheet-meta">
+            <span>◆ {mode === 'just-saved' ? 'Just saved' : 'Auto-saved'} {updated}</span>
+            {created !== updated && (
+              <>
+                <span className="coa-sheet-dot">•</span>
+                <span>Created {created}</span>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <section className="coa-sheet-section">
+        <h3 className="coa-sheet-section-title">Voice</h3>
+        <blockquote className="coa-sheet-voice">{bible.voice}</blockquote>
+      </section>
+
+      <section className="coa-sheet-section">
+        <h3 className="coa-sheet-section-title">Backstory</h3>
+        <div className="coa-sheet-backstory">
+          {bible.backstory
+            .split(/\n\s*\n/)
+            .map((para, i) => (
+              <p key={i}>{para.trim()}</p>
+            ))}
+        </div>
+      </section>
+
+      <div className="coa-sheet-two-col">
+        <section className="coa-sheet-section">
+          <h3 className="coa-sheet-section-title">Beliefs</h3>
+          <ul className="coa-sheet-list">
+            {bible.beliefs.map((b, i) => (
+              <li key={i}>{b}</li>
+            ))}
+          </ul>
+        </section>
+        <section className="coa-sheet-section">
+          <h3 className="coa-sheet-section-title">Motivations</h3>
+          <ul className="coa-sheet-list">
+            {bible.motivations.map((m, i) => (
+              <li key={i}>{m}</li>
+            ))}
+          </ul>
+        </section>
       </div>
+
+      <footer className="coa-sheet-actions">
+        <button className="coa-btn coa-btn-primary" onClick={onTalkToNpcs}>
+          ◆ Talk to NPCs
+        </button>
+        <button className="coa-btn coa-btn-secondary" onClick={onEdit}>
+          Edit bible
+        </button>
+        <button className="coa-btn coa-btn-secondary" onClick={onRollAnother}>
+          Roll another hero
+        </button>
+        <details className="coa-sheet-raw">
+          <summary>View raw JSON</summary>
+          <pre>{JSON.stringify(bible, null, 2)}</pre>
+        </details>
+      </footer>
     </div>
   );
+}
+
+function formatSheetTimestamp(ts: number): string {
+  if (!ts) return '';
+  try {
+    const d = new Date(ts);
+    return d.toLocaleString(undefined, {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
 }
 
 interface IdentityFormProps {
@@ -997,19 +1143,41 @@ function ReviewView({
   onChange,
   onSave,
   onStartOver,
+  isEditing = false,
 }: {
   bible: CharacterBible;
   onChange: (b: CharacterBible) => void;
   onSave: () => void;
   onStartOver: () => void;
+  isEditing?: boolean;
 }) {
   const beliefsText = bible.beliefs.join('\n');
   const motivationsText = bible.motivations.join('\n');
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
       <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 15 }}>
-        Review and edit before saving. Beliefs and motivations are one per line.
+        {isEditing
+          ? `Editing ${bible.name}. Changes overwrite the saved bible when you click Save changes.`
+          : 'Review and edit before saving. Beliefs and motivations are one per line.'}
       </p>
+      {isEditing && (
+        <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '1fr 1fr' }}>
+          <Field label="Name">
+            <input
+              className="coa-input"
+              value={bible.name}
+              onChange={(e) => onChange({ ...bible, name: e.target.value })}
+            />
+          </Field>
+          <Field label="Homeland">
+            <input
+              className="coa-input"
+              value={bible.homeland ?? ''}
+              onChange={(e) => onChange({ ...bible, homeland: e.target.value || undefined })}
+            />
+          </Field>
+        </div>
+      )}
       <Field label="Backstory">
         <textarea
           className="coa-input coa-prose"
@@ -1053,10 +1221,10 @@ function ReviewView({
           onClick={onSave}
           disabled={!validateBible(bible)}
         >
-          ◆ Save bible
+          ◆ {isEditing ? 'Save changes' : 'Save bible'}
         </button>
         <button className="coa-btn coa-btn-secondary" onClick={onStartOver}>
-          Start over
+          {isEditing ? 'Cancel' : 'Start over'}
         </button>
       </div>
       {!validateBible(bible) && (
@@ -1066,35 +1234,6 @@ function ReviewView({
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function SavedView({ bible, onStartOver }: { bible: CharacterBible; onStartOver: () => void }) {
-  return (
-    <div className="coa-callout coa-callout-success">
-      <p style={{ marginTop: 0, color: 'var(--success)', fontSize: 16 }}>
-        ✓ Saved. <strong style={{ color: 'var(--gold-bright)' }}>{bible.name}</strong>, the {bible.race} {bible.class}, is ready to walk Azeroth.
-      </p>
-      <details style={{ marginTop: '0.5rem' }}>
-        <summary style={{ cursor: 'pointer', color: 'var(--fg-muted)' }}>View bible JSON</summary>
-        <pre
-          style={{
-            marginTop: '0.5rem',
-            padding: '1rem',
-            background: 'var(--bg-inset)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--r-md)',
-            fontSize: 12,
-            overflowX: 'auto',
-          }}
-        >
-          {JSON.stringify(bible, null, 2)}
-        </pre>
-      </details>
-      <button className="coa-btn coa-btn-secondary" onClick={onStartOver} style={{ marginTop: '0.75rem' }}>
-        Roll another
-      </button>
     </div>
   );
 }
