@@ -13,7 +13,7 @@
 // detected on every load and migrated into the roster on the fly.
 // ============================================================================
 
-import type { BibleEnvelope, CharacterBible } from '../types';
+import type { BibleEnvelope, CharacterBible, HistoryEntry } from '../types';
 
 const LEGACY_KEY = 'coa.bible.current';
 const ROSTER_KEY = 'coa.bible.roster.v1';
@@ -57,6 +57,20 @@ export function validateBible(x: unknown): x is CharacterBible {
   if (b.fears !== undefined && (!Array.isArray(b.fears) || !b.fears.every((v) => typeof v === 'string'))) return false;
   if (b.flaws !== undefined && (!Array.isArray(b.flaws) || !b.flaws.every((v) => typeof v === 'string'))) return false;
   if (b.coreQuote !== undefined && typeof b.coreQuote !== 'string') return false;
+  if (b.level !== undefined && (typeof b.level !== 'number' || !Number.isFinite(b.level))) return false;
+  if (b.currentZone !== undefined && typeof b.currentZone !== 'string') return false;
+  if (b.history !== undefined) {
+    if (!Array.isArray(b.history)) return false;
+    for (const entry of b.history) {
+      if (!entry || typeof entry !== 'object') return false;
+      const e = entry as Record<string, unknown>;
+      if (typeof e.id !== 'string' || !e.id.trim()) return false;
+      if (typeof e.timestamp !== 'number') return false;
+      if (typeof e.text !== 'string') return false;
+      if (e.zone !== undefined && typeof e.zone !== 'string') return false;
+      if (e.level !== undefined && typeof e.level !== 'number') return false;
+    }
+  }
   if (typeof b.voice !== 'string' || !b.voice.trim()) return false;
   if (typeof b.createdAt !== 'number' || typeof b.updatedAt !== 'number') return false;
   return true;
@@ -101,6 +115,15 @@ export function bibleValidationErrors(x: unknown): string[] {
   }
   if (b.coreQuote !== undefined && typeof b.coreQuote !== 'string') {
     errors.push('"coreQuote" must be a string if present');
+  }
+  if (b.level !== undefined && (typeof b.level !== 'number' || !Number.isFinite(b.level))) {
+    errors.push('"level" must be a finite number if present');
+  }
+  if (b.currentZone !== undefined && typeof b.currentZone !== 'string') {
+    errors.push('"currentZone" must be a string if present');
+  }
+  if (b.history !== undefined && !Array.isArray(b.history)) {
+    errors.push('"history" must be an array if present');
   }
   requireString('voice');
   return errors;
@@ -378,5 +401,62 @@ export function deleteBible(key: string): void {
     console.warn('[bibleStore] failed to sweep NPC threads for', key, err);
   }
   if (wasActive) fireBibleUpdated(null);
+}
+
+// ---------------------------------------------------------------------------
+// public API — in-place mutations on the active bible
+// ---------------------------------------------------------------------------
+
+/**
+ * Atomically patch the active bible with a partial update, bumping
+ * updatedAt and firing the bible-updated event. Returns the new bible
+ * or null if there is no active bible.
+ */
+export function updateActiveBible(
+  patch: Partial<CharacterBible>,
+): CharacterBible | null {
+  const current = loadBible();
+  if (!current) return null;
+  const updated: CharacterBible = {
+    ...current,
+    ...patch,
+    updatedAt: Date.now(),
+  };
+  writeEntry(updated);
+  fireBibleUpdated(updated);
+  return updated;
+}
+
+/**
+ * Append a single history entry to the active bible, snapshotting the
+ * hero's current level + zone into the entry. Returns the new entry,
+ * or null if there is no active bible.
+ */
+export function appendHistoryEntry(text: string): HistoryEntry | null {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  const current = loadBible();
+  if (!current) return null;
+  const entry: HistoryEntry = {
+    id: `h_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    timestamp: Date.now(),
+    text: trimmed,
+    zone: current.currentZone,
+    level: current.level,
+  };
+  const history = [...(current.history ?? []), entry];
+  updateActiveBible({ history });
+  return entry;
+}
+
+/**
+ * Remove a single history entry by id from the active bible.
+ */
+export function deleteHistoryEntry(id: string): void {
+  const current = loadBible();
+  if (!current || !Array.isArray(current.history)) return;
+  const next = current.history.filter((e) => e.id !== id);
+  if (next.length === current.history.length) return;
+  updateActiveBible({ history: next });
 }
 

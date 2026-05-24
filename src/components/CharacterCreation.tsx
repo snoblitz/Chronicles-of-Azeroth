@@ -25,8 +25,10 @@ import {
   loadBible,
   saveBible,
   validateBible,
+  appendHistoryEntry,
+  deleteHistoryEntry,
 } from '../lib/bibleStore';
-import type { CharacterBible, ChatMessage, LLMProvider } from '../types';
+import type { CharacterBible, ChatMessage, HistoryEntry, LLMProvider } from '../types';
 
 type Step =
   | 'banner'        // existing-bible action banner shown before identity
@@ -789,6 +791,15 @@ function CharacterSheet({
               </>
             )}
           </div>
+          <div className="coa-sheet-pills">
+            <span className={`coa-sheet-pill coa-sheet-pill-level${typeof bible.level === 'number' ? '' : ' coa-sheet-pill-empty'}`}>
+              {typeof bible.level === 'number' ? `Lvl ${bible.level}` : 'Lvl —'}
+            </span>
+            <span className={`coa-sheet-pill coa-sheet-pill-zone${bible.currentZone ? '' : ' coa-sheet-pill-empty'}`}>
+              <span aria-hidden>📍</span>
+              {bible.currentZone || 'Zone unset'}
+            </span>
+          </div>
           <div className="coa-sheet-meta">
             <span>◆ {mode === 'just-saved' ? 'Just saved' : 'Auto-saved'} {updated}</span>
             {created !== updated && (
@@ -869,6 +880,8 @@ function CharacterSheet({
         </div>
       )}
 
+      <ChronicleSection bible={bible} />
+
       <footer className="coa-sheet-actions">
         <button className="coa-btn coa-btn-primary" onClick={onTalkToNpcs}>
           ◆ Talk to NPCs
@@ -901,6 +914,119 @@ function formatSheetTimestamp(ts: number): string {
   } catch {
     return '';
   }
+}
+
+function formatRelativeTime(ts: number): string {
+  if (!ts) return '';
+  const diff = Date.now() - ts;
+  const sec = Math.round(diff / 1000);
+  if (sec < 30) return 'just now';
+  if (sec < 60) return `${sec}s ago`;
+  const min = Math.round(sec / 60);
+  if (min < 60) return `${min}m ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr}h ago`;
+  const day = Math.round(hr / 24);
+  if (day < 7) return `${day}d ago`;
+  try {
+    return new Date(ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return `${day}d ago`;
+  }
+}
+
+function ChronicleSection({ bible }: { bible: CharacterBible }) {
+  const [draft, setDraft] = useState('');
+  const entries = bible.history ?? [];
+  const sortedEntries = useMemo(
+    () => [...entries].sort((a, b) => b.timestamp - a.timestamp),
+    [entries],
+  );
+
+  function handleAdd() {
+    const trimmed = draft.trim();
+    if (!trimmed) return;
+    appendHistoryEntry(trimmed);
+    setDraft('');
+  }
+
+  function handleDelete(entry: HistoryEntry) {
+    if (!window.confirm(`Delete this chronicle entry?\n\n"${entry.text}"`)) return;
+    deleteHistoryEntry(entry.id);
+  }
+
+  return (
+    <section className="coa-sheet-section coa-sheet-chronicle">
+      <h3 className="coa-sheet-section-title">Chronicle</h3>
+
+      <div className="coa-sheet-chronicle-add">
+        <textarea
+          className="coa-input"
+          placeholder={
+            typeof bible.level === 'number' || bible.currentZone
+              ? `What happened? (will snapshot ${[
+                  typeof bible.level === 'number' ? `Lvl ${bible.level}` : null,
+                  bible.currentZone,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')})`
+              : 'What happened? Set your level and zone first for richer logs.'
+          }
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+              e.preventDefault();
+              handleAdd();
+            }
+          }}
+          rows={2}
+        />
+        <button
+          className="coa-btn coa-btn-primary"
+          onClick={handleAdd}
+          disabled={!draft.trim()}
+        >
+          ◆ Log entry
+        </button>
+      </div>
+
+      {sortedEntries.length === 0 ? (
+        <p className="coa-sheet-chronicle-empty muted">
+          No chronicled deeds yet. Log your first one above — slain foes, sights seen, oaths sworn.
+        </p>
+      ) : (
+        <ol className="coa-sheet-chronicle-list">
+          {sortedEntries.map((entry) => (
+            <li key={entry.id} className="coa-sheet-chronicle-entry">
+              <div className="coa-sheet-chronicle-entry-meta">
+                <span className="coa-sheet-chronicle-time">{formatRelativeTime(entry.timestamp)}</span>
+                {(typeof entry.level === 'number' || entry.zone) && (
+                  <span className="coa-sheet-chronicle-context">
+                    {typeof entry.level === 'number' && (
+                      <span className="coa-sheet-chronicle-chip">Lvl {entry.level}</span>
+                    )}
+                    {entry.zone && (
+                      <span className="coa-sheet-chronicle-chip">📍 {entry.zone}</span>
+                    )}
+                  </span>
+                )}
+                <button
+                  className="coa-sheet-chronicle-delete"
+                  onClick={() => handleDelete(entry)}
+                  aria-label="Delete entry"
+                  title="Delete entry"
+                >
+                  ✕
+                </button>
+              </div>
+              <p className="coa-sheet-chronicle-text">{entry.text}</p>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
 }
 
 interface IdentityFormProps {
@@ -1199,22 +1325,53 @@ function ReviewView({
           : 'Review and edit before saving. Beliefs and motivations are one per line.'}
       </p>
       {isEditing && (
-        <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '1fr 1fr' }}>
-          <Field label="Name">
-            <input
-              className="coa-input"
-              value={bible.name}
-              onChange={(e) => onChange({ ...bible, name: e.target.value })}
-            />
-          </Field>
-          <Field label="Homeland">
-            <input
-              className="coa-input"
-              value={bible.homeland ?? ''}
-              onChange={(e) => onChange({ ...bible, homeland: e.target.value || undefined })}
-            />
-          </Field>
-        </div>
+        <>
+          <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '1fr 1fr' }}>
+            <Field label="Name">
+              <input
+                className="coa-input"
+                value={bible.name}
+                onChange={(e) => onChange({ ...bible, name: e.target.value })}
+              />
+            </Field>
+            <Field label="Homeland">
+              <input
+                className="coa-input"
+                value={bible.homeland ?? ''}
+                onChange={(e) => onChange({ ...bible, homeland: e.target.value || undefined })}
+              />
+            </Field>
+          </div>
+          <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '160px 1fr' }}>
+            <Field label="Level">
+              <input
+                className="coa-input"
+                type="number"
+                min={1}
+                max={80}
+                value={typeof bible.level === 'number' ? bible.level : ''}
+                placeholder="—"
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === '') {
+                    onChange({ ...bible, level: undefined });
+                    return;
+                  }
+                  const n = Number(raw);
+                  if (Number.isFinite(n)) onChange({ ...bible, level: n });
+                }}
+              />
+            </Field>
+            <Field label="Current zone">
+              <input
+                className="coa-input"
+                value={bible.currentZone ?? ''}
+                placeholder="e.g. Westfall, Ironforge, Goldshire"
+                onChange={(e) => onChange({ ...bible, currentZone: e.target.value || undefined })}
+              />
+            </Field>
+          </div>
+        </>
       )}
       <Field label="Backstory">
         <textarea

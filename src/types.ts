@@ -60,9 +60,23 @@ export interface CharacterBible {
   flaws?: string[];    // limitations, blind spots, recurring hesitations
   coreQuote?: string;  // a single sentence that distills the whole hero
   voice: string;       // how they speak — tone, vocabulary, mannerisms
+
+  // ---- Dynamic in-world state (mutable as the hero plays) ----
+  level?: number;             // current player level (1-80)
+  currentZone?: string;       // current zone, e.g. 'Westfall'
+  history?: HistoryEntry[];   // chronological journal, oldest first
+
   createdAt: number;
   updatedAt: number;
   // Phase 1+ will add: relationships, scars, vows, contradictions, etc.
+}
+
+export interface HistoryEntry {
+  id: string;          // stable unique id
+  timestamp: number;   // ms epoch
+  text: string;        // e.g. "Slew Hogger near Goldshire"
+  zone?: string;       // snapshot of zone at the time
+  level?: number;      // snapshot of level at the time
 }
 
 // Versioned envelope so Phase 1 (SQLite migration) can detect old shapes.

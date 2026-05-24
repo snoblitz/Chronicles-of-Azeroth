@@ -94,6 +94,12 @@ export function NpcChat() {
       '',
       'About the hero:',
       `- Voice: ${heroBible.voice}`,
+      ...(typeof heroBible.level === 'number'
+        ? [`- Current level: ${heroBible.level}`]
+        : []),
+      ...(heroBible.currentZone
+        ? [`- Currently in: ${heroBible.currentZone}`]
+        : []),
       ...(heroBible.coreQuote && heroBible.coreQuote.trim()
         ? [`- Core: ${heroBible.coreQuote.trim()}`]
         : []),
@@ -109,6 +115,24 @@ export function NpcChat() {
         : []),
       '- Backstory:',
       heroBible.backstory,
+      ...(heroBible.history && heroBible.history.length > 0
+        ? [
+            '',
+            'Recent chronicled deeds (newest last). Reference them naturally if relevant; do not list them back:',
+            ...[...heroBible.history]
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .slice(-5)
+              .map((h) => {
+                const ctx = [
+                  typeof h.level === 'number' ? `Lvl ${h.level}` : null,
+                  h.zone,
+                ]
+                  .filter(Boolean)
+                  .join(' · ');
+                return `  \u2022 ${h.text}${ctx ? ` (${ctx})` : ''}`;
+              }),
+          ]
+        : []),
       '',
       'CRITICAL RULES (do not violate):',
       `- Reply only as ${npcEntry.name}. Speak in first person.`,
@@ -285,10 +309,22 @@ export function NpcChat() {
       '',
       'Hero voice & beliefs:',
       `- Voice: ${bible.voice}`,
+      ...(typeof bible.level === 'number' ? [`- Level: ${bible.level}`] : []),
+      ...(bible.currentZone ? [`- Currently in: ${bible.currentZone}`] : []),
       ...(bible.coreQuote && bible.coreQuote.trim() ? [`- Core: ${bible.coreQuote.trim()}`] : []),
       ...bible.beliefs.slice(0, 4).map((b) => `- ${b}`),
       ...((bible.fears ?? []).slice(0, 2).map((f) => `- Fear: ${f}`)),
       ...((bible.flaws ?? []).slice(0, 2).map((f) => `- Flaw: ${f}`)),
+      ...(bible.history && bible.history.length > 0
+        ? [
+            '',
+            'Recent deeds (newest last):',
+            ...[...bible.history]
+              .sort((a, b) => a.timestamp - b.timestamp)
+              .slice(-3)
+              .map((h) => `- ${h.text}`),
+          ]
+        : []),
     ].join('\n');
 
     const lastNpcLine = [...thread.turns].reverse().find((t) => t.role === 'assistant');
