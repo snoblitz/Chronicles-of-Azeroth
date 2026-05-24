@@ -570,6 +570,187 @@ select.coa-input {
   color: var(--fg-muted);
 }
 
+.coa-npc-saved {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #7dd87a;
+  letter-spacing: 0.04em;
+  margin-top: 0.25rem;
+  opacity: 0.85;
+}
+.coa-npc-saved::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7dd87a;
+  box-shadow: 0 0 6px rgba(125, 216, 122, 0.6);
+}
+
+/* ===========================================================================
+   Character selector — header chip + dropdown
+   =========================================================================== */
+
+.coa-char-selector {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.coa-char-selector-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.coa-char-selector-trigger:hover {
+  border-color: var(--gold);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.coa-char-selector-label {
+  color: var(--fg-muted);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.coa-char-selector-name {
+  color: var(--gold);
+  font-weight: 600;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+}
+.coa-char-selector-meta {
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+.coa-char-selector-caret {
+  color: var(--fg-muted);
+  font-size: 12px;
+  margin-left: 0.15rem;
+}
+
+.coa-char-selector-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 320px;
+  max-width: 420px;
+  background: linear-gradient(180deg, #1c1610 0%, #14100a 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  overflow: hidden;
+}
+
+.coa-char-selector-section {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.coa-char-selector-section:last-child { border-bottom: none; }
+
+.coa-char-selector-section-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+  margin-bottom: 0.4rem;
+}
+
+.coa-char-selector-active {
+  background: rgba(214, 168, 88, 0.07);
+}
+
+.coa-char-selector-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.coa-char-selector-row-main {
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: default;
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+}
+.coa-char-selector-row-switch { cursor: pointer; }
+.coa-char-selector-row-switch:hover {
+  background: rgba(214, 168, 88, 0.12);
+}
+.coa-char-selector-row-name {
+  font-family: var(--font-display);
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.coa-char-selector-row-meta {
+  font-family: var(--font-body);
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.coa-char-selector-row-delete {
+  background: none;
+  border: 1px solid rgba(232, 93, 77, 0.4);
+  color: #e85d4d;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s, background 0.15s;
+}
+.coa-char-selector-row-delete:hover {
+  opacity: 1;
+  background: rgba(232, 93, 77, 0.12);
+}
+
+.coa-char-selector-new {
+  width: 100%;
+  background: rgba(125, 216, 122, 0.08);
+  border: 1px solid rgba(125, 216, 122, 0.4);
+  color: #9ce39a;
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.coa-char-selector-new:hover {
+  background: rgba(125, 216, 122, 0.18);
+  border-color: #9ce39a;
+}
+
+.coa-char-selector-foot {
+  margin-top: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  color: var(--fg-muted);
+  font-style: italic;
+  text-align: center;
+}
 
 /* ===========================================================================
    Spend bar — keep it monospaced/HUDish, but make it less ugly

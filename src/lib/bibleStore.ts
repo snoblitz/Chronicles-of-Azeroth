@@ -1,14 +1,41 @@
 // ============================================================================
 // Character bible storage — Phase 0 uses localStorage with a versioned envelope.
 // Phase 1 will swap the backend to SQLite; the public API here should stay stable.
+//
+// Storage layout (multi-character roster, v2):
+//   coa.bible.roster.v1     -> { activeKey: string | null, keys: string[] }
+//   coa.bible.entry.<key>   -> BibleEnvelope (one per saved hero)
+//
+// Where <key> is the bible's createdAt timestamp as a string. This matches the
+// `characterKey` used by npcChatStore so NPC threads stay bound to the right hero.
+//
+// Migration: a legacy `coa.bible.current` key (the old single-bible slot) is
+// detected on every load and migrated into the roster on the fly.
 // ============================================================================
 
 import type { BibleEnvelope, CharacterBible } from '../types';
 
-const STORAGE_KEY = 'coa.bible.current';
+const LEGACY_KEY = 'coa.bible.current';
+const ROSTER_KEY = 'coa.bible.roster.v1';
+const ENTRY_PREFIX = 'coa.bible.entry.';
 const SCHEMA_VERSION = 1;
 
 const VALID_FACTIONS = ['Alliance', 'Horde'] as const;
+
+interface RosterIndex {
+  activeKey: string | null;
+  keys: string[];
+}
+
+export interface BibleRosterEntry {
+  key: string;
+  name: string;
+  race: string;
+  class: string;
+  faction: string;
+  updatedAt: number;
+  isActive: boolean;
+}
 
 /**
  * Type guard for `CharacterBible`. Returns true only if the shape matches
@@ -67,43 +94,206 @@ export function bibleValidationErrors(x: unknown): string[] {
   return errors;
 }
 
-export function loadBible(): CharacterBible | null {
+// ---------------------------------------------------------------------------
+// internal: roster + entry helpers
+// ---------------------------------------------------------------------------
+
+function entryStorageKey(key: string): string {
+  return `${ENTRY_PREFIX}${key}`;
+}
+
+function readRoster(): RosterIndex {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(ROSTER_KEY);
+    if (!raw) return { activeKey: null, keys: [] };
+    const parsed = JSON.parse(raw) as Partial<RosterIndex>;
+    if (!parsed || typeof parsed !== 'object') return { activeKey: null, keys: [] };
+    const keys = Array.isArray(parsed.keys) ? parsed.keys.filter((k): k is string => typeof k === 'string') : [];
+    const activeKey = typeof parsed.activeKey === 'string' && keys.includes(parsed.activeKey)
+      ? parsed.activeKey
+      : null;
+    return { activeKey, keys };
+  } catch (err) {
+    console.warn('[bibleStore] failed to read roster:', err);
+    return { activeKey: null, keys: [] };
+  }
+}
+
+function writeRoster(roster: RosterIndex): void {
+  localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
+}
+
+function readEntry(key: string): CharacterBible | null {
+  try {
+    const raw = localStorage.getItem(entryStorageKey(key));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<BibleEnvelope>;
     if (!parsed || typeof parsed !== 'object') return null;
     if (parsed.schemaVersion !== SCHEMA_VERSION) {
-      console.warn(`[bibleStore] schemaVersion mismatch (got ${parsed.schemaVersion}, expected ${SCHEMA_VERSION})`);
+      console.warn(`[bibleStore] entry ${key}: schemaVersion mismatch`);
       return null;
     }
     if (!validateBible(parsed.bible)) {
-      console.warn('[bibleStore] saved bible failed validation; ignoring');
+      console.warn(`[bibleStore] entry ${key}: failed validation`);
       return null;
     }
     return parsed.bible;
   } catch (err) {
-    console.warn('[bibleStore] failed to load:', err);
+    console.warn(`[bibleStore] failed to read entry ${key}:`, err);
     return null;
   }
 }
 
-export function saveBible(bible: CharacterBible): BibleEnvelope {
+function writeEntry(bible: CharacterBible): void {
   const envelope: BibleEnvelope = {
     schemaVersion: SCHEMA_VERSION,
     savedAt: Date.now(),
     bible,
   };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(envelope));
+  localStorage.setItem(entryStorageKey(bibleKey(bible)), JSON.stringify(envelope));
+}
+
+function bibleKey(bible: Pick<CharacterBible, 'createdAt'>): string {
+  return String(bible.createdAt);
+}
+
+/**
+ * One-shot migration of the legacy single-bible slot into the roster. Safe to
+ * call repeatedly: if the legacy slot is gone or the entry already exists in
+ * the roster, this is a no-op.
+ */
+function migrateLegacyIfPresent(): void {
+  try {
+    const legacyRaw = localStorage.getItem(LEGACY_KEY);
+    if (!legacyRaw) return;
+    const parsed = JSON.parse(legacyRaw) as Partial<BibleEnvelope>;
+    if (!parsed || parsed.schemaVersion !== SCHEMA_VERSION || !validateBible(parsed.bible)) {
+      localStorage.removeItem(LEGACY_KEY);
+      return;
+    }
+    const key = bibleKey(parsed.bible);
+    const roster = readRoster();
+    if (!roster.keys.includes(key)) {
+      writeEntry(parsed.bible);
+      roster.keys.push(key);
+    }
+    if (!roster.activeKey) {
+      roster.activeKey = key;
+    }
+    writeRoster(roster);
+    localStorage.removeItem(LEGACY_KEY);
+    console.info('[bibleStore] migrated legacy bible into roster');
+  } catch (err) {
+    console.warn('[bibleStore] legacy migration failed:', err);
+  }
+}
+
+function fireBibleUpdated(bible: CharacterBible | null): void {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent('coa:bible-updated', { detail: bible }));
   }
-  return envelope;
 }
 
-export function clearBible(): void {
-  localStorage.removeItem(STORAGE_KEY);
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('coa:bible-updated', { detail: null }));
-  }
+// ---------------------------------------------------------------------------
+// public API — single-active-bible (existing surface, preserved)
+// ---------------------------------------------------------------------------
+
+export function loadBible(): CharacterBible | null {
+  migrateLegacyIfPresent();
+  const roster = readRoster();
+  if (!roster.activeKey) return null;
+  return readEntry(roster.activeKey);
 }
+
+export function saveBible(bible: CharacterBible): BibleEnvelope {
+  migrateLegacyIfPresent();
+  writeEntry(bible);
+  const key = bibleKey(bible);
+  const roster = readRoster();
+  if (!roster.keys.includes(key)) roster.keys.push(key);
+  roster.activeKey = key;
+  writeRoster(roster);
+  fireBibleUpdated(bible);
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    savedAt: Date.now(),
+    bible,
+  };
+}
+
+/**
+ * Non-destructive: clears the active pointer so the UI falls back to the
+ * creation interview, but keeps the bible in the roster so it can be reopened
+ * from the character selector. Use `deleteBible` for permanent removal.
+ */
+export function clearBible(): void {
+  migrateLegacyIfPresent();
+  const roster = readRoster();
+  if (roster.activeKey === null) return;
+  roster.activeKey = null;
+  writeRoster(roster);
+  fireBibleUpdated(null);
+}
+
+// ---------------------------------------------------------------------------
+// public API — multi-character roster
+// ---------------------------------------------------------------------------
+
+export function listBibles(): BibleRosterEntry[] {
+  migrateLegacyIfPresent();
+  const roster = readRoster();
+  const entries: BibleRosterEntry[] = [];
+  for (const key of roster.keys) {
+    const bible = readEntry(key);
+    if (!bible) continue;
+    entries.push({
+      key,
+      name: bible.name,
+      race: bible.race,
+      class: bible.class,
+      faction: bible.faction,
+      updatedAt: bible.updatedAt,
+      isActive: key === roster.activeKey,
+    });
+  }
+  entries.sort((a, b) => b.updatedAt - a.updatedAt);
+  return entries;
+}
+
+export function setActiveBible(key: string): CharacterBible | null {
+  migrateLegacyIfPresent();
+  const bible = readEntry(key);
+  if (!bible) return null;
+  const roster = readRoster();
+  if (!roster.keys.includes(key)) roster.keys.push(key);
+  roster.activeKey = key;
+  writeRoster(roster);
+  fireBibleUpdated(bible);
+  return bible;
+}
+
+export function deleteBible(key: string): void {
+  migrateLegacyIfPresent();
+  const roster = readRoster();
+  const idx = roster.keys.indexOf(key);
+  if (idx === -1) return;
+  roster.keys.splice(idx, 1);
+  const wasActive = roster.activeKey === key;
+  if (wasActive) roster.activeKey = null;
+  writeRoster(roster);
+  localStorage.removeItem(entryStorageKey(key));
+  // Also sweep any NPC threads bound to this hero.
+  try {
+    const npcPrefix = `coa.npc.v1.${key}.`;
+    const toRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith(npcPrefix)) toRemove.push(k);
+    }
+    toRemove.forEach((k) => localStorage.removeItem(k));
+  } catch (err) {
+    console.warn('[bibleStore] failed to sweep NPC threads for', key, err);
+  }
+  if (wasActive) fireBibleUpdated(null);
+}
+

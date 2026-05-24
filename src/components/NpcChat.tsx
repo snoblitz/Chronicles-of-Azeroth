@@ -303,7 +303,7 @@ export function NpcChat() {
       const res = await provider.chat({
         task: 'npc-chat',
         model: MODEL_CHOICES[modelIdx].pricingKey,
-        maxTokens: 400,
+        maxTokens: 768,
         temperature: 0.95,
         messages: [
           { role: 'system', content: heroAssistSystem },
@@ -391,6 +391,7 @@ export function NpcChat() {
           onReset={handleResetConversation}
           busy={busy}
           transcriptEndRef={transcriptEndRef}
+          savedAt={thread.updatedAt}
         />
       )}
     </div>
@@ -446,6 +447,17 @@ interface ChatViewProps {
   onReset: () => void;
   busy: 'idle' | 'reply' | 'assist';
   transcriptEndRef: React.RefObject<HTMLDivElement | null>;
+  savedAt: number;
+}
+
+function formatSavedAt(ts: number): string {
+  const now = Date.now();
+  const diff = now - ts;
+  if (diff < 30_000) return 'Auto-saved · just now';
+  if (diff < 60_000) return 'Auto-saved · moments ago';
+  const d = new Date(ts);
+  const time = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  return `Auto-saved · ${time}`;
 }
 
 function NpcChatView(p: ChatViewProps) {
@@ -460,6 +472,9 @@ function NpcChatView(p: ChatViewProps) {
         <div className="coa-npc-header" style={{ flex: 1, marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
           <div className="coa-npc-header-name">{p.npc.name}</div>
           <div className="coa-npc-header-title">{p.npc.title} • {p.npc.zone}</div>
+          <div className="coa-npc-saved" title="Conversations are saved locally in your browser">
+            {formatSavedAt(p.savedAt)}
+          </div>
         </div>
         <button
           type="button"
