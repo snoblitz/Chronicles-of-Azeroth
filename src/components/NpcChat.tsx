@@ -303,7 +303,7 @@ export function NpcChat() {
       const res = await provider.chat({
         task: 'npc-chat',
         model: MODEL_CHOICES[modelIdx].pricingKey,
-        maxTokens: 768,
+        maxTokens: 2048,
         temperature: 0.95,
         messages: [
           { role: 'system', content: heroAssistSystem },
@@ -315,7 +315,11 @@ export function NpcChat() {
       const drafted = res.text.trim();
       if (drafted) setHeroInput(drafted);
       if (res.stopReason === 'truncated') {
-        setError('AI draft was cut off at the model\u2019s output cap. Edit before sending.');
+        const visibleWords = drafted.split(/\s+/).filter(Boolean).length;
+        setError(
+          `AI draft was cut off at the model\u2019s output cap (${res.outputTokens} output tokens billed, ` +
+          `~${visibleWords} visible words). Edit before sending, or switch to a model with more headroom.`,
+        );
       }
     } catch (err) {
       if (myRequestId !== requestIdRef.current) return;
