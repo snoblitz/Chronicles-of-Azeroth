@@ -1,13 +1,67 @@
+/* ============================================================================
+   Chronicles of Azeroth — design system
+   "Leather-bound spellbook on an oak table" — warm, tactile, a little magical.
+   ============================================================================ */
+
 :root {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  /* ---- Surfaces ---- */
+  --bg:               #15110d;
+  --bg-elevated:      #1f1812;
+  --bg-surface:       #2a2018;
+  --bg-surface-hover: #322619;
+  --bg-inset:         #110d09;
+
+  /* ---- Borders ---- */
+  --border:        #3a2e22;
+  --border-strong: #5a4a3a;
+  --border-glow:   #7a5a3a;
+
+  /* ---- Text ---- */
+  --fg:        #ede7d8;
+  --fg-muted:  #a89c80;
+  --fg-faint:  #6a5f4a;
+
+  /* ---- Accent: gold/amber (UI primary) ---- */
+  --gold:        #d4a373;
+  --gold-bright: #f0c896;
+  --gold-deep:   #8b6240;
+
+  /* ---- Lore-flavored accents ---- */
+  --alliance: #6aa8ff;
+  --horde:    #d76450;
+  --magic:    #b89eff;     /* arcane / AI assist */
+
+  /* ---- Status ---- */
+  --success: #7dd87a;
+  --warn:    #e8c14d;
+  --danger:  #e85d4d;
+
+  /* ---- Type ---- */
+  --font-display: 'Cinzel', 'Georgia', serif;
+  --font-body:    'Crimson Pro', 'Georgia', serif;
+  --font-ui:      'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Consolas', monospace;
+
+  /* ---- Radius ---- */
+  --r-sm: 3px;
+  --r-md: 6px;
+  --r-lg: 10px;
+
+  /* ---- Shadows ---- */
+  --sh-panel:    0 12px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 240, 200, 0.04);
+  --sh-button:   0 1px 2px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 240, 200, 0.08);
+  --sh-inset:    inset 0 2px 6px rgba(0, 0, 0, 0.5);
+  --sh-glow-gold:   0 0 0 1px rgba(212, 163, 115, 0.5), 0 0 16px rgba(212, 163, 115, 0.25);
+  --sh-glow-magic:  0 0 0 1px rgba(184, 158, 255, 0.55), 0 0 16px rgba(184, 158, 255, 0.3);
+  --sh-glow-danger: 0 0 0 1px rgba(232, 93, 77, 0.5),  0 0 12px rgba(232, 93, 77, 0.25);
+
+  font-family: var(--font-ui);
   color-scheme: dark;
-  color: #e8e4d8;
-  background: #1a1612;
+  color: var(--fg);
+  background: var(--bg);
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body, #root {
   margin: 0;
@@ -16,12 +70,454 @@ html, body, #root {
 }
 
 body {
+  /* Layered: vignette + warm radial wash + subtle SVG noise for tactile feel */
   background:
-    radial-gradient(ellipse at top, #2a221a 0%, #1a1612 60%),
-    #1a1612;
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(212, 163, 115, 0.08), transparent 60%),
+    radial-gradient(ellipse at top, #2a221a 0%, var(--bg) 60%),
+    var(--bg);
+  background-attachment: fixed;
 }
 
-button {
-  font: inherit;
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.3  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===========================================================================
+   Typography
+   =========================================================================== */
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--fg);
+  margin: 0 0 0.5rem 0;
+}
+
+h1 {
+  font-size: 2.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--gold-bright);
+  text-shadow: 0 0 24px rgba(212, 163, 115, 0.25), 0 2px 0 rgba(0, 0, 0, 0.6);
+  margin-bottom: 0.25rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+  color: var(--gold);
+}
+
+h3 { font-size: 1.15rem; }
+
+p { margin: 0.5rem 0; }
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+.muted { color: var(--fg-muted); }
+.faint { color: var(--fg-faint); }
+
+/* Decorative ornament under headers */
+.ornament {
+  display: block;
+  width: 100%;
+  height: 1px;
+  border: none;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-strong) 20%,
+    var(--gold-deep) 50%,
+    var(--border-strong) 80%,
+    transparent
+  );
+  margin: 0.5rem 0 1.5rem 0;
+}
+
+/* ===========================================================================
+   Form controls — input, textarea, select share the same look
+   =========================================================================== */
+
+.coa-input,
+.coa-input-wrap input,
+.coa-input-wrap textarea,
+.coa-input-wrap select {
+  background: var(--bg-inset);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 0.6rem 0.85rem;
+  font-size: 14px;
+  font-family: inherit;
+  box-shadow: var(--sh-inset);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  width: 100%;
+  outline: none;
+}
+
+.coa-input:hover:not(:disabled),
+.coa-input-wrap input:hover:not(:disabled),
+.coa-input-wrap textarea:hover:not(:disabled),
+.coa-input-wrap select:hover:not(:disabled) {
+  border-color: var(--border-strong);
+}
+
+.coa-input:focus,
+.coa-input-wrap input:focus,
+.coa-input-wrap textarea:focus,
+.coa-input-wrap select:focus {
+  border-color: var(--gold);
+  box-shadow: var(--sh-inset), 0 0 0 1px var(--gold), 0 0 12px rgba(212, 163, 115, 0.25);
+}
+
+.coa-input:disabled,
+.coa-input-wrap input:disabled,
+.coa-input-wrap textarea:disabled,
+.coa-input-wrap select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coa-input::placeholder,
+.coa-input-wrap input::placeholder,
+.coa-input-wrap textarea::placeholder {
+  color: var(--fg-faint);
+  font-style: italic;
+}
+
+select.coa-input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2rem;
+}
+
+/* Reusable serif body for textareas that display prose */
+.coa-prose {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+/* ===========================================================================
+   Field — label + control wrapper
+   =========================================================================== */
+
+.coa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.coa-field-label {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+/* ===========================================================================
+   Buttons
+   =========================================================================== */
+
+.coa-btn {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 0.55rem 1.1rem;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--fg);
   cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+              box-shadow 0.15s ease, transform 0.05s ease, color 0.15s ease;
+  box-shadow: var(--sh-button);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+}
+.coa-btn:active { transform: translateY(1px); }
+
+.coa-btn-primary {
+  background: linear-gradient(180deg, #6b4520 0%, #4a2f15 100%);
+  border-color: var(--gold-deep);
+  color: var(--gold-bright);
+  letter-spacing: 0.04em;
+}
+.coa-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #7a5128 0%, #553519 100%);
+  border-color: var(--gold);
+  box-shadow: var(--sh-glow-gold);
+  color: #fff3dd;
+}
+
+.coa-btn-secondary {
+  background: var(--bg-surface);
+  border-color: var(--border-strong);
+  color: var(--fg);
+}
+.coa-btn-secondary:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-glow);
+}
+
+.coa-btn-danger {
+  background: linear-gradient(180deg, #4a1a18 0%, #2e110f 100%);
+  border-color: #6a2a25;
+  color: #f0b0a8;
+}
+.coa-btn-danger:hover:not(:disabled) {
+  border-color: var(--danger);
+  box-shadow: var(--sh-glow-danger);
+  color: #ffd5cf;
+}
+
+/* AI assist — arcane purple, faint pulse */
+.coa-btn-assist {
+  background: linear-gradient(180deg, #2e2545 0%, #1f1a2e 100%);
+  border-color: #4a3e6e;
+  color: var(--magic);
+  letter-spacing: 0.03em;
+}
+.coa-btn-assist:hover:not(:disabled) {
+  border-color: var(--magic);
+  box-shadow: var(--sh-glow-magic);
+  color: #ebe0ff;
+}
+.coa-btn-assist .sparkle {
+  display: inline-block;
+  animation: coa-sparkle 2.4s ease-in-out infinite;
+}
+@keyframes coa-sparkle {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.15); }
+}
+
+.coa-btn:disabled {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  color: var(--fg-faint);
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.coa-btn-sm {
+  padding: 0.35rem 0.7rem;
+  font-size: 12.5px;
+}
+
+/* Square icon button (for the sparkle next to name) */
+.coa-btn-icon {
+  padding: 0.55rem 0.8rem;
+  min-width: 2.5rem;
+  justify-content: center;
+}
+
+/* ===========================================================================
+   Panels / surfaces
+   =========================================================================== */
+
+.coa-panel {
+  position: relative;
+  background:
+    linear-gradient(180deg, var(--bg-elevated) 0%, #1a140f 100%);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 1.75rem 2rem;
+  box-shadow: var(--sh-panel);
+}
+
+.coa-panel::before {
+  /* Inner gold hairline highlight for that "tooled leather" feel */
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border-radius: calc(var(--r-lg) - 2px);
+  border: 1px solid rgba(212, 163, 115, 0.06);
+  pointer-events: none;
+}
+
+.coa-callout {
+  padding: 1rem 1.25rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-inset);
+}
+.coa-callout-success {
+  border-color: rgba(125, 216, 122, 0.4);
+  background: rgba(40, 60, 35, 0.4);
+}
+.coa-callout-danger {
+  border-color: rgba(232, 93, 77, 0.5);
+  background: rgba(60, 25, 22, 0.5);
+  color: #f0b0a8;
+}
+.coa-callout-danger code { color: #ffc8c0; }
+
+/* ===========================================================================
+   Tabs — grimoire chapter dividers
+   =========================================================================== */
+
+.coa-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.coa-tab {
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--fg-muted);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+.coa-tab:hover { color: var(--fg); }
+.coa-tab[aria-selected='true'] {
+  color: var(--gold-bright);
+}
+.coa-tab[aria-selected='true']::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: -1px;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--gold), transparent);
+  box-shadow: 0 0 8px rgba(212, 163, 115, 0.5);
+}
+
+/* ===========================================================================
+   Transcript bubbles
+   =========================================================================== */
+
+.coa-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.coa-bubble {
+  padding: 1rem 1.25rem 1.1rem 1.25rem;
+  border-radius: var(--r-md);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  position: relative;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.coa-bubble-loremaster {
+  background: linear-gradient(180deg, #1a2218 0%, #131a12 100%);
+  border-color: rgba(125, 165, 110, 0.25);
+  border-left: 3px solid rgba(212, 163, 115, 0.6);
+}
+
+.coa-bubble-hero {
+  background: linear-gradient(180deg, #181828 0%, #11111c 100%);
+  border-color: rgba(120, 110, 165, 0.25);
+  border-left: 3px solid var(--magic);
+}
+
+.coa-bubble-label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+.coa-bubble-loremaster .coa-bubble-label { color: var(--gold); }
+.coa-bubble-hero       .coa-bubble-label { color: var(--magic); }
+
+/* ===========================================================================
+   Spend bar — keep it monospaced/HUDish, but make it less ugly
+   =========================================================================== */
+
+.coa-spendbar {
+  background: linear-gradient(180deg, #1e1810 0%, #15100a 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--fg-muted);
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.coa-spendbar strong { color: var(--gold); font-weight: 500; }
+.coa-spendbar-table {
+  border-collapse: collapse;
+  font-size: 11.5px;
+  width: 100%;
+}
+.coa-spendbar-table th {
+  text-align: left;
+  padding: 0.35rem 0.6rem;
+  font-weight: 600;
+  color: var(--gold);
+  border-bottom: 1px solid var(--border);
+}
+.coa-spendbar-table td {
+  padding: 0.3rem 0.6rem;
+  border-bottom: 1px solid rgba(58, 46, 34, 0.5);
+}
+
+/* ===========================================================================
+   Scrollbar
+   =========================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); background-clip: padding-box; }
+
+/* ===========================================================================
+   Selection
+   =========================================================================== */
+
+::selection {
+  background: rgba(212, 163, 115, 0.35);
+  color: #fff3dd;
 }

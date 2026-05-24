@@ -40,23 +40,14 @@ export function SpendBar() {
   }
 
   return (
-    <div
-      style={{
-        background: '#22180f',
-        borderBottom: '1px solid #3a2a1a',
-        padding: '0.5rem 1rem',
-        fontFamily: 'Consolas, monospace',
-        fontSize: 13,
-        color: '#d4c8a8',
-      }}
-    >
+    <div className="coa-spendbar">
       <div
-        style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', cursor: 'pointer' }}
+        style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', cursor: 'pointer', flexWrap: 'wrap' }}
         onClick={() => setExpanded((v) => !v)}
       >
         <span>
           <strong>Today:</strong>{' '}
-          <span style={{ color: todayColor }}>${today.toFixed(4)}</span>
+          <span style={{ color: todayColor, fontWeight: 600 }}>${today.toFixed(4)}</span>
         </span>
         <span>
           <strong>Calls:</strong> {records.length}
@@ -67,59 +58,52 @@ export function SpendBar() {
             {lastCall.costUsd.toFixed(4)} ({lastCall.model}, {lastCall.tier})
           </span>
         )}
-        <span style={{ marginLeft: 'auto', opacity: 0.5 }}>
-          {expanded ? '▼ click to collapse' : '▶ click for breakdown'}
+        <span style={{ marginLeft: 'auto', opacity: 0.55 }}>
+          {expanded ? '▼ collapse' : '▶ breakdown'}
         </span>
       </div>
 
       {expanded && (
-        <div style={{ marginTop: '0.75rem', overflowX: 'auto' }}>
+        <div style={{ marginTop: '0.85rem', overflowX: 'auto' }}>
           {averages.length === 0 ? (
             <p style={{ opacity: 0.6 }}>No usage yet today. Make an LLM call to see data.</p>
           ) : (
             <>
-              <table style={{ borderCollapse: 'collapse', fontSize: 12, width: '100%' }}>
+              <table className="coa-spendbar-table">
                 <thead>
-                  <tr style={{ borderBottom: '1px solid #3a2a1a', textAlign: 'left' }}>
-                    <th style={th}>Task</th>
-                    <th style={th}>Model</th>
-                    <th style={thR}>Calls</th>
-                    <th style={thR}>Avg in</th>
-                    <th style={thR}>Avg cached</th>
-                    <th style={thR}>Avg out</th>
-                    <th style={thR}>Avg $</th>
-                    <th style={thR}>Total $</th>
+                  <tr>
+                    <th>Task</th>
+                    <th>Model</th>
+                    <th style={{ textAlign: 'right' }}>Calls</th>
+                    <th style={{ textAlign: 'right' }}>Avg in</th>
+                    <th style={{ textAlign: 'right' }}>Avg cached</th>
+                    <th style={{ textAlign: 'right' }}>Avg out</th>
+                    <th style={{ textAlign: 'right' }}>Avg $</th>
+                    <th style={{ textAlign: 'right' }}>Total $</th>
                   </tr>
                 </thead>
                 <tbody>
                   {averages.map((a) => (
-                    <tr key={`${a.task}::${a.model}`} style={{ borderBottom: '1px solid #2a2018' }}>
-                      <td style={td}>{a.task}</td>
-                      <td style={td}>{a.model}</td>
-                      <td style={tdR}>{a.calls}</td>
-                      <td style={tdR}>{a.avgInput.toFixed(0)}</td>
-                      <td style={tdR}>{a.avgCached.toFixed(0)}</td>
-                      <td style={tdR}>{a.avgOutput.toFixed(0)}</td>
-                      <td style={tdR}>${a.avgCostUsd.toFixed(5)}</td>
-                      <td style={tdR}>${a.totalCostUsd.toFixed(4)}</td>
+                    <tr key={`${a.task}::${a.model}`}>
+                      <td>{a.task}</td>
+                      <td>{a.model}</td>
+                      <td style={{ textAlign: 'right' }}>{a.calls}</td>
+                      <td style={{ textAlign: 'right' }}>{a.avgInput.toFixed(0)}</td>
+                      <td style={{ textAlign: 'right' }}>{a.avgCached.toFixed(0)}</td>
+                      <td style={{ textAlign: 'right' }}>{a.avgOutput.toFixed(0)}</td>
+                      <td style={{ textAlign: 'right' }}>${a.avgCostUsd.toFixed(5)}</td>
+                      <td style={{ textAlign: 'right' }}>${a.totalCostUsd.toFixed(4)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
               <button
+                className="coa-btn coa-btn-secondary coa-btn-sm"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleExport();
                 }}
-                style={{
-                  marginTop: '0.75rem',
-                  background: '#3a2a1a',
-                  color: '#d4c8a8',
-                  border: '1px solid #5a4a3a',
-                  padding: '0.25rem 0.75rem',
-                  borderRadius: 4,
-                  fontSize: 12,
-                }}
+                style={{ marginTop: '0.75rem' }}
               >
                 Export CSV
               </button>
@@ -130,8 +114,3 @@ export function SpendBar() {
     </div>
   );
 }
-
-const th: React.CSSProperties = { padding: '0.25rem 0.5rem', fontWeight: 600 };
-const thR: React.CSSProperties = { ...th, textAlign: 'right' };
-const td: React.CSSProperties = { padding: '0.25rem 0.5rem' };
-const tdR: React.CSSProperties = { ...td, textAlign: 'right' };

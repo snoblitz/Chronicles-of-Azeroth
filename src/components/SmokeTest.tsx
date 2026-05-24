@@ -35,34 +35,18 @@ export function SmokeTest() {
   }
 
   return (
-    <section
-      style={{
-        marginTop: '2rem',
-        padding: '1.5rem',
-        border: '1px solid #3a3228',
-        borderRadius: 8,
-        background: '#1f1812',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>🔥 Smoke test</h2>
-      <p style={{ opacity: 0.75, fontSize: 14, marginTop: 0 }}>
+    <section className="coa-panel">
+      <h2>Smoke test</h2>
+      <p className="muted" style={{ marginTop: 0, fontSize: 14 }}>
         Pings the selected model with a tiny Azeroth-flavored prompt. Watch the spend bar light up.
       </p>
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <ModelPicker value={choiceIdx} onChange={setChoiceIdx} disabled={loading} label="Model:" />
+      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap', marginTop: '1.25rem' }}>
+        <ModelPicker value={choiceIdx} onChange={setChoiceIdx} disabled={loading} label="Model" />
         <button
+          className={`coa-btn ${loading ? '' : 'coa-btn-primary'}`}
           onClick={handleRun}
           disabled={loading}
-          style={{
-            background: loading ? '#3a3228' : '#5a3a1a',
-            color: '#e8e4d8',
-            border: '1px solid #7a5a3a',
-            padding: '0.5rem 1rem',
-            borderRadius: 4,
-            fontSize: 14,
-            opacity: loading ? 0.6 : 1,
-          }}
         >
           {loading ? 'Calling…' : 'Run smoke test'}
         </button>
@@ -70,15 +54,11 @@ export function SmokeTest() {
 
       {error && (
         <div
+          className="coa-callout coa-callout-danger"
           style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            background: '#3a1a1a',
-            border: '1px solid #7a3a3a',
-            borderRadius: 4,
-            color: '#f0b0a8',
+            marginTop: '1.25rem',
+            fontFamily: 'var(--font-mono)',
             fontSize: 13,
-            fontFamily: 'Consolas, monospace',
             whiteSpace: 'pre-wrap',
           }}
         >
@@ -87,21 +67,15 @@ export function SmokeTest() {
       )}
 
       {response && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '1.25rem' }}>
           <div
-            style={{
-              padding: '1rem',
-              background: '#0f1810',
-              border: '1px solid #2a3a2a',
-              borderRadius: 4,
-              fontFamily: 'Georgia, serif',
-              fontSize: 15,
-              lineHeight: 1.5,
-            }}
+            className="coa-bubble coa-bubble-loremaster"
+            style={{ whiteSpace: 'pre-wrap' }}
           >
+            <span className="coa-bubble-label">RESPONSE</span>
             {response.text}
           </div>
-          <div style={{ marginTop: '0.5rem', fontSize: 12, fontFamily: 'Consolas, monospace', opacity: 0.7 }}>
+          <div style={{ marginTop: '0.6rem', fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--fg-faint)' }}>
             {response.inputTokens} in / {response.cachedInputTokens} cached / {response.outputTokens} out ·{' '}
             {response.latencyMs.toFixed(0)}ms · {response.model}
           </div>

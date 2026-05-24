@@ -540,41 +540,30 @@ export function CharacterCreation() {
   // ----------------------------------------------------------------
 
   return (
-    <section
-      style={{
-        marginTop: '2rem',
-        padding: '1.5rem',
-        border: '1px solid #3a3228',
-        borderRadius: 8,
-        background: '#1f1812',
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>📜 Character creation</h2>
+    <section className="coa-panel">
+      <h2>Character creation</h2>
+      <hr className="ornament" style={{ marginTop: '0.25rem', marginBottom: '1.25rem' }} />
 
-      <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', marginBottom: '1rem' }}>
+      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
         <ModelPicker
           value={modelIdx}
           onChange={setModelIdx}
           disabled={step === 'asking' || step === 'generating' || step === 'saving'}
-          label="Loremaster model:"
+          label="Loremaster model"
         />
-        <span style={{ opacity: 0.55, fontSize: 12 }}>
-          Step: <code>{step}</code>
+        <span style={{ color: 'var(--fg-faint)', fontSize: 12, fontFamily: 'var(--font-mono)', paddingBottom: 8 }}>
+          step: <code style={{ color: 'var(--fg-muted)' }}>{step}</code>
           {step === 'interview' && ` · turn ${userTurnsSoFar} / ${MAX_TURNS}`}
         </span>
       </div>
 
       {error && (
         <div
+          className="coa-callout coa-callout-danger"
           style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            background: '#3a1a1a',
-            border: '1px solid #7a3a3a',
-            borderRadius: 4,
-            color: '#f0b0a8',
+            marginBottom: '1.25rem',
+            fontFamily: 'var(--font-mono)',
             fontSize: 13,
-            fontFamily: 'Consolas, monospace',
             whiteSpace: 'pre-wrap',
           }}
         >
@@ -628,7 +617,9 @@ export function CharacterCreation() {
       )}
 
       {step === 'generating' && (
-        <p style={{ opacity: 0.8 }}>The loremaster is composing your bible…</p>
+        <p className="muted" style={{ fontStyle: 'italic', fontFamily: 'var(--font-body)', fontSize: 16 }}>
+          The loremaster is composing your bible…
+        </p>
       )}
 
       {step === 'parse-error' && (
@@ -650,7 +641,11 @@ export function CharacterCreation() {
         />
       )}
 
-      {step === 'saving' && <p style={{ opacity: 0.8 }}>Saving…</p>}
+      {step === 'saving' && (
+        <p className="muted" style={{ fontStyle: 'italic', fontFamily: 'var(--font-body)', fontSize: 16 }}>
+          Saving…
+        </p>
+      )}
 
       {step === 'saved' && draftBible && (
         <SavedView bible={draftBible} onStartOver={handleStartOver} />
@@ -673,27 +668,20 @@ function ExistingBibleBanner({
   onClear: () => void;
 }) {
   return (
-    <div
-      style={{
-        padding: '1rem',
-        background: '#1a2a1a',
-        border: '1px solid #3a5a3a',
-        borderRadius: 4,
-      }}
-    >
+    <div className="coa-callout coa-callout-success">
       <p style={{ marginTop: 0 }}>
-        You already have a saved bible: <strong>{bible.name}</strong>, {bible.race} {bible.class} of the{' '}
-        {bible.faction}.
+        You already have a saved bible: <strong style={{ color: 'var(--gold-bright)' }}>{bible.name}</strong>,{' '}
+        the {bible.race} {bible.class} of the {bible.faction}.
       </p>
-      <p style={{ opacity: 0.7, fontSize: 13 }}>
+      <p className="muted" style={{ fontSize: 13 }}>
         Phase 0 keeps a single bible at <code>coa.bible.current</code>. Starting a new one will overwrite
         the saved bible <strong>when you click Save</strong> on the new draft.
       </p>
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button onClick={onStartNew} style={primaryBtn}>
+      <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
+        <button className="coa-btn coa-btn-primary" onClick={onStartNew}>
           Roll a new character
         </button>
-        <button onClick={onClear} style={dangerBtn}>
+        <button className="coa-btn coa-btn-danger" onClick={onClear}>
           Clear saved bible & start fresh
         </button>
       </div>
@@ -720,73 +708,73 @@ interface IdentityFormProps {
 
 function IdentityForm(p: IdentityFormProps) {
   return (
-    <div style={{ display: 'grid', gap: '0.75rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
+    <div style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(2, 1fr)' }}>
       <Field label="Name">
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input
+            className="coa-input"
             value={p.name}
             onChange={(e) => p.setName(e.target.value)}
             placeholder="e.g. Bellara Stormhand"
-            style={{ ...input, flex: 1 }}
+            style={{ flex: 1 }}
           />
           <button
             type="button"
+            className="coa-btn coa-btn-assist coa-btn-icon"
             onClick={p.onSuggestName}
             disabled={!p.canSuggestName}
-            style={p.canSuggestName ? assistBtn : disabledBtn}
-            title={p.canSuggestName ? 'Suggest a name (uses race/faction if picked)' : 'Generating…'}
+            title="Suggest a name (uses race/faction if picked)"
+            aria-label="Suggest a name"
           >
-            {p.generatingName ? '…' : '\u2728'}
+            <span className="sparkle">{p.generatingName ? '\u2026' : '\u2728'}</span>
           </button>
         </div>
       </Field>
       <Field label="Faction">
-        <select value={p.faction} onChange={(e) => p.setFaction(e.target.value as Faction | '')} style={input}>
+        <select
+          className="coa-input"
+          value={p.faction}
+          onChange={(e) => p.setFaction(e.target.value as Faction | '')}
+        >
           <option value="">— pick —</option>
           {FACTIONS.map((f) => (
-            <option key={f} value={f}>
-              {f}
-            </option>
+            <option key={f} value={f}>{f}</option>
           ))}
         </select>
       </Field>
       <Field label="Race">
         <select
+          className="coa-input"
           value={p.race}
           onChange={(e) => p.setRace(e.target.value)}
           disabled={!p.faction}
-          style={input}
         >
           <option value="">{p.faction ? '— pick —' : '(pick a faction first)'}</option>
           {p.availableRaces.map((r) => (
-            <option key={r.name} value={r.name}>
-              {r.name}
-            </option>
+            <option key={r.name} value={r.name}>{r.name}</option>
           ))}
         </select>
       </Field>
       <Field label="Class">
         <select
+          className="coa-input"
           value={p.className_}
           onChange={(e) => p.setClassName(e.target.value)}
           disabled={!p.race}
-          style={input}
         >
           <option value="">{p.race ? '— pick —' : '(pick a race first)'}</option>
           {p.availableClasses.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
+            <option key={c} value={c}>{c}</option>
           ))}
         </select>
       </Field>
       <Field label="Homeland (optional)">
         <input
+          className="coa-input"
           value={p.homeland}
           onChange={(e) => p.setHomeland(e.target.value)}
           placeholder={p.homelandSuggestions[0] ?? 'free text'}
           list="homeland-suggestions"
-          style={input}
         />
         <datalist id="homeland-suggestions">
           {p.homelandSuggestions.map((h) => (
@@ -796,20 +784,24 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Age (optional)">
         <input
+          className="coa-input"
           value={p.ageStr}
           onChange={(e) => p.setAgeStr(e.target.value.replace(/[^0-9]/g, ''))}
           placeholder="e.g. 34"
           inputMode="numeric"
-          style={input}
         />
       </Field>
 
-      <div style={{ gridColumn: '1 / -1', marginTop: '0.5rem' }}>
-        <button onClick={p.onBegin} disabled={!p.canBegin} style={p.canBegin ? primaryBtn : disabledBtn}>
-          Begin the interview
+      <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <button
+          className="coa-btn coa-btn-primary"
+          onClick={p.onBegin}
+          disabled={!p.canBegin}
+        >
+          ◆ Begin the interview
         </button>
         {!p.canBegin && (
-          <span style={{ marginLeft: '0.75rem', opacity: 0.65, fontSize: 13 }}>
+          <span className="muted" style={{ fontSize: 13, fontStyle: 'italic' }}>
             Fill name, faction, race, and class to proceed.
           </span>
         )}
@@ -842,43 +834,44 @@ function InterviewView(p: InterviewViewProps) {
       <TranscriptView transcript={p.transcript} />
 
       {lastLoremaster && !p.loading && !p.atMax && (
-        <div style={{ marginTop: '1rem' }}>
+        <div style={{ marginTop: '1.25rem' }}>
           <textarea
+            className="coa-input coa-prose"
             value={p.answer}
             onChange={(e) => p.setAnswer(e.target.value)}
-            rows={4}
+            rows={5}
             placeholder={p.generatingAnswer ? 'The hero is gathering their thoughts…' : 'Your answer…'}
             disabled={p.generatingAnswer}
-            style={{ ...input, width: '100%', fontFamily: 'Georgia, serif', fontSize: 15, lineHeight: 1.5 }}
           />
-          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
             <button
+              className="coa-btn coa-btn-primary"
               onClick={p.onSubmit}
               disabled={!p.answer.trim() || p.generatingAnswer}
-              style={p.answer.trim() && !p.generatingAnswer ? primaryBtn : disabledBtn}
             >
-              Answer ({p.userTurnsSoFar + 1}/{MAX_TURNS})
+              ◆ Answer ({p.userTurnsSoFar + 1}/{MAX_TURNS})
             </button>
             <button
+              className="coa-btn coa-btn-assist"
               onClick={p.onSuggestAnswer}
               disabled={!p.canSuggestAnswer}
-              style={p.canSuggestAnswer ? assistBtn : disabledBtn}
               title="Have the AI draft an in-character answer for you (you can still edit it)"
             >
-              {p.generatingAnswer ? '\u2728 drafting\u2026' : '\u2728 Answer for me'}
+              <span className="sparkle">{'\u2728'}</span>
+              {p.generatingAnswer ? ' drafting\u2026' : ' Answer for me'}
             </button>
             <button
+              className="coa-btn coa-btn-secondary"
               onClick={p.onGenerate}
               disabled={!p.canGenerate || p.generatingAnswer}
-              style={p.canGenerate && !p.generatingAnswer ? secondaryBtn : disabledBtn}
               title={p.canGenerate ? '' : `Answer at least ${MIN_TURNS_BEFORE_GENERATE} questions first`}
             >
               I&apos;m ready — generate the bible
             </button>
             <button
+              className="coa-btn coa-btn-secondary"
               onClick={p.onRetryQuestion}
               disabled={p.generatingAnswer}
-              style={p.generatingAnswer ? disabledBtn : secondaryBtn}
               title="Re-ask the loremaster (use if the question was truncated or off-base)"
             >
               ↻ Retry question
@@ -887,10 +880,14 @@ function InterviewView(p: InterviewViewProps) {
         </div>
       )}
 
-      {p.loading && <p style={{ opacity: 0.75, marginTop: '1rem' }}>The loremaster is thinking…</p>}
+      {p.loading && (
+        <p style={{ color: 'var(--fg-muted)', marginTop: '1.25rem', fontStyle: 'italic', fontFamily: 'var(--font-body)' }}>
+          The loremaster is thinking…
+        </p>
+      )}
 
       {p.atMax && (
-        <p style={{ opacity: 0.75, marginTop: '1rem' }}>
+        <p style={{ color: 'var(--fg-muted)', marginTop: '1.25rem', fontStyle: 'italic', fontFamily: 'var(--font-body)' }}>
           Max turns reached — composing your bible…
         </p>
       )}
@@ -900,27 +897,18 @@ function InterviewView(p: InterviewViewProps) {
 
 function TranscriptView({ transcript }: { transcript: TranscriptTurn[] }) {
   if (transcript.length === 0) {
-    return <p style={{ opacity: 0.6 }}>Waiting for the loremaster to begin…</p>;
+    return <p className="muted" style={{ fontStyle: 'italic' }}>Waiting for the loremaster to begin…</p>;
   }
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+    <div className="coa-transcript">
       {transcript.map((t, i) => (
         <div
           key={i}
-          style={{
-            padding: '0.75rem 1rem',
-            background: t.role === 'assistant' ? '#0f1810' : '#1a1a22',
-            border: `1px solid ${t.role === 'assistant' ? '#2a3a2a' : '#2a2a3a'}`,
-            borderRadius: 4,
-            fontFamily: 'Georgia, serif',
-            fontSize: 15,
-            lineHeight: 1.5,
-            whiteSpace: 'pre-wrap',
-          }}
+          className={`coa-bubble ${t.role === 'assistant' ? 'coa-bubble-loremaster' : 'coa-bubble-hero'}`}
         >
-          <div style={{ opacity: 0.5, fontSize: 11, marginBottom: 4, fontFamily: 'Consolas, monospace' }}>
+          <span className="coa-bubble-label">
             {t.role === 'assistant' ? 'LOREMASTER' : 'HERO'}
-          </div>
+          </span>
           {t.content}
         </div>
       ))}
@@ -943,33 +931,28 @@ function ParseErrorView({
 }) {
   return (
     <div>
-      <p style={{ color: '#f0b0a8' }}>
+      <p style={{ color: 'var(--danger)' }}>
         The model returned invalid JSON twice. Fix it below by hand, or retry the whole generation.
       </p>
       {errors.length > 0 && (
-        <ul style={{ color: '#f0b0a8', fontFamily: 'Consolas, monospace', fontSize: 13 }}>
+        <ul style={{ color: '#f0b0a8', fontFamily: 'var(--font-mono)', fontSize: 13 }}>
           {errors.map((e, i) => (
             <li key={i}>{e}</li>
           ))}
         </ul>
       )}
       <textarea
+        className="coa-input"
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
         rows={20}
-        style={{
-          ...input,
-          width: '100%',
-          fontFamily: 'Consolas, monospace',
-          fontSize: 13,
-          whiteSpace: 'pre',
-        }}
+        style={{ fontFamily: 'var(--font-mono)', fontSize: 13, whiteSpace: 'pre' }}
       />
-      <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <button onClick={onTryAgain} style={primaryBtn}>
+      <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem' }}>
+        <button className="coa-btn coa-btn-primary" onClick={onTryAgain}>
           Try parsing again
         </button>
-        <button onClick={onRetryLLM} style={secondaryBtn}>
+        <button className="coa-btn coa-btn-secondary" onClick={onRetryLLM}>
           Retry with the LLM
         </button>
       </div>
@@ -991,57 +974,61 @@ function ReviewView({
   const beliefsText = bible.beliefs.join('\n');
   const motivationsText = bible.motivations.join('\n');
   return (
-    <div style={{ display: 'grid', gap: '0.75rem' }}>
-      <p style={{ opacity: 0.75, marginTop: 0 }}>
+    <div style={{ display: 'grid', gap: '1rem' }}>
+      <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 15 }}>
         Review and edit before saving. Beliefs and motivations are one per line.
       </p>
       <Field label="Backstory">
         <textarea
+          className="coa-input coa-prose"
           value={bible.backstory}
           onChange={(e) => onChange({ ...bible, backstory: e.target.value })}
-          rows={8}
-          style={{ ...input, width: '100%', fontFamily: 'Georgia, serif', fontSize: 14, lineHeight: 1.5 }}
+          rows={9}
         />
       </Field>
       <Field label="Beliefs (one per line)">
         <textarea
+          className="coa-input"
           value={beliefsText}
           onChange={(e) =>
             onChange({ ...bible, beliefs: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
           }
           rows={5}
-          style={{ ...input, width: '100%' }}
         />
       </Field>
       <Field label="Motivations (one per line)">
         <textarea
+          className="coa-input"
           value={motivationsText}
           onChange={(e) =>
             onChange({ ...bible, motivations: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
           }
           rows={4}
-          style={{ ...input, width: '100%' }}
         />
       </Field>
       <Field label="Voice">
         <textarea
+          className="coa-input"
           value={bible.voice}
           onChange={(e) => onChange({ ...bible, voice: e.target.value })}
           rows={3}
-          style={{ ...input, width: '100%' }}
         />
       </Field>
 
-      <div style={{ display: 'flex', gap: '0.5rem' }}>
-        <button onClick={onSave} disabled={!validateBible(bible)} style={validateBible(bible) ? primaryBtn : disabledBtn}>
-          Save bible
+      <div style={{ display: 'flex', gap: '0.6rem' }}>
+        <button
+          className="coa-btn coa-btn-primary"
+          onClick={onSave}
+          disabled={!validateBible(bible)}
+        >
+          ◆ Save bible
         </button>
-        <button onClick={onStartOver} style={secondaryBtn}>
+        <button className="coa-btn coa-btn-secondary" onClick={onStartOver}>
           Start over
         </button>
       </div>
       {!validateBible(bible) && (
-        <div style={{ color: '#f0b0a8', fontSize: 12, fontFamily: 'Consolas, monospace' }}>
+        <div style={{ color: '#f0b0a8', fontSize: 12, fontFamily: 'var(--font-mono)' }}>
           {bibleValidationErrors(bible).map((e, i) => (
             <div key={i}>• {e}</div>
           ))}
@@ -1053,19 +1040,19 @@ function ReviewView({
 
 function SavedView({ bible, onStartOver }: { bible: CharacterBible; onStartOver: () => void }) {
   return (
-    <div>
-      <p style={{ color: '#7dd87a' }}>
-        ✓ Saved. <strong>{bible.name}</strong>, the {bible.race} {bible.class}, is ready to walk Azeroth.
+    <div className="coa-callout coa-callout-success">
+      <p style={{ marginTop: 0, color: 'var(--success)', fontSize: 16 }}>
+        ✓ Saved. <strong style={{ color: 'var(--gold-bright)' }}>{bible.name}</strong>, the {bible.race} {bible.class}, is ready to walk Azeroth.
       </p>
       <details style={{ marginTop: '0.5rem' }}>
-        <summary style={{ cursor: 'pointer', opacity: 0.75 }}>View bible JSON</summary>
+        <summary style={{ cursor: 'pointer', color: 'var(--fg-muted)' }}>View bible JSON</summary>
         <pre
           style={{
             marginTop: '0.5rem',
             padding: '1rem',
-            background: '#0f1810',
-            border: '1px solid #2a3a2a',
-            borderRadius: 4,
+            background: 'var(--bg-inset)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-md)',
             fontSize: 12,
             overflowX: 'auto',
           }}
@@ -1073,7 +1060,7 @@ function SavedView({ bible, onStartOver }: { bible: CharacterBible; onStartOver:
           {JSON.stringify(bible, null, 2)}
         </pre>
       </details>
-      <button onClick={onStartOver} style={{ ...secondaryBtn, marginTop: '0.5rem' }}>
+      <button className="coa-btn coa-btn-secondary" onClick={onStartOver} style={{ marginTop: '0.75rem' }}>
         Roll another
       </button>
     </div>
@@ -1082,8 +1069,8 @@ function SavedView({ bible, onStartOver }: { bible: CharacterBible; onStartOver:
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-      <span style={{ fontSize: 12, opacity: 0.75 }}>{label}</span>
+    <label className="coa-field">
+      <span className="coa-field-label">{label}</span>
       {children}
     </label>
   );
@@ -1133,61 +1120,5 @@ function tryParseBible(text: string): ParseResult {
 }
 
 // ============================================================================
-// Inline style helpers (matching SmokeTest's palette)
+// (Inline style consts removed — use classes from src/index.css instead.)
 // ============================================================================
-
-const input: React.CSSProperties = {
-  background: '#2a2018',
-  color: '#e8e4d8',
-  border: '1px solid #3a3228',
-  padding: '0.5rem 0.75rem',
-  borderRadius: 4,
-  fontSize: 14,
-};
-
-const primaryBtn: React.CSSProperties = {
-  background: '#5a3a1a',
-  color: '#e8e4d8',
-  border: '1px solid #7a5a3a',
-  padding: '0.5rem 1rem',
-  borderRadius: 4,
-  fontSize: 14,
-};
-
-const secondaryBtn: React.CSSProperties = {
-  background: '#2a2018',
-  color: '#e8e4d8',
-  border: '1px solid #5a4a3a',
-  padding: '0.5rem 1rem',
-  borderRadius: 4,
-  fontSize: 14,
-};
-
-const dangerBtn: React.CSSProperties = {
-  background: '#3a1a1a',
-  color: '#f0b0a8',
-  border: '1px solid #7a3a3a',
-  padding: '0.5rem 1rem',
-  borderRadius: 4,
-  fontSize: 14,
-};
-
-const assistBtn: React.CSSProperties = {
-  background: '#2a2438',
-  color: '#d8c8f0',
-  border: '1px solid #5a4a7a',
-  padding: '0.5rem 0.75rem',
-  borderRadius: 4,
-  fontSize: 14,
-  cursor: 'pointer',
-};
-
-const disabledBtn: React.CSSProperties = {
-  background: '#2a2018',
-  color: '#7a7268',
-  border: '1px solid #3a3228',
-  padding: '0.5rem 1rem',
-  borderRadius: 4,
-  fontSize: 14,
-  cursor: 'not-allowed',
-};

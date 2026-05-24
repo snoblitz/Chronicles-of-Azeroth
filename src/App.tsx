@@ -11,55 +11,39 @@ export function App() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <SpendBar />
-      <main style={{ flex: 1, padding: '2rem', maxWidth: 960, margin: '0 auto', width: '100%' }}>
-        <h1 style={{ fontFamily: 'Georgia, serif', fontSize: '2.5rem', marginBottom: '0.25rem' }}>
-          Chronicles of Azeroth
-        </h1>
-        <p style={{ opacity: 0.7, marginTop: 0 }}>
-          Phase 0 — Proof of Concept. Roll a character, then talk to an NPC (coming next).
-        </p>
+      <main style={{ flex: 1, padding: '2.5rem 2rem 4rem', maxWidth: 980, margin: '0 auto', width: '100%' }}>
+        <header style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+          <h1>Chronicles of Azeroth</h1>
+          <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 17 }}>
+            An AI-spun saga of your hero. Roll a character, then walk the world.
+          </p>
+          <hr className="ornament" />
+        </header>
 
-        <nav style={{ display: 'flex', gap: '0.25rem', marginTop: '1.5rem', borderBottom: '1px solid #3a3228' }}>
-          <TabButton active={tab === 'character'} onClick={() => setTab('character')}>
-            📜 Character
-          </TabButton>
-          <TabButton active={tab === 'smoke'} onClick={() => setTab('smoke')}>
-            🔥 Smoke test
-          </TabButton>
+        <nav className="coa-tabs" role="tablist">
+          <button
+            role="tab"
+            aria-selected={tab === 'character'}
+            className="coa-tab"
+            onClick={() => setTab('character')}
+          >
+            ◆ Character
+          </button>
+          <button
+            role="tab"
+            aria-selected={tab === 'smoke'}
+            className="coa-tab"
+            onClick={() => setTab('smoke')}
+          >
+            ◆ Smoke test
+          </button>
         </nav>
 
-        {tab === 'character' && <CharacterCreation />}
-        {tab === 'smoke' && <SmokeTest />}
+        <div style={{ marginTop: '2rem' }}>
+          {tab === 'character' && <CharacterCreation />}
+          {tab === 'smoke' && <SmokeTest />}
+        </div>
       </main>
     </div>
-  );
-}
-
-function TabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      style={{
-        background: active ? '#1f1812' : 'transparent',
-        color: active ? '#e8e4d8' : '#a89c80',
-        border: '1px solid #3a3228',
-        borderBottom: active ? '1px solid #1f1812' : '1px solid #3a3228',
-        marginBottom: -1,
-        padding: '0.5rem 1rem',
-        borderRadius: '4px 4px 0 0',
-        fontSize: 14,
-        cursor: 'pointer',
-      }}
-    >
-      {children}
-    </button>
   );
 }
