@@ -53,6 +53,11 @@ export class AnthropicProvider implements LLMProvider {
     const cachedInputTokens = result.usage.cache_read_input_tokens ?? 0;
     const outputTokens = result.usage.output_tokens;
 
+    const stopReason: LLMResponse['stopReason'] =
+      result.stop_reason === 'max_tokens' ? 'truncated'
+      : result.stop_reason === 'end_turn' || result.stop_reason === 'stop_sequence' ? 'end'
+      : 'other';
+
     const costUsd = calculateCost(request.model, inputTokens, cachedInputTokens, outputTokens);
 
     recordUsage({
@@ -76,6 +81,7 @@ export class AnthropicProvider implements LLMProvider {
       model: request.model,
       provider: 'anthropic',
       latencyMs,
+      stopReason,
     };
   }
 }

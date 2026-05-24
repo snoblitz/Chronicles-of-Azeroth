@@ -183,7 +183,7 @@ export function CharacterCreation() {
       const res = await provider.chat({
         task: 'bible-gen',
         model: MODEL_CHOICES[modelIdx].pricingKey,
-        maxTokens: 1024,
+        maxTokens: 2048,
         temperature: 0.9,
         messages,
       });
@@ -193,6 +193,12 @@ export function CharacterCreation() {
         setError('Loremaster returned an empty response. Try again?');
         setStep('interview');
         return;
+      }
+      if (res.stopReason === 'truncated') {
+        setError(
+          'The loremaster\u2019s reply was cut off (model hit its output cap). ' +
+            'Click \u21bb Retry to try again, or proceed if it\u2019s good enough.'
+        );
       }
       setTranscript([...history, { role: 'assistant', content: question }]);
       setStep('interview');
@@ -307,8 +313,13 @@ export function CharacterCreation() {
         'You are roleplaying as a hero of Azeroth being interviewed by a loremaster.',
         'Stay deep in character. Use natural speech \u2014 sentence fragments,',
         'regional cadence appropriate to your race, callbacks to specifics you mentioned.',
-        'Be honest, vivid, and a little vulnerable. 2\u20135 short paragraphs.',
-        'Answer ONLY the most recent question; do not narrate or break the fourth wall.',
+        'Be honest, vivid, and a little vulnerable.',
+        '',
+        'HARD LIMITS (do not exceed):',
+        '- Maximum 2 short paragraphs.',
+        '- Maximum 120 words total.',
+        '- Answer ONLY the most recent question.',
+        '- Do not narrate, monologue, or break the fourth wall.',
         '',
         'Hero identity:',
         `- Name: ${name || '(unnamed)'}`,
@@ -336,7 +347,7 @@ export function CharacterCreation() {
       const res = await provider.chat({
         task: 'bible-gen',
         model: MODEL_CHOICES[modelIdx].pricingKey,
-        maxTokens: 1024,
+        maxTokens: 512,
         temperature: 0.95,
         messages: [
           { role: 'system', content: system },
@@ -346,6 +357,9 @@ export function CharacterCreation() {
       if (myRequestId !== requestIdRef.current) return;
       const drafted = res.text.trim();
       if (drafted) setAnswer(drafted);
+      if (res.stopReason === 'truncated') {
+        setError('AI draft was cut off at the model\u2019s output cap. Edit before submitting.');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

@@ -95,6 +95,8 @@ export interface LLMResponse {
   model: string;
   provider: ProviderId;
   latencyMs: number;
+  /** Normalized stop reason. 'truncated' = hit maxTokens, 'end' = natural stop. */
+  stopReason: 'end' | 'truncated' | 'other';
 }
 
 export interface LLMProvider {

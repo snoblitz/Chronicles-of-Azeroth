@@ -64,6 +64,11 @@ export class GeminiProvider implements LLMProvider {
     const thoughtsTokens = usage?.thoughtsTokenCount ?? 0;
     const outputTokens = visibleOutputTokens + thoughtsTokens;
 
+    const stopReason: LLMResponse['stopReason'] =
+      candidate?.finishReason === 'MAX_TOKENS' ? 'truncated'
+      : candidate?.finishReason === 'STOP' ? 'end'
+      : 'other';
+
     const costUsd = calculateCost(request.model, inputTokens, cachedInputTokens, outputTokens);
 
     recordUsage({
@@ -87,6 +92,7 @@ export class GeminiProvider implements LLMProvider {
       model: request.model,
       provider: 'gemini',
       latencyMs,
+      stopReason,
     };
   }
 }
