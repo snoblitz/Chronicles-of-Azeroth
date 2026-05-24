@@ -10,7 +10,7 @@ import type { LLMProvider, LLMRequest, LLMResponse } from '../types';
 
 export class GeminiProvider implements LLMProvider {
   readonly id = 'gemini' as const;
-  readonly models = ['gemini-flash-free', 'gemini-flash-paid', 'gemini-pro'] as const;
+  readonly models = ['gemini-flash', 'gemini-pro'] as const;
 
   private client: GoogleGenAI;
 

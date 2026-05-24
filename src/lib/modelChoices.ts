@@ -15,13 +15,8 @@ export interface ModelChoice {
 
 export const MODEL_CHOICES: ModelChoice[] = [
   {
-    label: 'Gemini Flash (Free Tier)',
-    pricingKey: 'gemini-flash-free',
-    factory: () => new GeminiProvider(import.meta.env.VITE_GEMINI_API_KEY ?? ''),
-  },
-  {
-    label: 'Gemini Flash (Paid)',
-    pricingKey: 'gemini-flash-paid',
+    label: 'Gemini Flash',
+    pricingKey: 'gemini-flash',
     factory: () => new GeminiProvider(import.meta.env.VITE_GEMINI_API_KEY ?? ''),
   },
   {
@@ -41,4 +36,4 @@ export const MODEL_CHOICES: ModelChoice[] = [
   },
 ];
 
-export const DEFAULT_MODEL_INDEX = 0; // Gemini Flash free — safe default
+export const DEFAULT_MODEL_INDEX = 0; // Gemini Flash — cheapest, fast, plenty for the POC

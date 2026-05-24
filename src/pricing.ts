@@ -25,23 +25,21 @@ export const PRICING: Record<string, ModelPricing> = {
   // `thinkingBudget: 0` and burns 1000+ extra output tokens per call.
   // gemini-2.5-flash is the last Flash where thinking can be cleanly disabled.
   // gemini-2.5-pro is the matching premium tier.
-  'gemini-flash-free': {
-    provider: 'gemini',
-    model: 'gemini-2.5-flash',
-    tier: 'free',
-    inputPer1M: 0,
-    cachedInputPer1M: 0,
-    outputPer1M: 0,
-    freeRpmLimit: 15,
-    freeRpdLimit: 1500,
-  },
-  'gemini-flash-paid': {
+  //
+  // Note: there's no separate "free tier" pricing key. Google's free quota
+  // only applies if your API key was minted via aistudio.google.com without a
+  // billing project AND you stay under RPM/RPD limits. Any key tied to a
+  // Cloud billing project is charged at these paid rates from the first call,
+  // so we always cost-account at the paid rate to show your real exposure.
+  'gemini-flash': {
     provider: 'gemini',
     model: 'gemini-2.5-flash',
     tier: 'paid',
     inputPer1M: 0.25,
     cachedInputPer1M: 0.025,
     outputPer1M: 1.5,
+    freeRpmLimit: 15,
+    freeRpdLimit: 1500,
   },
   'gemini-pro': {
     provider: 'gemini',
