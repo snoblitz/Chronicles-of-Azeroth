@@ -1377,3 +1377,304 @@ select.coa-input {
   line-height: 1.45;
   white-space: pre-wrap;
 }
+
+/* Welcome / preset gallery */
+
+.coa-welcome {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem 0.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.coa-welcome-header {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.coa-welcome-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  color: var(--gold);
+  letter-spacing: 0.04em;
+}
+
+.coa-welcome-sub {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 1.05rem;
+}
+
+.coa-welcome-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.coa-welcome-preset-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+
+.coa-welcome-preset-card.coa-faction-alliance {
+  border-left: 4px solid var(--alliance);
+}
+
+.coa-welcome-preset-card.coa-faction-horde {
+  border-left: 4px solid var(--horde);
+}
+
+.coa-welcome-preset-monogram {
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--bg-inset);
+  border: 2px solid var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--gold);
+}
+
+.coa-welcome-preset-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.coa-welcome-preset-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  color: var(--gold);
+}
+
+.coa-welcome-preset-meta {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  letter-spacing: 0.02em;
+}
+
+.coa-welcome-preset-tagline {
+  margin: 0;
+  color: var(--fg);
+  font-size: 0.95rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+.coa-welcome-preset-body .coa-btn {
+  align-self: flex-start;
+  margin-top: 0.25rem;
+}
+
+.coa-welcome-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: var(--fg-muted);
+  font-variant: small-caps;
+  letter-spacing: 0.12em;
+  font-size: 0.85rem;
+}
+
+.coa-welcome-divider::before,
+.coa-welcome-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border) 30%,
+    var(--border) 70%,
+    transparent
+  );
+}
+
+.coa-welcome-roll {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.coa-welcome-roll-btn {
+  font-size: 1.05rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.coa-welcome-roll-hint {
+  margin: 0;
+  max-width: 520px;
+  text-align: center;
+  color: var(--fg-muted);
+  font-size: 0.9rem;
+}
+
+.coa-welcome-cancel {
+  display: flex;
+  justify-content: center;
+}
+
+/* Settings modal */
+
+.coa-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 7, 4, 0.78);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 6vh 1rem 2rem;
+  z-index: 1000;
+  animation: coa-fade-in 120ms ease;
+}
+
+@keyframes coa-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.coa-modal {
+  width: 100%;
+  max-width: 560px;
+  background:
+    radial-gradient(circle at top, rgba(178, 132, 49, 0.06), transparent 60%),
+    linear-gradient(180deg, var(--bg-elevated) 0%, #1a140f 100%);
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.4),
+    0 25px 60px -10px rgba(0, 0, 0, 0.8),
+    0 0 50px -10px rgba(178, 132, 49, 0.15);
+  padding: 1.5rem 1.5rem 1.25rem;
+  color: var(--fg);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.coa-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.coa-modal-header h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.coa-modal-close {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg-muted);
+  width: 30px;
+  height: 30px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.coa-modal-close:hover {
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+.coa-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.coa-settings-section {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-inset);
+  border-radius: 4px;
+}
+
+.coa-settings-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.coa-settings-row {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.coa-settings-row .coa-input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.coa-key-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-elevated);
+  color: var(--fg-muted);
+}
+
+.coa-key-badge-local {
+  border-color: rgba(125, 216, 122, 0.5);
+  color: #9be19a;
+  background: rgba(125, 216, 122, 0.07);
+}
+
+.coa-key-badge-env {
+  border-color: var(--gold-deep);
+  color: var(--gold-bright);
+  background: rgba(178, 132, 49, 0.08);
+}
+
+.coa-key-badge-missing {
+  border-color: rgba(215, 100, 80, 0.55);
+  color: #f3a191;
+  background: rgba(215, 100, 80, 0.08);
+}
+
+@media (max-width: 520px) {
+  .coa-modal {
+    padding: 1.1rem 1rem 1rem;
+  }
+  .coa-modal-header h2 {
+    font-size: 19px;
+  }
+}

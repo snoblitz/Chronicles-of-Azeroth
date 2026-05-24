@@ -17,7 +17,7 @@ export class AnthropicProvider implements LLMProvider {
 
   constructor(apiKey: string) {
     if (!apiKey) {
-      throw new Error('AnthropicProvider: missing API key. Set VITE_ANTHROPIC_API_KEY in .env.local');
+      throw new Error('AnthropicProvider: missing API key. Click the ⚙ Keys button in the header to add it, or set VITE_ANTHROPIC_API_KEY in .env.local for local dev.');
     }
     this.client = new Anthropic({ apiKey, dangerouslyAllowBrowser: true });
   }
@@ -50,7 +50,9 @@ export class AnthropicProvider implements LLMProvider {
       .join('\n');
 
     const inputTokens = result.usage.input_tokens;
-    const cachedInputTokens = result.usage.cache_read_input_tokens ?? 0;
+    // cache_read_input_tokens is present on the wire but not in older SDK typings.
+    const cachedInputTokens =
+      (result.usage as { cache_read_input_tokens?: number | null }).cache_read_input_tokens ?? 0;
     const outputTokens = result.usage.output_tokens;
 
     const stopReason: LLMResponse['stopReason'] =

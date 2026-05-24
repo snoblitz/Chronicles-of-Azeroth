@@ -29,9 +29,11 @@ import {
   deleteHistoryEntry,
 } from '../lib/bibleStore';
 import type { CharacterBible, ChatMessage, HistoryEntry, LLMProvider } from '../types';
+import { PRESET_CHARACTERS, loadPresetCharacter } from '../lib/presetCharacters';
 
 type Step =
   | 'banner'        // existing-bible action banner shown before identity
+  | 'welcome'       // first-run / "roll another" picker: presets vs custom
   | 'identity'
   | 'interview'
   | 'asking'        // LLM is producing the next question
@@ -56,7 +58,7 @@ export function CharacterCreation() {
 
   // ---- existing bible / banner state ----
   const [existingBible, setExistingBible] = useState<CharacterBible | null>(() => loadBible());
-  const [step, setStep] = useState<Step>(() => (loadBible() ? 'banner' : 'identity'));
+  const [step, setStep] = useState<Step>(() => (loadBible() ? 'banner' : 'welcome'));
 
   // ---- identity form ----
   const [modelIdx, setModelIdx] = useState(DEFAULT_MODEL_INDEX);
@@ -117,7 +119,25 @@ export function CharacterCreation() {
     setClassName('');
     setHomeland('');
     setAgeStr('');
+    setStep('welcome');
+  }
+
+  function handleRollCustom() {
+    setError(null);
     setStep('identity');
+  }
+
+  function handleLoadPreset(presetId: string) {
+    setError(null);
+    const bible = loadPresetCharacter(presetId);
+    if (!bible) {
+      setError(`Couldn't find a preset called "${presetId}".`);
+      return;
+    }
+    setExistingBible(bible);
+    setIsEditingExisting(false);
+    setDraftBible(null);
+    setStep('banner');
   }
 
   function handleEditBible() {
@@ -649,6 +669,16 @@ export function CharacterCreation() {
         />
       )}
 
+      {step === 'welcome' && (
+        <WelcomeView
+          presets={PRESET_CHARACTERS}
+          onLoadPreset={handleLoadPreset}
+          onRollCustom={handleRollCustom}
+          onCancel={existingBible ? () => setStep('banner') : undefined}
+          cancelLabel={existingBible ? `← Back to ${existingBible.name}` : undefined}
+        />
+      )}
+
       {step === 'identity' && (
         <IdentityForm
           name={name} setName={setName}
@@ -741,6 +771,95 @@ export function CharacterCreation() {
 // ============================================================================
 // Sub-components (kept in-file for Phase 0; will refactor when they grow)
 // ============================================================================
+
+function WelcomeView({
+  presets,
+  onLoadPreset,
+  onRollCustom,
+  onCancel,
+  cancelLabel,
+}: {
+  presets: typeof PRESET_CHARACTERS;
+  onLoadPreset: (id: string) => void;
+  onRollCustom: () => void;
+  onCancel?: () => void;
+  cancelLabel?: string;
+}) {
+  return (
+    <section className="coa-welcome">
+      <div className="coa-welcome-header">
+        <h2 className="coa-welcome-title">Begin your saga</h2>
+        <p className="coa-welcome-sub">
+          Step into Azeroth with a pre-built hero, or roll your own from scratch.
+        </p>
+      </div>
+
+      {presets.length > 0 && (
+        <>
+          <div className="coa-welcome-presets">
+            {presets.map((preset) => {
+              const factionClass =
+                preset.bible.faction === 'Alliance'
+                  ? 'coa-faction-alliance'
+                  : 'coa-faction-horde';
+              const initial = (preset.bible.name.trim()[0] ?? '?').toUpperCase();
+              return (
+                <article
+                  key={preset.id}
+                  className={`coa-welcome-preset-card ${factionClass}`}
+                >
+                  <div className="coa-welcome-preset-monogram">{initial}</div>
+                  <div className="coa-welcome-preset-body">
+                    <h3 className="coa-welcome-preset-name">{preset.bible.name}</h3>
+                    <div className="coa-welcome-preset-meta">
+                      {preset.bible.race} · {preset.bible.class} ·{' '}
+                      {preset.bible.faction}
+                      {preset.bible.homeland ? ` · ${preset.bible.homeland}` : ''}
+                    </div>
+                    <p className="coa-welcome-preset-tagline">{preset.tagline}</p>
+                    <button
+                      type="button"
+                      className="coa-btn coa-btn-primary"
+                      onClick={() => onLoadPreset(preset.id)}
+                    >
+                      Play as {preset.bible.name.split(' ')[0]}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <div className="coa-welcome-divider">
+            <span>or forge your own legend</span>
+          </div>
+        </>
+      )}
+
+      <div className="coa-welcome-roll">
+        <button
+          type="button"
+          className="coa-btn coa-btn-primary coa-welcome-roll-btn"
+          onClick={onRollCustom}
+        >
+          ✨ Roll a new hero
+        </button>
+        <p className="coa-welcome-roll-hint">
+          A 5–7 question interview with the Loremaster builds a unique Character
+          Bible from your answers.
+        </p>
+      </div>
+
+      {onCancel && (
+        <div className="coa-welcome-cancel">
+          <button type="button" className="coa-btn coa-btn-secondary" onClick={onCancel}>
+            {cancelLabel ?? 'Cancel'}
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
 
 function CharacterSheet({
   bible,

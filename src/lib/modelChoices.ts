@@ -5,6 +5,7 @@
 
 import { AnthropicProvider } from '../providers/AnthropicProvider';
 import { GeminiProvider } from '../providers/GeminiProvider';
+import { getApiKey } from './apiKeys';
 import type { LLMProvider } from '../types';
 
 export interface ModelChoice {
@@ -17,22 +18,22 @@ export const MODEL_CHOICES: ModelChoice[] = [
   {
     label: 'Gemini Flash',
     pricingKey: 'gemini-flash',
-    factory: () => new GeminiProvider(import.meta.env.VITE_GEMINI_API_KEY ?? ''),
+    factory: () => new GeminiProvider(getApiKey('gemini')),
   },
   {
     label: 'Gemini Pro',
     pricingKey: 'gemini-pro',
-    factory: () => new GeminiProvider(import.meta.env.VITE_GEMINI_API_KEY ?? ''),
+    factory: () => new GeminiProvider(getApiKey('gemini')),
   },
   {
     label: 'Claude Haiku 4.5',
     pricingKey: 'claude-haiku-4.5',
-    factory: () => new AnthropicProvider(import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''),
+    factory: () => new AnthropicProvider(getApiKey('anthropic')),
   },
   {
     label: 'Claude Sonnet 4.6',
     pricingKey: 'claude-sonnet-4.6',
-    factory: () => new AnthropicProvider(import.meta.env.VITE_ANTHROPIC_API_KEY ?? ''),
+    factory: () => new AnthropicProvider(getApiKey('anthropic')),
   },
 ];
 

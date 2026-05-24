@@ -4,11 +4,15 @@ import { SmokeTest } from './components/SmokeTest';
 import { CharacterCreation } from './components/CharacterCreation';
 import { NpcChat } from './components/NpcChat';
 import { CharacterSelector } from './components/CharacterSelector';
+import { SettingsPanel } from './components/SettingsPanel';
+import { getKeyStatus } from './lib/apiKeys';
 
 type Tab = 'character' | 'npc' | 'smoke';
 
 export function App() {
   const [tab, setTab] = useState<Tab>('character');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [keyTick, setKeyTick] = useState(0);
 
   useEffect(() => {
     function handler(e: Event) {
@@ -21,9 +25,31 @@ export function App() {
     return () => window.removeEventListener('coa:request-tab', handler);
   }, []);
 
+  useEffect(() => {
+    function bump() {
+      setKeyTick((n) => n + 1);
+    }
+    window.addEventListener('coa:apikey-updated', bump);
+    return () => window.removeEventListener('coa:apikey-updated', bump);
+  }, []);
+
+  // First-run nudge: if no keys at all, pop the settings panel automatically.
+  useEffect(() => {
+    const gemini = getKeyStatus('gemini');
+    const anthropic = getKeyStatus('anthropic');
+    if (!gemini.hasKey && !anthropic.hasKey) {
+      setSettingsOpen(true);
+    }
+  }, []);
+
+  const geminiStatus = getKeyStatus('gemini');
+  const anthropicStatus = getKeyStatus('anthropic');
+  void keyTick; // re-renders trigger via the bump above
+  const anyKey = geminiStatus.hasKey || anthropicStatus.hasKey;
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <SpendBar />
+      <SpendBar onOpenSettings={() => setSettingsOpen(true)} hasAnyKey={anyKey} />
       <main style={{ flex: 1, padding: '2.5rem 2rem 4rem', maxWidth: 980, margin: '0 auto', width: '100%' }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
           <CharacterSelector />
@@ -69,6 +95,7 @@ export function App() {
           {tab === 'smoke' && <SmokeTest />}
         </div>
       </main>
+      <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }

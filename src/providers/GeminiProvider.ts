@@ -16,7 +16,7 @@ export class GeminiProvider implements LLMProvider {
 
   constructor(apiKey: string) {
     if (!apiKey) {
-      throw new Error('GeminiProvider: missing API key. Set VITE_GEMINI_API_KEY in .env.local');
+      throw new Error('GeminiProvider: missing API key. Click the ⚙ Keys button in the header to add it, or set VITE_GEMINI_API_KEY in .env.local for local dev.');
     }
     this.client = new GoogleGenAI({ apiKey });
   }

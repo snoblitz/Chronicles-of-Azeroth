@@ -6,7 +6,12 @@ import {
   sumCost,
 } from '../lib/spendTracker';
 
-export function SpendBar() {
+interface SpendBarProps {
+  onOpenSettings?: () => void;
+  hasAnyKey?: boolean;
+}
+
+export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {}) {
   const [tick, setTick] = useState(0);
   const [expanded, setExpanded] = useState(false);
 
@@ -58,8 +63,21 @@ export function SpendBar() {
             {lastCall.costUsd.toFixed(4)} ({lastCall.model}, {lastCall.tier})
           </span>
         )}
-        <span style={{ marginLeft: 'auto', opacity: 0.55 }}>
-          {expanded ? '▼ collapse' : '▶ breakdown'}
+        <span style={{ marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: '0.6rem' }}>
+          {onOpenSettings && (
+            <button
+              type="button"
+              className={`coa-btn coa-btn-sm ${hasAnyKey ? 'coa-btn-secondary' : 'coa-btn-primary'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenSettings();
+              }}
+              title={hasAnyKey ? 'Manage API keys' : 'Set up an API key to start using the app'}
+            >
+              ⚙ Keys{!hasAnyKey ? ' — set me' : ''}
+            </button>
+          )}
+          <span style={{ opacity: 0.55 }}>{expanded ? '▼ collapse' : '▶ breakdown'}</span>
         </span>
       </div>
 

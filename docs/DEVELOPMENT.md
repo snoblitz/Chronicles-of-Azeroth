@@ -141,3 +141,50 @@ curl "https://generativelanguage.googleapis.com/v1beta/models?key=$key" `
   restart the dev server.
 - **Gemini thinking tokens.** See [PROVIDERS.md](./PROVIDERS.md#gemini-thinking-mode-trap).
   Pinned to `gemini-2.5-flash`/`gemini-2.5-pro` to avoid mandatory thinking.
+
+## Deployment
+
+The app deploys to GitHub Pages via `.github/workflows/deploy.yml` on every
+push to `main`.
+
+**Setup checklist (first time):**
+
+1. Repository visibility must be **public** (Pages on a private repo
+   requires a paid plan).
+2. In repo Settings → Pages, set **Source = GitHub Actions**.
+3. Push to `main`. The workflow runs `build`, uploads `dist/` as a Pages
+   artifact, and deploys.
+
+**How the build differs from local dev:**
+
+- Vite's `base` is read from `COA_BASE`. Local dev leaves it at `/`. CI sets
+  `COA_BASE=/Chronicles-of-Azeroth/` so all asset URLs in `index.html`
+  are correctly prefixed for the project-page subpath.
+- `dist/index.html` is copied to `dist/404.html` so Pages serves the SPA
+  shell for unknown paths (deep-link friendly).
+
+**Asset URLs in code:**
+
+Anything you write as a hardcoded path like `/npcs/foo.png` will bypass
+`base` and 404 in production. Wrap public-folder paths in
+`assetUrl()` from `src/lib/assetUrl.ts`, which prepends
+`import.meta.env.BASE_URL`.
+
+**API keys on the public bundle:**
+
+The deployed build ships with no API keys. Users paste their own Gemini
+or Anthropic key into the ⚙ Keys panel in the spend bar; values are kept
+in `localStorage` only. The `apiKeys.ts` helper falls back to
+`import.meta.env.VITE_*` for local dev so a `.env.local` keeps working.
+
+**Build it like CI does (for testing):**
+
+```powershell
+$env:COA_BASE = '/Chronicles-of-Azeroth/'
+npm run build
+# Preview at http://localhost:4173/Chronicles-of-Azeroth/
+npm run preview -- --port 4173
+```
+
+**Live URL:** <https://snoblitz.github.io/Chronicles-of-Azeroth/>
+

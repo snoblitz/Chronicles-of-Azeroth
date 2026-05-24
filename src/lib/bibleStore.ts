@@ -403,6 +403,23 @@ export function deleteBible(key: string): void {
   if (wasActive) fireBibleUpdated(null);
 }
 
+/**
+ * Plant a preset character into the roster. If a bible with the same key
+ * already exists we just re-activate it — we never overwrite user edits.
+ * Returns the bible that's now active (preset's or the existing one).
+ */
+export function loadPresetCharacter(preset: CharacterBible): CharacterBible {
+  migrateLegacyIfPresent();
+  const key = bibleKey(preset);
+  const existing = readEntry(key);
+  if (existing) {
+    setActiveBible(key);
+    return existing;
+  }
+  saveBible(preset);
+  return preset;
+}
+
 // ---------------------------------------------------------------------------
 // public API — in-place mutations on the active bible
 // ---------------------------------------------------------------------------

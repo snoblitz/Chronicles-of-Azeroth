@@ -11,7 +11,7 @@ investing in Electron and addon work.
 
 - [x] Vite + React 19 + TypeScript scaffold
 - [x] Provider abstraction (`LLMProvider` interface)
-- [x] `GeminiProvider` using `@google/genai`
+- [x] `GeminiProvider` using `@google/genai` 2.6.0 (thinking actually disabled)
 - [x] `AnthropicProvider` using `@anthropic-ai/sdk`
 - [x] Pricing table + cost calculator
 - [x] Spend tracker (localStorage, day-keyed, 90-day retention)
@@ -20,22 +20,37 @@ investing in Electron and addon work.
 - [x] Smoke test UI (model picker + run button + response display)
 - [x] Real Gemini model IDs discovered + wired (`gemini-2.5-flash` etc.)
 - [x] Gemini thinking-tokens accounted for in cost
-- [ ] Generalize model picker out of `SmokeTest` into a reusable component
-- [ ] Character creation interview screen → `CharacterBible` in localStorage
-- [ ] NPC chat screen (first NPC TBD — Tirion / Sylvanas / Jaina / Bolvar?)
-- [ ] Manual event entry ("I just killed Hogger") feeds NPC memory
+- [x] Reusable `ModelPicker` component (extracted from SmokeTest)
+- [x] **Character creation interview** → `CharacterBible` in localStorage
+- [x] **Multi-character storage** (`coa.bible.roster.v1` + per-character entries) with a CharacterSelector dropdown in the header
+- [x] **Full character sheet** with portrait, faction-tinted glow, voice, backstory, beliefs, motivations, fears, flaws, core quote, level + zone pills, chronicle log
+- [x] **Inline bible editor** (Edit on the sheet → ReviewView with edit fields for name, homeland, level, zone, fears, flaws, quote)
+- [x] **NPC chat screen** with portrait header, Magni Bronzebeard portrait shipped, hero-assist drafts, transcript persistence per `(character × NPC)`
+- [x] **Chronicle log** — quick-add entries, snapshot level + zone at write time, NPC prompt injects the last 5 deeds so NPCs can react to recent history
+- [x] **API key entry UI** (Settings panel) so the deployed Pages bundle works without baked-in secrets
+- [x] **GitHub Pages deploy workflow** (`.github/workflows/deploy.yml`)
+- [ ] Manual event entry (combat log style: "I just killed Hogger") feeds NPC memory automatically
 - [ ] Side-by-side A/B comparison view (same prompt, two models, diff)
+- [ ] More NPCs beyond Magni / Muradin (Brann, Falstad, Moira)
 
 ### Phase 0 exit criteria
 
 Phase 0 is done when:
 
-1. We can roll a character via interview and the bible feels distinct.
+1. We can roll a character via interview and the bible feels distinct. ✅
 2. We can have a 5-turn conversation with one famous NPC and it stays
-   coherent + in-voice.
+   coherent + in-voice. ✅ (Magni Bronzebeard is the current bar)
 3. The spend bar shows real per-task cost averages from at least 100 calls.
 4. We've A/B'd Flash vs Pro vs Sonnet on the same prompts and have an
    opinion on which model wins per task.
+
+### Phase 0.5 — Public POC on GitHub Pages  *(shipped)*
+
+The Phase 0 bundle is deployed to GitHub Pages so Jeff can poke at the UI
+from mobile during the day. The build has no secrets baked in — users
+paste their own Gemini / Anthropic key into the in-app Settings panel and
+it stays in their browser's localStorage only. See
+[docs/DEVELOPMENT.md](./DEVELOPMENT.md#deployment) for the deploy flow.
 
 ## Phase 1 — Electron companion app  *(planned)*
 

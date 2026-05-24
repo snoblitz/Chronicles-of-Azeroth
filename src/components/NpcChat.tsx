@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ModelPicker } from './ModelPicker';
 import { MODEL_CHOICES, DEFAULT_MODEL_INDEX } from '../lib/modelChoices';
 import { loadBible } from '../lib/bibleStore';
+import { assetUrl } from '../lib/assetUrl';
 import {
   loadNpcThread,
   saveNpcThread,
@@ -472,7 +473,7 @@ function NpcPicker({ onPick, disabled }: { onPick: (n: NpcEntry) => void; disabl
             {n.portrait ? (
               <img
                 className="coa-npc-card-portrait"
-                src={n.portrait}
+                src={assetUrl(n.portrait)}
                 alt={`${n.name} portrait`}
                 loading="lazy"
               />
@@ -539,7 +540,7 @@ function NpcChatView(p: ChatViewProps) {
           {p.npc.portrait ? (
             <img
               className="coa-npc-header-portrait"
-              src={p.npc.portrait}
+              src={assetUrl(p.npc.portrait)}
               alt={`${p.npc.name} portrait`}
             />
           ) : (
