@@ -94,10 +94,19 @@ export function NpcChat() {
       '',
       'About the hero:',
       `- Voice: ${heroBible.voice}`,
+      ...(heroBible.coreQuote && heroBible.coreQuote.trim()
+        ? [`- Core: ${heroBible.coreQuote.trim()}`]
+        : []),
       '- Beliefs:',
       ...heroBible.beliefs.map((b) => `  \u2022 ${b}`),
       '- Motivations:',
       ...heroBible.motivations.map((m) => `  \u2022 ${m}`),
+      ...(heroBible.fears && heroBible.fears.length > 0
+        ? ['- Fears:', ...heroBible.fears.map((f) => `  \u2022 ${f}`)]
+        : []),
+      ...(heroBible.flaws && heroBible.flaws.length > 0
+        ? ['- Flaws:', ...heroBible.flaws.map((f) => `  \u2022 ${f}`)]
+        : []),
       '- Backstory:',
       heroBible.backstory,
       '',
@@ -276,7 +285,10 @@ export function NpcChat() {
       '',
       'Hero voice & beliefs:',
       `- Voice: ${bible.voice}`,
+      ...(bible.coreQuote && bible.coreQuote.trim() ? [`- Core: ${bible.coreQuote.trim()}`] : []),
       ...bible.beliefs.slice(0, 4).map((b) => `- ${b}`),
+      ...((bible.fears ?? []).slice(0, 2).map((f) => `- Fear: ${f}`)),
+      ...((bible.flaws ?? []).slice(0, 2).map((f) => `- Flaw: ${f}`)),
     ].join('\n');
 
     const lastNpcLine = [...thread.turns].reverse().find((t) => t.role === 'assistant');

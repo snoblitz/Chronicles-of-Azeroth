@@ -56,6 +56,9 @@ export interface CharacterBible {
   backstory: string;   // freeform narrative, 1-3 paragraphs
   beliefs: string[];   // short bullet points
   motivations: string[];
+  fears?: string[];    // what they're scared of becoming/losing/failing
+  flaws?: string[];    // limitations, blind spots, recurring hesitations
+  coreQuote?: string;  // a single sentence that distills the whole hero
   voice: string;       // how they speak — tone, vocabulary, mannerisms
   createdAt: number;
   updatedAt: number;

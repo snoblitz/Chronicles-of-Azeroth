@@ -1135,3 +1135,86 @@ select.coa-input {
 @media (max-width: 720px) {
   .coa-sheet-raw { margin-left: 0; width: 100%; }
 }
+
+/* ---- Character Sheet: core quote banner ---- */
+.coa-sheet-corequote {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 1.1rem 1.5rem;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(212, 163, 115, 0.10), rgba(0, 0, 0, 0) 70%),
+    var(--bg-elevated);
+  border: 1px solid var(--gold-deep);
+  border-radius: var(--r-md);
+  box-shadow: 0 0 18px rgba(212, 163, 115, 0.12), inset 0 0 28px rgba(0, 0, 0, 0.25);
+}
+
+.coa-sheet-corequote-mark {
+  font-family: var(--font-display);
+  font-size: 56px;
+  line-height: 0.6;
+  color: var(--gold-deep);
+  opacity: 0.6;
+  user-select: none;
+}
+
+.coa-sheet-corequote-mark-close {
+  align-self: end;
+}
+
+.coa-sheet-corequote-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(16px, 2vw, 19px);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: var(--gold-bright);
+  text-align: center;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+
+/* ---- Character Sheet: fears + flaws variants ---- */
+.coa-sheet-section-fears .coa-sheet-section-title {
+  color: #e8b09a;
+}
+
+.coa-sheet-section-fears .coa-sheet-section-title::after {
+  content: '▼';
+  color: #a55a45;
+}
+
+.coa-sheet-list-fears li {
+  border-left-color: #a55a45;
+  background: rgba(168, 90, 69, 0.06);
+}
+
+.coa-sheet-list-fears li::before {
+  content: '▼';
+  color: #a55a45;
+}
+
+.coa-sheet-section-flaws .coa-sheet-section-title {
+  color: #c9a874;
+}
+
+.coa-sheet-section-flaws .coa-sheet-section-title::after {
+  content: '✗';
+  color: #8a6a44;
+}
+
+.coa-sheet-list-flaws li {
+  border-left-color: #8a6a44;
+  background: rgba(138, 106, 68, 0.06);
+}
+
+.coa-sheet-list-flaws li::before {
+  content: '✗';
+  color: #8a6a44;
+  font-size: 11px;
+  top: 0.45rem;
+}

@@ -54,6 +54,9 @@ export function validateBible(x: unknown): x is CharacterBible {
   if (typeof b.backstory !== 'string' || !b.backstory.trim()) return false;
   if (!Array.isArray(b.beliefs) || !b.beliefs.every((v) => typeof v === 'string')) return false;
   if (!Array.isArray(b.motivations) || !b.motivations.every((v) => typeof v === 'string')) return false;
+  if (b.fears !== undefined && (!Array.isArray(b.fears) || !b.fears.every((v) => typeof v === 'string'))) return false;
+  if (b.flaws !== undefined && (!Array.isArray(b.flaws) || !b.flaws.every((v) => typeof v === 'string'))) return false;
+  if (b.coreQuote !== undefined && typeof b.coreQuote !== 'string') return false;
   if (typeof b.voice !== 'string' || !b.voice.trim()) return false;
   if (typeof b.createdAt !== 'number' || typeof b.updatedAt !== 'number') return false;
   return true;
@@ -90,6 +93,15 @@ export function bibleValidationErrors(x: unknown): string[] {
   requireString('backstory');
   requireStringArray('beliefs');
   requireStringArray('motivations');
+  if (b.fears !== undefined && (!Array.isArray(b.fears) || !(b.fears as unknown[]).every((v) => typeof v === 'string'))) {
+    errors.push('"fears" must be an array of strings if present');
+  }
+  if (b.flaws !== undefined && (!Array.isArray(b.flaws) || !(b.flaws as unknown[]).every((v) => typeof v === 'string'))) {
+    errors.push('"flaws" must be an array of strings if present');
+  }
+  if (b.coreQuote !== undefined && typeof b.coreQuote !== 'string') {
+    errors.push('"coreQuote" must be a string if present');
+  }
   requireString('voice');
   return errors;
 }
@@ -195,11 +207,82 @@ function fireBibleUpdated(bible: CharacterBible | null): void {
 }
 
 // ---------------------------------------------------------------------------
+// one-time backfill: add fears/flaws/coreQuote to seed characters created
+// before those fields existed. Identified by createdAt (stable per bible).
+// Runs at most once thanks to the localStorage flag.
+// ---------------------------------------------------------------------------
+
+const BACKFILL_FLAG = 'coa.migrations.fears-flaws-quote.v1';
+
+interface BibleBackfill {
+  createdAt: number;
+  name: string;
+  fears: string[];
+  flaws: string[];
+  coreQuote: string;
+}
+
+const SEED_BACKFILLS: BibleBackfill[] = [
+  {
+    createdAt: 1779645176311,
+    name: 'Magnus Brunn',
+    fears: [
+      "Becoming only a weapon in another leader's hand.",
+      'Mistaking obedience for honor.',
+      'Failing to protect the vulnerable because he acted too slowly or too late.',
+      'Teaching younger warriors the wrong lesson through his own choices.',
+    ],
+    flaws: [
+      'Can be slow to trust commanders or simple battle plans.',
+      'Carries guilt for harm he did not directly cause but still feels responsible for.',
+      'May hesitate when a situation morally resembles past mistakes.',
+      'Can come across as grim or judgmental to warriors who still value glory.',
+    ],
+    coreQuote: 'Magnus Brunn held the line, but never forgot why the line mattered.',
+  },
+];
+
+function applySeedBackfills(): void {
+  try {
+    if (localStorage.getItem(BACKFILL_FLAG)) return;
+    const roster = readRoster();
+    let patched = 0;
+    for (const seed of SEED_BACKFILLS) {
+      for (const key of roster.keys) {
+        const bible = readEntry(key);
+        if (!bible) continue;
+        if (bible.createdAt !== seed.createdAt || bible.name !== seed.name) continue;
+        const needsFears = !Array.isArray(bible.fears) || bible.fears.length === 0;
+        const needsFlaws = !Array.isArray(bible.flaws) || bible.flaws.length === 0;
+        const needsQuote = typeof bible.coreQuote !== 'string' || !bible.coreQuote.trim();
+        if (!needsFears && !needsFlaws && !needsQuote) continue;
+        const updated: CharacterBible = {
+          ...bible,
+          fears: needsFears ? seed.fears : bible.fears,
+          flaws: needsFlaws ? seed.flaws : bible.flaws,
+          coreQuote: needsQuote ? seed.coreQuote : bible.coreQuote,
+          updatedAt: Date.now(),
+        };
+        writeEntry(updated);
+        patched++;
+      }
+    }
+    localStorage.setItem(BACKFILL_FLAG, String(Date.now()));
+    if (patched > 0) {
+      console.info(`[bibleStore] backfilled fears/flaws/coreQuote on ${patched} seed bible(s)`);
+    }
+  } catch (err) {
+    console.warn('[bibleStore] seed backfill failed:', err);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // public API — single-active-bible (existing surface, preserved)
 // ---------------------------------------------------------------------------
 
 export function loadBible(): CharacterBible | null {
   migrateLegacyIfPresent();
+  applySeedBackfills();
   const roster = readRoster();
   if (!roster.activeKey) return null;
   return readEntry(roster.activeKey);

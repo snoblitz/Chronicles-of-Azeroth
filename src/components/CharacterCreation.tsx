@@ -177,7 +177,7 @@ export function CharacterCreation() {
       'Rules:',
       '1. Your turn must be ONE focused question. A brief acknowledgment of the',
       '   hero\u2019s last answer is welcome \u2014 keep the whole turn under ~100 words.',
-      '2. Probe motivations, formative moments, contradictions, and HOW THIS PERSON SPEAKS.',
+      '2. Probe motivations, formative moments, contradictions, FEARS, FLAWS, and HOW THIS PERSON SPEAKS.',
       '3. Do not repeat or rephrase questions you have already asked.',
       '4. Stay in-world. You are a loremaster, not an AI.',
       `5. The session ends after ${MAX_TURNS} answers.`,
@@ -424,8 +424,11 @@ export function CharacterCreation() {
       '    age         (number)  \u2014 OPTIONAL; omit if unknown',
       '    homeland    (string)  \u2014 OPTIONAL; omit if unknown',
       '    backstory   (string, 1\u20133 paragraphs of narrative prose)',
-      '    beliefs     (array of 3\u20136 short strings)',
-      '    motivations (array of 2\u20134 short strings)',
+      '    beliefs     (array of 3\u20136 short strings \u2014 what they hold true)',
+      '    motivations (array of 2\u20134 short strings \u2014 what drives them now)',
+      '    fears       (array of 3\u20135 short strings \u2014 what they dread becoming, losing, or failing at; concrete, not generic)',
+      '    flaws       (array of 3\u20135 short strings \u2014 limitations, blind spots, recurring hesitations that make them human)',
+      '    coreQuote   (string \u2014 ONE single sentence in third-person that distills who this hero is; concrete and specific, not a platitude)',
       '    voice       (string, 2\u20133 sentences on tone, vocabulary, mannerisms)',
       '- Do NOT include any other fields.',
       '- Do NOT include createdAt or updatedAt; the client sets those.',
@@ -798,6 +801,14 @@ function CharacterSheet({
         </div>
       </header>
 
+      {bible.coreQuote && bible.coreQuote.trim() && (
+        <div className="coa-sheet-corequote">
+          <span className="coa-sheet-corequote-mark" aria-hidden>“</span>
+          <p className="coa-sheet-corequote-text">{bible.coreQuote.trim()}</p>
+          <span className="coa-sheet-corequote-mark coa-sheet-corequote-mark-close" aria-hidden>”</span>
+        </div>
+      )}
+
       <section className="coa-sheet-section">
         <h3 className="coa-sheet-section-title">Voice</h3>
         <blockquote className="coa-sheet-voice">{bible.voice}</blockquote>
@@ -832,6 +843,31 @@ function CharacterSheet({
           </ul>
         </section>
       </div>
+
+      {((bible.fears && bible.fears.length > 0) || (bible.flaws && bible.flaws.length > 0)) && (
+        <div className="coa-sheet-two-col">
+          {bible.fears && bible.fears.length > 0 && (
+            <section className="coa-sheet-section coa-sheet-section-fears">
+              <h3 className="coa-sheet-section-title">Fears</h3>
+              <ul className="coa-sheet-list coa-sheet-list-fears">
+                {bible.fears.map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {bible.flaws && bible.flaws.length > 0 && (
+            <section className="coa-sheet-section coa-sheet-section-flaws">
+              <h3 className="coa-sheet-section-title">Flaws</h3>
+              <ul className="coa-sheet-list coa-sheet-list-flaws">
+                {bible.flaws.map((f, i) => (
+                  <li key={i}>{f}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )}
 
       <footer className="coa-sheet-actions">
         <button className="coa-btn coa-btn-primary" onClick={onTalkToNpcs}>
@@ -1153,6 +1189,8 @@ function ReviewView({
 }) {
   const beliefsText = bible.beliefs.join('\n');
   const motivationsText = bible.motivations.join('\n');
+  const fearsText = (bible.fears ?? []).join('\n');
+  const flawsText = (bible.flaws ?? []).join('\n');
   return (
     <div style={{ display: 'grid', gap: '1rem' }}>
       <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 15 }}>
@@ -1204,6 +1242,36 @@ function ReviewView({
             onChange({ ...bible, motivations: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
           }
           rows={4}
+        />
+      </Field>
+      <Field label="Fears (one per line)">
+        <textarea
+          className="coa-input"
+          value={fearsText}
+          onChange={(e) => {
+            const arr = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+            onChange({ ...bible, fears: arr.length ? arr : undefined });
+          }}
+          rows={4}
+        />
+      </Field>
+      <Field label="Flaws (one per line)">
+        <textarea
+          className="coa-input"
+          value={flawsText}
+          onChange={(e) => {
+            const arr = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
+            onChange({ ...bible, flaws: arr.length ? arr : undefined });
+          }}
+          rows={4}
+        />
+      </Field>
+      <Field label="Core quote (one sentence that distills the hero)">
+        <input
+          className="coa-input"
+          value={bible.coreQuote ?? ''}
+          onChange={(e) => onChange({ ...bible, coreQuote: e.target.value || undefined })}
+          placeholder="e.g. Magnus Brunn held the line, but never forgot why the line mattered."
         />
       </Field>
       <Field label="Voice">
