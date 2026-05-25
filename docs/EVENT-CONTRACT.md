@@ -15,6 +15,7 @@ directory so we can re-diff them later.
 | #  | When                | Flavor           | Build         | Character      | Where         | Duration | File                                    |
 | -- | ------------------- | ---------------- | ------------- | -------------- | ------------- | -------- | --------------------------------------- |
 | 01 | 2026-05-25 08:49-08:57 | Retail (Midnight) | 12.0.5.67602  | NONKEYPICK     | Coldridge Valley (lvl 1→2 dwarf starter) | ~8 min   | `capture-01-retail.lua` (session-state) |
+| 02 | 2026-05-25 10:14-10:43 | Retail (Midnight) | 12.0.5.67602  | Garygidney (Earthen Ring) | Coldridge → New Tinkertown → death + res + gossip | ~29 min | `capture-02-retail.lua` + `capture-02-chatlog.txt` (session-state) |
 
 ---
 
@@ -32,7 +33,7 @@ Legend:
 | ---------------------- | ------- | ------------------------- | ----- |
 | `QUEST_DETAIL`         | ✅ (01) | `(questStartItemID)` — `"0"` when not from an item | One arg, not a questID. **Lookup-required**: questID has to be fetched via `GetQuestID()` while the detail panel is open. |
 | `QUEST_ACCEPTED`       | ✅ (01) | `(questID)` — e.g. `"24469"` | One arg. Quest name + objectives require `C_QuestLog.GetTitleForQuestID(id)` + `C_QuestLog.GetQuestObjectives(id)`. |
-| `QUEST_PROGRESS`       | ❓      | _not observed in capture 01_ | May only fire when the player opens the turn-in panel while objectives are *incomplete*. Capture 01 quest auto-completed. |
+| `QUEST_PROGRESS`       | ✅ (02) | `()` — no args | Fires when opening the turn-in panel while objectives are still incomplete. State query required. Capture 02 caught it 3 times. |
 | `QUEST_COMPLETE`       | ⚠️ (01) | `()` — **no args** | Simulator currently doesn't model this distinctly. Fires when the turn-in panel opens and is ready to hand in. State has to be queried (`GetRewardXP`, `GetNumQuestRewards`, etc.). |
 | `QUEST_TURNED_IN`      | ⚠️ (01) | `(questID, xpReward, moneyCopper)` — `("24469", "230", "55")` | **3 args**, not 1. Simulator assumes only `questID`. XP and money reward are right there in the payload — no lookup needed. |
 | `QUEST_REMOVED`        | ⚠️ (01) | `(questID, wasReplay)` — `("24469", "false")` | **2 args**. `wasReplay` is a Retail addition; older patches were 1 arg. |
@@ -51,80 +52,102 @@ Legend:
 | Event              | Capture | Observed payload | Notes |
 | ------------------ | ------- | ---------------- | ----- |
 | `PLAYER_LEVEL_UP`  | ⚠️ (01) | 9 args — `(level, hpΔ, manaΔ, numTalents, numPvpTalentSlots, strΔ, agiΔ, staΔ, intΔ)` — `("2","29","0","0","0","1","1","29","1")` | Simulator assumes 1 arg (`level`). Reality is *rich* — stat deltas land directly in the event, no follow-up calls needed. Worth grafting into chronicle entries ("you grew stronger -- +29 stamina"). |
-| `PLAYER_DEAD`      | ❓      | _not observed_   | Need a death capture. |
-| `PLAYER_ALIVE`     | ❓      | _not observed_   | Need a death + res capture. |
+| `PLAYER_DEAD`      | ✅ (02) | `()` | Fires when the player hits 0 HP. Use `UnitIsDead("player")` for state. |
+| `PLAYER_ALIVE`     | ✅ (02) | `()` | Fires on release-to-corpse AND on resurrection — capture 02 saw 2 fires for 1 death. **Important:** can't distinguish "ghost" from "alive" via the event payload; query `UnitIsGhost("player")`. |
 
 ### World state
 
 | Event                       | Capture | Observed payload | Notes |
 | --------------------------- | ------- | ---------------- | ----- |
-| `ZONE_CHANGED`              | ❓      | _not observed_   | Capture 01 stayed in Coldridge Valley. Need a zone-line capture. |
-| `ZONE_CHANGED_NEW_AREA`     | ❓      | _not observed_   | Same. |
-| `ZONE_CHANGED_INDOORS`      | ❓      | _not observed_   | Same. |
+| `ZONE_CHANGED`              | ✅ (02) | `()` | Fires *frequently* — 17 times in 29 min. Often fires for sub-zone transitions inside the same parent zone. State via `GetZoneText()` / `GetSubZoneText()`. |
+| `ZONE_CHANGED_NEW_AREA`     | ✅ (02) | `()` | Fires only on parent-zone changes — 6 times in capture 02 (Coldridge → Tinkertown etc.). The right event for chronicle "you entered Foo" entries. |
+| `ZONE_CHANGED_INDOORS`      | ❓      | _0 fires in capture 02 despite indoor visits_ | Possible Retail behavior shift -- the inn/building Jeff entered may not have registered as "indoor" terrain at the engine level. Worth re-testing in a dungeon entrance or a known-indoor structure. |
 
 ### Dialogue
 
 | Event           | Capture | Observed payload | Notes |
 | --------------- | ------- | ---------------- | ----- |
-| `GOSSIP_SHOW`   | ❓      | _not observed_   | Quest turn-ins in capture 01 did NOT trigger gossip — Retail's quest panel apparently bypasses gossip when only one quest option exists. Need a multi-quest NPC capture, or a vendor/innkeeper. |
-| `GOSSIP_CLOSED` | ❓      | _not observed_   | Same. |
+| `GOSSIP_SHOW`   | ✅ (02) | `("<nil>")` — one nil arg, effectively payload-less | Fires for multi-option NPCs (innkeepers, flight masters, vendors with quests). 24 fires in capture 02. The event itself carries no NPC info — use `C_GossipInfo.GetOptions()` / `C_GossipInfo.GetAvailableQuests()` while the panel is open. |
+| `GOSSIP_CLOSED` | ✅ (02) | `("false")` — single bool | The bool appears to be a "was-forced-close" flag. 21 fires (3 fewer than SHOW, consistent with the player closing some panels by walking away vs. by ESC). |
 
 ### Session lifecycle
 
 | Event                    | Capture | Observed payload | Notes |
 | ------------------------ | ------- | ---------------- | ----- |
-| `PLAYER_LOGIN`           | ❓      | _not observed_   | Fires before `ADDON_LOADED` for fresh sessions. Captured on `/reload`, but `/coa clear` wiped it before play started. **Fixable**: see `/coa clear` bug below. |
-| `PLAYER_ENTERING_WORLD`  | ❓      | _not observed_   | Same as above. |
+| `PLAYER_LOGIN`           | ✅ (02) | `()` | Fires once per game-client session — does NOT fire on `/reload`. Use this for "first time this session" setup. |
+| `PLAYER_ENTERING_WORLD`  | ✅ (02) | `(isInitialLogin, isReloadingUi)` — `(true, false)` for a fresh login | **2 bool args**, very useful: `isInitialLogin=true` only on cold login; `isReloadingUi=true` on `/reload`. Both false on zone-line crossings into instances. The right event to attach "session start" logic to. |
 | `PLAYER_LOGOUT`          | ✅ (01) | `()`             | Fires on `/logout`. **This is the last write before SavedVariables flushes** -- so any state we want in the dump must be set before logout completes. |
 
 ### Transport
 
 | Event             | Capture | Observed payload | Notes |
 | ----------------- | ------- | ---------------- | ----- |
-| `CHAT_MSG_ADDON`  | ❓      | _did not fire_   | The addon called `SendAddonMessageLogged("COA", ..., "WHISPER", UnitName("player"))` for every captured event, but `CHAT_MSG_ADDON` never fired and no chat-log file was created. See "Chat-log transport reality" below — this is the most important finding from capture 01. |
+| `CHAT_MSG_ADDON`  | 🚫 (02) | _did not fire; addon messages NOT in chat log_ | See "Chat-log transport reality" below — **`SendAddonMessageLogged("COA", ..., "WHISPER", self)` does NOT land in `WoWChatLog.txt` and does NOT fire `CHAT_MSG_ADDON` locally**. Self-whispers are silently dropped before reaching either pipeline. This is the single biggest architectural finding of capture 02. |
 
 ---
 
 ## Major architectural findings
 
-### 1. Chat-log transport reality (capture 01)
+### 1. Chat-log transport partially works -- but not via addon messages (captures 01 & 02)
 
-**Phase 1's plan was to tail `WoW\Logs\WoWChatLog.txt`** using chokidar.
-**That file did not exist after capture 01.** Reason: WoW only writes a
-chat log to disk if the player has run `/chatlog` to enable it. The
-SavedVariables capture has 30 events in it. The disk has zero.
+Capture 01 found that `WoWChatLog.txt` doesn't exist by default; capture 02
+proved the addon's auto-toggle (`LoggingChat(true)` in `ADDON_LOADED`)
+fixes that — the file appeared at 11.5 KB / 181 lines.
 
-**Two implications:**
+**BUT capture 02 also surfaced the real problem:** the addon called
+`C_ChatInfo.SendAddonMessageLogged("COA", payload, "WHISPER", self)` for
+every captured event, and **zero of those messages landed in
+`WoWChatLog.txt`**. `CHAT_MSG_ADDON` also never fired locally. Self-whisper
+addon messages are silently dropped — either by the client never actually
+transmitting them, or by the chat-log writer filtering them out.
 
-1. The addon must call `LoggingChat(true)` on load (and ideally
-   `LoggingCombat(true)` too, for the combat-log fallback below). This
-   is non-protected and works for unsigned addons.
-2. We should verify the file actually appears + is appended in real time
-   in capture 02 before treating chat-log tailing as a viable transport.
+**Verified content of `WoWChatLog.txt` includes:** NPC chat,
+player chat, system messages, loot drops, quest accepts, /cheer emotes,
+discovery XP. Everything that hits a real chat frame.
 
-**Backup plan if chat-log tailing proves unreliable:** Phase 1 can read
-SavedVariables directly. WoW flushes SavedVariables on `/logout` and
-`/reload` — meaning end-of-session ingest works, but live-during-play
-ingest doesn't. That's a real tradeoff to weigh in the Phase 1 design.
+**Does NOT include:** addon messages (logged or otherwise), even when
+addressed to other players (untested but consistent with API docs);
+SavedVariables data; combat log lines.
 
-### 2. Combat-log strategy (capture 01)
+**Conclusion:** `WoWChatLog.txt` is a viable Phase 1 transport for
+*chat-frame-visible* signal — `CHAT_MSG_LOOT`, `CHAT_MSG_SYSTEM`,
+`CHAT_MSG_QUEST`, monster speech, player chat. It is NOT a viable
+transport for our own structured addon events.
 
-`COMBAT_LOG_EVENT_UNFILTERED` is blocked from unsigned addons on Retail
-Midnight. Three workable substitutes:
+**Three real transport options for addon-driven events:**
 
-- **`/combatlog` → file tailing** — `LoggingCombat(true)` toggles it
-  programmatically. Same chokidar approach as chat log, just a different
-  file (`WoWCombatLog.txt`). Works for ALL combat events at the cost of
-  parsing the log format.
-- **`PLAYER_REGEN_DISABLED/ENABLED` bookends** — what we already have.
-  Tells us "combat happened from T1 to T2" without per-hit detail. Often
-  enough for chronicle purposes ("Magnus fought a band of troggs in the
-  cave for 40 seconds and emerged victorious").
-- **`UNIT_HEALTH` + selective `UNIT_*` events** — gives partial signal
-  without the protected event, but is noisy.
+1. **SavedVariables only (current spike).** Reliable, structured,
+   end-of-session ingest only (flushes on `/reload` and `/logout`).
+   For chronicle generation that happens after a play session, this is
+   probably fine. Phase 1 can read SVs directly.
+2. **Print to a custom hidden chat frame.** `DEFAULT_CHAT_FRAME:AddMessage`
+   writes to the chat frame, which IS logged by `/chatlog`. We can create
+   a hidden chat frame that doesn't display but still hits the writer.
+   Real-time, but needs verification that hidden frames still log.
+3. **Live SavedVariables polling.** `C_AddOns.SaveAddOnsButton()` doesn't
+   exist as a flush API, so this requires periodic `/reload` (disruptive)
+   or accepting the end-of-session model. Not really viable for live.
 
-Recommendation: combine bookends with combat-log file tailing (toggled
-by our addon) for narrative needs. Defer the decision to Phase 1.
+**Recommendation:** Phase 1 designs around SavedVariables ingest at session
+boundaries (`/reload` is cheap and survivable; `/logout` is natural).
+Real-time can be added later via option 2 if needed.
+
+### 2. Combat-log file IS available even without RegisterEvent (capture 02)
+
+This is the biggest *good* surprise. `COMBAT_LOG_EVENT_UNFILTERED` is
+protected from unsigned-addon `RegisterEvent`, but **Blizzard's internal
+combat-log file writer doesn't care about that.** `LoggingCombat(true)`
+produced `WoWCombatLog-052526_101443.txt` at **1.3 MB** from 29 minutes of
+play.
+
+**The file is date-stamped per session** (`WoWCombatLog-<DDMMYY>_<HHMMSS>.txt`),
+not a single append-only file. Phase 1's tailer needs to discover the
+newest file in `Logs/`, not hardcode a name.
+
+**Implication:** Phase 1 gets the full combat log via file tail with
+zero addon-side protection issues. Every damage event, every spell cast,
+every heal — all in `Logs/WoWCombatLog-*.txt`. The protected event was
+never the right path; the file always was.
 
 ### 3. `QUEST_TURNED_IN` carries rewards (capture 01)
 
@@ -139,27 +162,47 @@ follow-up API call needed to enrich chronicle entries with "you earned
 "Magnus reached level 2 and gained 29 stamina, 1 strength, 1 agility"
 purely from this event. No `GetPlayerStat` follow-up calls.
 
+### 5. `PLAYER_ENTERING_WORLD` distinguishes login from reload (capture 02)
+
+`(isInitialLogin, isReloadingUi)` — two bools tell the addon exactly how
+it was loaded. Cold login = `(true, false)`. `/reload` = `(false, true)`.
+Zone-line into instance = `(false, false)`. The right hook for "first
+time this session" setup, "addon was just reloaded" diagnostics, and
+"player just zoned" UX.
+
+### 6. `ZONE_CHANGED` is too noisy; `ZONE_CHANGED_NEW_AREA` is the chronicle event (capture 02)
+
+17 `ZONE_CHANGED` fires in 29 min vs. 6 `ZONE_CHANGED_NEW_AREA` fires.
+`ZONE_CHANGED` includes sub-zone transitions (walking from "Coldridge
+Pass" sub-zone to a different patch of the same parent zone). For
+chronicle entries that say "you entered Dun Morogh", filter on
+`ZONE_CHANGED_NEW_AREA` only.
+
 ---
 
-## Open questions for capture 02
+## Open questions for capture 03
 
-- [ ] Does `LoggingChat(true)` actually create `WoWChatLog.txt` and does
-  `SendAddonMessageLogged` then land in it?
-- [ ] Does `GOSSIP_SHOW` fire when right-clicking a multi-option NPC
-  (innkeeper, flight master, vendor)?
-- [ ] What payload does `ZONE_CHANGED_NEW_AREA` carry on Retail Midnight?
-- [ ] `PLAYER_DEAD` / `PLAYER_ALIVE` payloads.
-- [ ] Does `PLAYER_LOGIN` fire on `/reload`, or only on cold login?
+- [ ] Why doesn't `ZONE_CHANGED_INDOORS` fire when entering an inn? Try a
+  dungeon or known-indoor structure to differentiate "engine-indoor" vs
+  "narrative-indoor".
+- [ ] Does `DEFAULT_CHAT_FRAME:AddMessage` from a *hidden* chat frame
+  still get logged by `/chatlog`? If yes, we have a real-time addon
+  event transport without UI noise.
 - [ ] On Classic Era (1.15.x), is `COMBAT_LOG_EVENT_UNFILTERED` still
   restricted, or is the lockdown Retail-specific?
+- [ ] What does `ENCOUNTER_START` / `ENCOUNTER_END` look like (not in our
+  EVENTS list yet; only meaningful in dungeons/raids).
+- [ ] What does `LOOT_OPENED` / `LOOT_READY` carry? (also not registered)
 
 ---
 
 ## Bugs the captures surfaced in our own addon
 
-- **`/coa clear` wipes `meta`.** It currently sets
-  `ChroniclesOfAzerothDB = nil` then re-ensures, which destroys the
-  meta block populated by `ADDON_LOADED`. Capture 01's `meta` table is
-  empty for this reason. Fix: clear `events` + `counts` only.
-- **No `LoggingChat`/`LoggingCombat` toggling.** Addon should enable
-  both on load to make the file-tailing transport actually viable.
+- ✅ ~~`/coa clear` wipes `meta`~~ — fixed in capture 02 prep. Capture 02's
+  `meta` table is fully populated (`characterName`, `realm`, build,
+  `chatLogEnabled`, `combatLogEnabled`, etc.).
+- ✅ ~~No `LoggingChat`/`LoggingCombat` toggling~~ — fixed in capture 02
+  prep. Both files now appear automatically on addon load.
+- [ ] `SendAddonMessageLogged` self-whisper round-trip does not work.
+  Either remove the mirror entirely (it's dead code) or replace it with a
+  hidden-chat-frame `AddMessage` once that approach is validated.
