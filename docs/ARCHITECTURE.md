@@ -52,6 +52,7 @@ src/
 │
 ├── components/
 │   ├── SpendBar.tsx          Always-visible cost header (collapsible)
+│   ├── ChronicleReader.tsx   Story-reader + model-generated recap surface
 │   └── AddonSimulator.tsx    Phase 0.75 WoW-addon event harness
 │
 ├── lib/
@@ -88,10 +89,15 @@ such as `QUEST_DETAIL`, `QUEST_ACCEPTED`, `QUEST_TURNED_IN`, `GOSSIP_SHOW`,
         │  2. updates active CharacterBible level / zone
         │  3. appends meaningful quest turn-ins to bible.history
         ▼
-   Character bible history
+    Character bible history
+        │
+        ├──► NpcChat prompt includes recent chronicled deeds
         │
         ▼
-   NpcChat prompt includes recent chronicled deeds
+   ChronicleReader groups history into session/full-saga chapters
+        │
+        ▼
+   Optional summary task writes a campfire recap from those entries
 ```
 
 Quest fixtures store IDs, NPCs, Wowhead links, and authored story cards rather

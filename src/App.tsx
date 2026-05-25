@@ -5,9 +5,10 @@ import { NpcChat } from './components/NpcChat';
 import { CharacterSelector } from './components/CharacterSelector';
 import { SettingsPanel } from './components/SettingsPanel';
 import { AddonSimulator } from './components/AddonSimulator';
+import { ChronicleReader } from './components/ChronicleReader';
 import { getKeyStatus } from './lib/apiKeys';
 
-type Tab = 'character' | 'npc' | 'addon';
+type Tab = 'character' | 'chronicle' | 'npc' | 'addon';
 
 export function App() {
   const [tab, setTab] = useState<Tab>('character');
@@ -19,6 +20,7 @@ export function App() {
       const target = (e as CustomEvent<string>).detail;
       if (target === 'tavern' || target === 'npc') setTab('npc');
       else if (target === 'character') setTab('character');
+      else if (target === 'chronicle') setTab('chronicle');
       else if (target === 'addon') setTab('addon');
     }
     window.addEventListener('coa:request-tab', handler);
@@ -73,6 +75,14 @@ export function App() {
           </button>
           <button
             role="tab"
+            aria-selected={tab === 'chronicle'}
+            className="coa-tab"
+            onClick={() => setTab('chronicle')}
+          >
+            ◆ Chronicle
+          </button>
+          <button
+            role="tab"
             aria-selected={tab === 'npc'}
             className="coa-tab"
             onClick={() => setTab('npc')}
@@ -91,6 +101,7 @@ export function App() {
 
         <div style={{ marginTop: '2rem' }}>
           {tab === 'character' && <CharacterCreation />}
+          {tab === 'chronicle' && <ChronicleReader />}
           {tab === 'npc' && <NpcChat />}
           {tab === 'addon' && <AddonSimulator />}
         </div>

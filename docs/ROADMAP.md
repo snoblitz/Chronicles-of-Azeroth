@@ -27,6 +27,7 @@ investing in Electron and addon work.
 - [x] **Inline bible editor** (Edit on the sheet → ReviewView with edit fields for name, homeland, level, zone, fears, flaws, quote)
 - [x] **NPC chat screen** with portrait header, Magni Bronzebeard portrait shipped, hero-assist drafts, transcript persistence per `(character × NPC)`
 - [x] **Chronicle log** — quick-add entries, snapshot level + zone at write time, NPC prompt injects the last 5 deeds so NPCs can react to recent history
+- [x] **Chronicle reader** — first-class story tab with latest-session/full-saga views, "so what" insight cards, chapter timeline, and model-generated campfire recaps
 - [x] **API key entry UI** (Settings panel) so the deployed Pages bundle works without baked-in secrets
 - [x] **GitHub Pages deploy workflow** (`.github/workflows/deploy.yml`)
 - [x] **Addon Simulator** tab with Classic quest-chain fixtures, WoW API-shaped events, local event log, and ingest-to-chronicle memory

@@ -75,6 +75,7 @@ chronicles-of-azeroth/
 │   ├── pricing.ts            Single source of truth for model prices
 │   ├── components/
 │   │   ├── SpendBar.tsx      Always-visible cost header
+│   │   ├── ChronicleReader.tsx Story-reader + recap surface
 │   │   └── AddonSimulator.tsx WoW-addon event harness
 │   ├── lib/
 │   │   └── spendTracker.ts   localStorage usage log + averages
@@ -96,11 +97,18 @@ chronicles-of-azeroth/
 
 ### Comparing two models
 
-1. Pick a model from the Character or Tavern dropdown.
-2. Run the same character prompt or NPC exchange with model A and model B.
+1. Pick a model from the Character, Chronicle, or Tavern dropdown.
+2. Run the same character prompt, chronicle recap, or NPC exchange with model A and model B.
 3. Expand spend bar → averages table groups by `task::model`, so you can
    compare cost / token usage / latency side by side.
 4. Export CSV for offline analysis if needed.
+
+### Reading the story after a play session
+
+1. Open the **Chronicle** tab.
+2. Use **Latest session** for the most recent play window or **Full saga** for the whole hero timeline.
+3. Scan the "so what" cards for zones, level movement, character pressure, and the next NPC memory hook.
+4. Click **Write recap** to turn the selected entries into a polished campfire chapter using the selected model.
 
 ### Resetting cost tracking
 
