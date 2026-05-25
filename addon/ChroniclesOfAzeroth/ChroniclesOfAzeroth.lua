@@ -103,6 +103,10 @@ local function ensureDB()
   if c.storyCardDuration  == nil then c.storyCardDuration  = 5.0 end
   if c.minimapAngle       == nil then c.minimapAngle       = 215  end
   c.webAppUrl = c.webAppUrl or "https://snoblitz.github.io/Chronicles-of-Azeroth/"
+  -- Phase 1.7: Tier-C enrichment. Paragraphs imported via /coa sync land
+  -- here keyed by Templates.EntryID; ChronicleBook reads this first,
+  -- falls back to procedural templates per entry.
+  db.enriched = db.enriched or {}
   return db
 end
 
@@ -732,6 +736,8 @@ SLASH_CHRONICLESOFAZEROTH1 = "/coa"
 
 local function cmdHelp()
   print(CHAT_TAG .. " commands:")
+  print("  /coa book              -- open the Chronicle (your in-game adventure album)")
+  print("  /coa sync              -- import enriched paragraphs from the web companion")
   print("  /coa config            -- open the settings panel (UX toggles)")
   print("  /coa preview           -- preview the story card")
   print("  /coa count             -- show captured event totals")
@@ -902,6 +908,12 @@ SlashCmdList.CHRONICLESOFAZEROTH = function(msg)
   elseif cmd == "preview" then
     if NS and NS.PreviewStoryCard then NS.PreviewStoryCard()
     else print(CHAT_TAG .. " preview not available yet -- /reload and retry.") end
+  elseif cmd == "book" or cmd == "chronicle" or cmd == "journal" then
+    if NS and NS.OpenBook then NS.OpenBook()
+    else print(CHAT_TAG .. " Chronicle book not loaded yet -- /reload and retry.") end
+  elseif cmd == "sync" or cmd == "import" then
+    if NS and NS.OpenSync then NS.OpenSync()
+    else print(CHAT_TAG .. " sync dialog not loaded yet -- /reload and retry.") end
   else
     print(CHAT_TAG .. " unknown command '" .. cmd .. "'. try /coa help.")
   end

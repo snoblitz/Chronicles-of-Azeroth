@@ -64,8 +64,10 @@ local function buildButton()
       .. NS.session.quests .. " quests, " .. NS.session.levelsGained .. " level-ups",
       0.6, 0.8, 0.6)
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cFFFFD700Left-click|r  Open the chronicle (web)", 0.9, 0.9, 0.9)
-    GameTooltip:AddLine("|cFFFFD700Right-click|r  Settings (/coa config)", 0.9, 0.9, 0.9)
+    GameTooltip:AddLine("|cFFFFD700Left-click|r  Open the Chronicle", 0.9, 0.9, 0.9)
+    GameTooltip:AddLine("|cFFFFD700Right-click|r  Settings", 0.9, 0.9, 0.9)
+    GameTooltip:AddLine("|cFFFFD700Shift + Right-click|r  Web companion URL", 0.7, 0.7, 0.7)
+    GameTooltip:AddLine("|cFFFFD700Ctrl + Right-click|r  Import enrichment (/coa sync)", 0.7, 0.7, 0.7)
     GameTooltip:AddLine("|cFFFFD700Drag|r  Reposition on minimap", 0.6, 0.6, 0.6)
     GameTooltip:Show()
   end)
@@ -106,13 +108,30 @@ end
 
   btn:SetScript("OnClick", function(self, button)
     if button == "LeftButton" then
-      local url = NS.GetConfig().webAppUrl
-      print(NS.CHAT_TAG .. " open your chronicle: " .. url)
-      if StaticPopup_Show then
-        StaticPopup_Show("COA_URL_POPUP", nil, nil, { url = url })
+      -- The hero feature: open the Chronicle book in-game.
+      if NS.OpenBook then
+        NS.OpenBook()
+      else
+        local url = NS.GetConfig().webAppUrl
+        print(NS.CHAT_TAG .. " Chronicle book not loaded -- opening web instead: " .. url)
+        if StaticPopup_Show then
+          StaticPopup_Show("COA_URL_POPUP", nil, nil, { url = url })
+        end
       end
     elseif button == "RightButton" then
-      if NS.OpenSettings then NS.OpenSettings() end
+      -- Right-click cycles through the secondary surfaces. Hold SHIFT for
+      -- the web URL popup, hold CTRL for /coa sync, plain right-click for
+      -- the Settings panel.
+      if IsShiftKeyDown and IsShiftKeyDown() then
+        local url = NS.GetConfig().webAppUrl
+        if StaticPopup_Show then
+          StaticPopup_Show("COA_URL_POPUP", nil, nil, { url = url })
+        end
+      elseif IsControlKeyDown and IsControlKeyDown() then
+        if NS.OpenSync then NS.OpenSync() end
+      else
+        if NS.OpenSettings then NS.OpenSettings() end
+      end
     end
   end)
 
