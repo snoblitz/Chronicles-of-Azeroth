@@ -2,12 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { ModelPicker } from './ModelPicker';
 import { MODEL_CHOICES, DEFAULT_MODEL_INDEX } from '../lib/modelChoices';
 import { loadBible } from '../lib/bibleStore';
+import { loadAddonEventRecords, type AddonEventRecord } from '../lib/addonEventStore';
+import {
+  buildChronicleSessions,
+  eventFactLine,
+  type ChronicleSession,
+} from '../lib/sessionHistory';
 import type { CharacterBible, HistoryEntry, LLMResponse } from '../types';
 
 const SESSION_WINDOW_MS = 9 * 60 * 60 * 1000;
 const FULL_RECAP_ENTRY_LIMIT = 40;
 
-type ReaderMode = 'latest' | 'full';
+type ReaderMode = 'latest' | 'full' | 'sessions';
 
 interface Chapter {
   id: string;
@@ -25,6 +31,7 @@ export function ChronicleReader() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recap, setRecap] = useState<LLMResponse | null>(null);
+  const [addonRecords, setAddonRecords] = useState<AddonEventRecord[]>(() => loadAddonEventRecords());
 
   useEffect(() => {
     const onUpdate = (e: Event) => {
@@ -35,22 +42,42 @@ export function ChronicleReader() {
     return () => window.removeEventListener('coa:bible-updated', onUpdate);
   }, []);
 
+  useEffect(() => {
+    const onAddonUpdate = () => setAddonRecords(loadAddonEventRecords());
+    window.addEventListener('coa:addon-events-updated', onAddonUpdate);
+    window.addEventListener('storage', onAddonUpdate);
+    return () => {
+      window.removeEventListener('coa:addon-events-updated', onAddonUpdate);
+      window.removeEventListener('storage', onAddonUpdate);
+    };
+  }, []);
+
   const entries = useMemo(
     () => [...(bible?.history ?? [])].sort((a, b) => a.timestamp - b.timestamp),
     [bible],
   );
+  const characterKey = bible ? String(bible.createdAt) : null;
+  const scopedAddonRecords = useMemo(
+    () => (characterKey ? addonRecords.filter((record) => record.characterKey === characterKey) : []),
+    [addonRecords, characterKey],
+  );
+  const sessions = useMemo(
+    () => (bible ? buildChronicleSessions(scopedAddonRecords, bible.name) : []),
+    [bible, scopedAddonRecords],
+  );
   const latestEntries = useMemo(() => latestSessionEntries(entries), [entries]);
-  const visibleEntries = mode === 'latest' ? latestEntries : entries;
+  const visibleEntries = mode === 'full' ? entries : latestEntries;
   const chapters = useMemo(() => buildChapters(entries), [entries]);
   const visibleChapters = useMemo(() => buildChapters(visibleEntries), [visibleEntries]);
   const insight = bible ? buildInsight(bible, visibleEntries, entries) : null;
+  const hasStoryData = entries.length > 0 || sessions.length > 0;
 
   function requestTab(tab: string) {
     window.dispatchEvent(new CustomEvent('coa:request-tab', { detail: tab }));
   }
 
   async function generateRecap() {
-    if (!bible || visibleEntries.length === 0) return;
+    if (!bible || mode === 'sessions' || visibleEntries.length === 0) return;
     setBusy(true);
     setError(null);
     setRecap(null);
@@ -146,9 +173,19 @@ export function ChronicleReader() {
         >
           Full saga
         </button>
+        <button
+          className="coa-btn coa-btn-secondary"
+          aria-pressed={mode === 'sessions'}
+          onClick={() => {
+            setMode('sessions');
+            setRecap(null);
+          }}
+        >
+          Session trail
+        </button>
       </div>
 
-      {entries.length === 0 ? (
+      {!hasStoryData ? (
         <div className="coa-chronicle-empty">
           <h3>No story entries yet</h3>
           <p className="muted">
@@ -165,29 +202,31 @@ export function ChronicleReader() {
         </div>
       ) : (
         <>
-          {insight && <InsightGrid insight={insight} mode={mode} />}
+          {mode !== 'sessions' && insight && <InsightGrid insight={insight} mode={mode} />}
 
-          <section className="coa-chronicle-generate">
-            <div>
-              <h3>Campfire recap</h3>
-              <p className="muted">
-                Generate a readable chapter from {visibleEntries.length} chronicle {visibleEntries.length === 1 ? 'entry' : 'entries'}.
-                {mode === 'full' && visibleEntries.length > FULL_RECAP_ENTRY_LIMIT
-                  ? ` The prompt uses the latest ${FULL_RECAP_ENTRY_LIMIT} entries to stay focused.`
-                  : ''}
-              </p>
-            </div>
-            <div className="coa-chronicle-generate-controls">
-              <ModelPicker value={modelIdx} onChange={setModelIdx} disabled={busy} label="Narrator model" />
-              <button
-                className="coa-btn coa-btn-primary"
-                onClick={generateRecap}
-                disabled={busy || visibleEntries.length === 0}
-              >
-                {busy ? 'Writing...' : '◆ Write recap'}
-              </button>
-            </div>
-          </section>
+          {mode !== 'sessions' && visibleEntries.length > 0 && (
+            <section className="coa-chronicle-generate">
+              <div>
+                <h3>Campfire recap</h3>
+                <p className="muted">
+                  Generate a readable chapter from {visibleEntries.length} chronicle {visibleEntries.length === 1 ? 'entry' : 'entries'}.
+                  {mode === 'full' && visibleEntries.length > FULL_RECAP_ENTRY_LIMIT
+                    ? ` The prompt uses the latest ${FULL_RECAP_ENTRY_LIMIT} entries to stay focused.`
+                    : ''}
+                </p>
+              </div>
+              <div className="coa-chronicle-generate-controls">
+                <ModelPicker value={modelIdx} onChange={setModelIdx} disabled={busy} label="Narrator model" />
+                <button
+                  className="coa-btn coa-btn-primary"
+                  onClick={generateRecap}
+                  disabled={busy || visibleEntries.length === 0}
+                >
+                  {busy ? 'Writing...' : '◆ Write recap'}
+                </button>
+              </div>
+            </section>
+          )}
 
           {error && (
             <div className="coa-callout-danger coa-chronicle-error">
@@ -206,42 +245,46 @@ export function ChronicleReader() {
             </article>
           )}
 
-          <section className="coa-chronicle-book">
-            <header>
-              <div>
-                <p className="coa-kicker">{mode === 'latest' ? 'Tonight at the table' : 'The road so far'}</p>
-                <h3>{mode === 'latest' ? latestSessionTitle(visibleEntries) : 'Full saga timeline'}</h3>
-              </div>
-              <span className="coa-chronicle-count">{visibleEntries.length} deeds</span>
-            </header>
+          {mode === 'sessions' ? (
+            <SessionTrail sessions={sessions} />
+          ) : (
+            <section className="coa-chronicle-book">
+              <header>
+                <div>
+                  <p className="coa-kicker">{mode === 'latest' ? 'Tonight at the table' : 'The road so far'}</p>
+                  <h3>{mode === 'latest' ? latestSessionTitle(visibleEntries) : 'Full saga timeline'}</h3>
+                </div>
+                <span className="coa-chronicle-count">{visibleEntries.length} deeds</span>
+              </header>
 
-            {visibleChapters.length === 0 ? (
-              <p className="muted">No entries fall inside the latest-session window. Switch to Full saga.</p>
-            ) : (
-              <div className="coa-chronicle-chapters">
-                {visibleChapters.map((chapter, i) => (
-                  <article key={chapter.id} className="coa-chronicle-chapter">
-                    <div className="coa-chronicle-chapter-head">
-                      <span className="coa-chronicle-chapter-num">Chapter {i + 1}</span>
-                      <h4>{chapter.title}</h4>
-                      <span>{formatDateRange(chapter.start, chapter.end)}</span>
-                    </div>
-                    <ol>
-                      {chapter.entries.map((entry) => (
-                        <li key={entry.id}>
-                          <span>{formatEntryTime(entry.timestamp)}</span>
-                          <p>{entry.text}</p>
-                          {entryContext(entry) && <small>{entryContext(entry)}</small>}
-                        </li>
-                      ))}
-                    </ol>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+              {visibleChapters.length === 0 ? (
+                <p className="muted">No entries fall inside the latest-session window. Switch to Full saga or Session trail.</p>
+              ) : (
+                <div className="coa-chronicle-chapters">
+                  {visibleChapters.map((chapter, i) => (
+                    <article key={chapter.id} className="coa-chronicle-chapter">
+                      <div className="coa-chronicle-chapter-head">
+                        <span className="coa-chronicle-chapter-num">Chapter {i + 1}</span>
+                        <h4>{chapter.title}</h4>
+                        <span>{formatDateRange(chapter.start, chapter.end)}</span>
+                      </div>
+                      <ol>
+                        {chapter.entries.map((entry) => (
+                          <li key={entry.id}>
+                            <span>{formatEntryTime(entry.timestamp)}</span>
+                            <p>{entry.text}</p>
+                            {entryContext(entry) && <small>{entryContext(entry)}</small>}
+                          </li>
+                        ))}
+                      </ol>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
 
-          {chapters.length > 0 && (
+          {mode !== 'sessions' && chapters.length > 0 && (
             <section className="coa-chronicle-arc-map">
               <p className="coa-kicker">Arc map</p>
               <div>
@@ -354,6 +397,93 @@ function InsightGrid({
   );
 }
 
+function SessionTrail({ sessions }: { sessions: ChronicleSession[] }) {
+  return (
+    <section className="coa-chronicle-book coa-session-trail">
+      <header>
+        <div>
+          <p className="coa-kicker">Session history</p>
+          <h3>The trail by play session</h3>
+        </div>
+        <span className="coa-chronicle-count">{sessions.length} sessions</span>
+      </header>
+
+      {sessions.length === 0 ? (
+        <p className="muted">
+          No addon-observed sessions yet. Open Addon Sim, start a session, emit a few WoW events, then end the session.
+        </p>
+      ) : (
+        <div className="coa-session-list">
+          {sessions.map((session, i) => (
+            <details key={session.id} className="coa-session-card" open={i === 0}>
+              <summary>
+                <div>
+                  <span className="coa-chronicle-chapter-num">{session.isOpen ? 'Active session' : 'Closed session'}</span>
+                  <h4>{session.title}</h4>
+                  <p>
+                    {formatDateRange(session.startedAt, session.finishedAt)}
+                    {' · '}
+                    {formatDuration(session.finishedAt - session.startedAt)}
+                  </p>
+                </div>
+                <strong>{session.stats.questsCompleted} quests · +{session.stats.levelsGained} levels</strong>
+              </summary>
+
+              <div className="coa-session-stats">
+                <article>
+                  <span>Session window</span>
+                  <strong>
+                    {formatEntryTime(session.startedAt)} {'->'} {session.isOpen ? 'still active' : formatEntryTime(session.finishedAt)}
+                  </strong>
+                  <p>{formatDuration(session.finishedAt - session.startedAt)}</p>
+                </article>
+                <article>
+                  <span>Level movement</span>
+                  <strong>{levelRange(session)}</strong>
+                  <p>{session.stats.levelsGained > 0 ? `${session.stats.levelsGained} level gains observed` : 'No level-up delta observed'}</p>
+                </article>
+                <article>
+                  <span>Quest work</span>
+                  <strong>{session.stats.questsCompleted} completed</strong>
+                  <p>{session.stats.questsAccepted} accepted during the session</p>
+                </article>
+                <article>
+                  <span>Road hazards</span>
+                  <strong>{session.stats.deaths} deaths</strong>
+                  <p>{session.stats.kills} notable kills · {session.stats.npcsMet} NPCs met</p>
+                </article>
+              </div>
+
+              <div className="coa-session-meta">
+                <span>Zones: {session.stats.zonesVisited.length > 0 ? session.stats.zonesVisited.join(' -> ') : 'not captured'}</span>
+                {session.stats.notableItems.length > 0 && <span>Items: {session.stats.notableItems.join(', ')}</span>}
+                {session.stats.notableUnits.length > 0 && <span>Foes: {session.stats.notableUnits.join(', ')}</span>}
+              </div>
+
+              <div className="coa-session-events">
+                <p className="coa-kicker">Addon-observed facts</p>
+                <ol>
+                  {session.records.map((record) => (
+                    <li key={record.event.id}>
+                      <span>{formatEntryTime(record.event.timestamp)}</span>
+                      <p>{eventFactLine(record.event)}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+
+              <article className="coa-session-campfire">
+                <span className="coa-bubble-label">CAMPFIRE RECAP</span>
+                <p>{session.campfireRecap}</p>
+              </article>
+            </details>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function buildRecapPrompt(
   bible: CharacterBible,
   entries: HistoryEntry[],
@@ -414,6 +544,14 @@ function entryContext(entry: HistoryEntry): string {
     .join(' · ');
 }
 
+function levelRange(session: ChronicleSession): string {
+  if (typeof session.startLevel === 'number' && typeof session.endLevel === 'number') {
+    return `Lvl ${session.startLevel} -> ${session.endLevel}`;
+  }
+  if (typeof session.endLevel === 'number') return `Lvl ${session.endLevel}`;
+  return 'Level not captured';
+}
+
 function unique(values: string[]): string[] {
   return Array.from(new Set(values));
 }
@@ -427,6 +565,15 @@ function formatDateRange(start: number, end: number): string {
   if (start === end) return formatPromptTimestamp(start);
   if (sameDay) return `${formatPromptTimestamp(start)} - ${formatEntryTime(end)}`;
   return `${formatPromptTimestamp(start)} - ${formatPromptTimestamp(end)}`;
+}
+
+function formatDuration(ms: number): string {
+  const totalMinutes = Math.max(0, Math.round(ms / 60_000));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours <= 0) return `${minutes}m`;
+  if (minutes === 0) return `${hours}h`;
+  return `${hours}h ${minutes}m`;
 }
 
 function formatPromptTimestamp(ts: number): string {

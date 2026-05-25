@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { CLASSIC_QUEST_CHAINS } from '../lib/classicQuestFixtures';
 import {
   createSimulatorEvent,
+  createSimulatorSessionEvent,
   formatEventLabel,
   type AddonEvent,
   type AddonEventTemplate,
+  type SimulatorEventOptions,
   type QuestChainFixture,
   type QuestStepFixture,
 } from '../lib/addonEvents';
@@ -29,6 +31,7 @@ export function AddonSimulator() {
   const [records, setRecords] = useState<AddonEventRecord[]>(() => loadAddonEventRecords());
   const [questTextByStep, setQuestTextByStep] = useState<Record<string, string>>({});
   const [lastResult, setLastResult] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   useEffect(() => {
     const refreshBible = () => setBible(loadBible());
@@ -76,12 +79,14 @@ export function AddonSimulator() {
     selectedChain: QuestChainFixture,
     selectedStep: QuestStepFixture,
     template: AddonEventTemplate,
+    options: SimulatorEventOptions = {},
   ): AddonEvent {
     const event = createSimulatorEvent(
       selectedChain,
       selectedStep,
       template,
       questTextFor(selectedStep),
+      options,
     );
     const result = ingestAddonEvent(event);
     setLastResult(`${formatEventLabel(event)} — ${result.message}`);
@@ -104,14 +109,14 @@ export function AddonSimulator() {
 
   function emitNextEvent() {
     if (!chain || !currentStep || !currentTemplate) return;
-    ingestTemplate(chain, currentStep, currentTemplate);
+    ingestTemplate(chain, currentStep, currentTemplate, { sessionId: currentSessionId ?? undefined });
     setCursor((c) => advanceCursor(c, chain));
   }
 
   function emitCurrentStep() {
     if (!chain || !currentStep) return;
     for (const template of currentStep.events) {
-      ingestTemplate(chain, currentStep, template);
+      ingestTemplate(chain, currentStep, template, { sessionId: currentSessionId ?? undefined });
     }
     setCursor((c) => ({
       stepIndex: Math.min(c.stepIndex + 1, chain.steps.length - 1),
@@ -122,6 +127,49 @@ export function AddonSimulator() {
   function resetScenario() {
     setCursor({ stepIndex: 0, eventIndex: 0 });
     setLastResult(null);
+  }
+
+  function startSession() {
+    if (currentSessionId) return;
+    const sessionId = `sim_session_${Date.now().toString(36)}`;
+    const event = createSimulatorSessionEvent('session_start', bible, sessionId);
+    const result = ingestAddonEvent(event);
+    setCurrentSessionId(sessionId);
+    setLastResult(`${formatEventLabel(event)} — ${result.message}`);
+  }
+
+  function endSession() {
+    if (!currentSessionId) return;
+    const event = createSimulatorSessionEvent('session_end', bible, currentSessionId);
+    const result = ingestAddonEvent(event);
+    setCurrentSessionId(null);
+    setLastResult(`${formatEventLabel(event)} — ${result.message}`);
+  }
+
+  function emitDeath() {
+    const sessionId = currentSessionId ?? `sim_session_${Date.now().toString(36)}`;
+    const event = createSimulatorSessionEvent('player_death', bible, sessionId);
+    const result = ingestAddonEvent(event);
+    if (!currentSessionId) setCurrentSessionId(sessionId);
+    setLastResult(`${formatEventLabel(event)} — ${result.message}`);
+  }
+
+  function emitFullChainSession() {
+    if (!chain) return;
+    const sessionId = `sim_session_${Date.now().toString(36)}`;
+    let timestamp = Date.now();
+    ingestAddonEvent(createSimulatorSessionEvent('session_start', bible, sessionId, timestamp));
+    for (const step of chain.steps) {
+      for (const template of step.events) {
+        timestamp += 60_000;
+        ingestTemplate(chain, step, template, { sessionId, timestamp });
+      }
+    }
+    timestamp += 60_000;
+    const result = ingestAddonEvent(createSimulatorSessionEvent('session_end', loadBible(), sessionId, timestamp));
+    setCurrentSessionId(null);
+    setCursor({ stepIndex: chain.steps.length - 1, eventIndex: chain.steps[chain.steps.length - 1]?.events.length ?? 0 });
+    setLastResult(`Full simulated session complete — ${result.message}`);
   }
 
   function clearLog() {
@@ -173,14 +221,42 @@ export function AddonSimulator() {
         </div>
       )}
 
-      {bible && (
-        <div className={factionMismatch ? 'coa-callout-danger' : 'coa-callout'} style={{ marginBottom: '1rem' }}>
-          <strong>Active hero:</strong> {bible.name} · {bible.faction} · {bible.race} {bible.class}
+        {bible && (
+          <div className={factionMismatch ? 'coa-callout-danger' : 'coa-callout'} style={{ marginBottom: '1rem' }}>
+            <strong>Active hero:</strong> {bible.name} · {bible.faction} · {bible.race} {bible.class}
           {factionMismatch && (
             <span> — this chain is {chain.faction}, so use it as a cross-faction stress test only.</span>
           )}
-        </div>
-      )}
+          </div>
+        )}
+
+        <section className="coa-panel" style={{ boxShadow: 'none', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+            <div>
+              <h3>Simulated play session</h3>
+              <p className="muted" style={{ marginTop: 0 }}>
+                Wrap emitted WoW events in a session so Chronicle can show start, finish, duration, quest count, levels gained, deaths, zones, and a campfire recap.
+              </p>
+              <p className="faint" style={{ fontSize: 12 }}>
+                {currentSessionId ? `Open session: ${currentSessionId}` : 'No open session. Events still log, but explicit sessions make the stats cleaner.'}
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+              <button className="coa-btn coa-btn-primary" onClick={startSession} disabled={Boolean(currentSessionId)}>
+                Start session
+              </button>
+              <button className="coa-btn coa-btn-secondary" onClick={emitDeath}>
+                Emit death
+              </button>
+              <button className="coa-btn coa-btn-secondary" onClick={endSession} disabled={!currentSessionId}>
+                End session
+              </button>
+              <button className="coa-btn coa-btn-secondary" onClick={emitFullChainSession}>
+                Run full chain as session
+              </button>
+            </div>
+          </div>
+        </section>
 
       <div style={{ display: 'grid', gap: '1rem' }}>
         <ChainOverview chain={chain} />

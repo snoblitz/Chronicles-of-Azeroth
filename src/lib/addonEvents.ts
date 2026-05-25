@@ -1,6 +1,8 @@
 import type { CharacterBible } from '../types';
 
 export type AddonEventKind =
+  | 'session_start'
+  | 'session_end'
   | 'quest_detail'
   | 'quest_accepted'
   | 'quest_objective_progress'
@@ -8,11 +10,15 @@ export type AddonEventKind =
   | 'gossip_show'
   | 'zone_changed'
   | 'level_up'
+  | 'player_death'
   | 'unit_kill'
   | 'item_use'
   | 'escort_start';
 
 export type WowEventName =
+  | 'PLAYER_ENTERING_WORLD'
+  | 'PLAYER_LOGOUT'
+  | 'PLAYER_DEAD'
   | 'QUEST_DETAIL'
   | 'QUEST_ACCEPTED'
   | 'QUEST_PROGRESS'
@@ -47,6 +53,11 @@ export interface AddonEventTemplate {
   unitName?: string;
   itemName?: string;
   playerLevel?: number;
+}
+
+export interface SimulatorEventOptions {
+  sessionId?: string;
+  timestamp?: number;
 }
 
 export interface QuestStepFixture {
@@ -99,6 +110,10 @@ export interface AddonEvent {
   unitName?: string;
   itemName?: string;
   playerLevel?: number;
+  playerXp?: number;
+  playerXpMax?: number;
+  moneyCopper?: number;
+  sessionId?: string;
   summary: string;
   storyCard?: QuestStoryCard;
   questTextEnrichment?: QuestTextEnrichment;
@@ -116,14 +131,16 @@ export function createSimulatorEvent(
   step: QuestStepFixture,
   template: AddonEventTemplate,
   questText?: string,
+  options: SimulatorEventOptions = {},
 ): AddonEvent {
-  const now = Date.now();
+  const now = options.timestamp ?? Date.now();
   return {
     id: `addon_${now.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
     source: 'simulator',
     kind: template.kind,
     wowEvent: template.wowEvent,
     timestamp: now,
+    sessionId: options.sessionId,
     chainId: chain.id,
     chainTitle: chain.title,
     stepId: step.stepId,
@@ -147,6 +164,34 @@ export function createSimulatorEvent(
           capturedAt: now,
         }
       : undefined,
+  };
+}
+
+export function createSimulatorSessionEvent(
+  kind: 'session_start' | 'session_end' | 'player_death',
+  bible: Pick<CharacterBible, 'name' | 'level' | 'currentZone'> | null,
+  sessionId: string,
+  timestamp = Date.now(),
+): AddonEvent {
+  const zone = bible?.currentZone;
+  const playerLevel = bible?.level;
+  const name = bible?.name ?? 'The hero';
+  const isStart = kind === 'session_start';
+  const isEnd = kind === 'session_end';
+  return {
+    id: `addon_${kind}_${timestamp.toString(36)}_${Math.random().toString(36).slice(2, 8)}`,
+    source: 'simulator',
+    kind,
+    wowEvent: isStart ? 'PLAYER_ENTERING_WORLD' : isEnd ? 'PLAYER_LOGOUT' : 'PLAYER_DEAD',
+    timestamp,
+    sessionId,
+    zone,
+    playerLevel,
+    summary: isStart
+      ? `${name} entered the world${zone ? ` in ${zone}` : ''}.`
+      : isEnd
+        ? `${name} ended the play session${zone ? ` in ${zone}` : ''}.`
+        : `${name} died${zone ? ` in ${zone}` : ''}.`,
   };
 }
 
