@@ -9,7 +9,8 @@ export type TaskType =
   | 'npc-chat'      // turn-by-turn dialog with an NPC
   | 'bible-gen'    // create or update the character bible
   | 'summary'       // scene / arc / chapter summarization
-  | 'embedding';    // RAG retrieval embeddings
+  | 'embedding'     // RAG retrieval embeddings
+  | 'inspire-me';   // onboarding wizard suggestion generator
 
 export type ModelTier = 'free' | 'paid';
 
