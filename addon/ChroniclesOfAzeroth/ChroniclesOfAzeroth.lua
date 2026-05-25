@@ -224,6 +224,19 @@ frame:SetScript("OnEvent", function(self, event, ...)
       C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)
     end
 
+    -- Enable disk-based logging so the chat-log + combat-log transports
+    -- Phase 1 wants to tail actually have something to read. These are
+    -- non-protected on Retail Midnight and have no observable cost when
+    -- toggled idempotently.
+    if LoggingChat then
+      pcall(LoggingChat, true)
+      db.meta.chatLogEnabled = true
+    end
+    if LoggingCombat then
+      pcall(LoggingCombat, true)
+      db.meta.combatLogEnabled = true
+    end
+
     registerEvents(db)
 
     print(string.format(
@@ -279,10 +292,14 @@ local function cmdTail(nStr)
 end
 
 local function cmdClear()
-  ChroniclesOfAzerothDB = nil
-  ensureDB()
+  local db = ensureDB()
+  db.events = {}
+  db.counts = {}
+  -- Preserve meta (populated once at ADDON_LOADED) and missingEvents
+  -- (forbidden-event annotations) across clears. Only the rolling
+  -- capture data resets.
   combatLogCounter = 0
-  print(CHAT_TAG .. " capture log cleared.")
+  print(CHAT_TAG .. " capture log cleared (meta preserved).")
 end
 
 local function cmdSample(nStr)
