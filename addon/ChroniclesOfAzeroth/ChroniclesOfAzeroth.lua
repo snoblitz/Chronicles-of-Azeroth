@@ -103,14 +103,22 @@ local EVENTS = {
   "PLAYER_LEVEL_UP",
   "PLAYER_DEAD",
   "PLAYER_ALIVE",
+  -- Combat (entry/exit bookends only -- COMBAT_LOG_EVENT_UNFILTERED is
+  -- restricted in modern Retail / requires a different registration path
+  -- than what unsigned addons get, so we skip it here. The simulator's
+  -- combat coverage will come from PLAYER_REGEN_* + UNIT_HEALTH or via
+  -- an explicit opt-in path later in Phase 1.)
   "PLAYER_REGEN_DISABLED",   -- entered combat
   "PLAYER_REGEN_ENABLED",    -- left combat
 
-  -- Combat (sampled, see combatLogSampleRate)
-  "COMBAT_LOG_EVENT_UNFILTERED",
-
   -- Inbound addon transport (to test SendAddonMessageLogged round-trip)
   "CHAT_MSG_ADDON",
+}
+
+-- Events known to be refused by RegisterEvent on certain flavors.
+-- Tracked here so /coa missing reflects intent, not just runtime failures.
+local KNOWN_FORBIDDEN = {
+  COMBAT_LOG_EVENT_UNFILTERED = "Retail Midnight refuses RegisterEvent for unsigned addons; see Phase 1 plan.",
 }
 
 ------------------------------------------------------------------------
@@ -188,8 +196,13 @@ local function registerEvents(db)
   for _, ev in ipairs(EVENTS) do
     local ok = pcall(function() frame:RegisterEvent(ev) end)
     if not ok then
-      db.missingEvents[ev] = true
+      db.missingEvents[ev] = "RegisterEvent threw"
     end
+  end
+  -- Mark statically-known-forbidden events too so /coa missing tells the
+  -- full story even when we deliberately skipped them.
+  for ev, reason in pairs(KNOWN_FORBIDDEN) do
+    db.missingEvents[ev] = reason
   end
 end
 
@@ -292,8 +305,15 @@ local function cmdMissing()
     return
   end
   table.sort(names)
-  print(string.format("%s %d events refused by RegisterEvent on %s:", CHAT_TAG, #names, projectName()))
-  for _, n in ipairs(names) do print("  " .. n) end
+  print(string.format("%s %d events not captured on %s:", CHAT_TAG, #names, projectName()))
+  for _, n in ipairs(names) do
+    local reason = db.missingEvents[n]
+    if type(reason) == "string" then
+      print(string.format("  %s  -- %s", n, reason))
+    else
+      print("  " .. n)
+    end
+  end
 end
 
 local function cmdVersion()
