@@ -142,6 +142,7 @@ local EVENTS = {
   "PLAYER_LEVEL_UP",
   "PLAYER_DEAD",
   "PLAYER_ALIVE",
+  "ACHIEVEMENT_EARNED",
   -- Combat (entry/exit bookends only -- COMBAT_LOG_EVENT_UNFILTERED is
   -- restricted in modern Retail / requires a different registration path
   -- than what unsigned addons get, so we skip it here. The simulator's
@@ -335,6 +336,19 @@ local function buildEnrichment(event, args)
     -- Coords + zone already in snapshot; combat log unavailable to
     -- unsigned addons on Retail, so we cannot yet name the killer.
     enr.deathContext = "killer-unknown (no combat log access)"
+
+  elseif event == "ACHIEVEMENT_EARNED" then
+    -- args[1] is achievementID. Resolve to name/description if the API
+    -- is available on this flavor.
+    local id = args and args[1]
+    if id and GetAchievementInfo then
+      local ok, _, name, _, _, _, _, desc = pcall(GetAchievementInfo, id)
+      if ok then
+        enr.achievementID   = id
+        enr.achievementName = name
+        enr.achievementDesc = desc
+      end
+    end
 
   elseif event == "PLAYER_LEVEL_UP" then
     -- args[1] is new level per Blizzard docs; snapshot already has it
@@ -647,6 +661,11 @@ frame:SetScript("OnEvent", function(self, event, ...)
       NS.session.npcs = NS.session.npcs + 1
     elseif event == "ZONE_CHANGED_NEW_AREA" then
       NS.session.lastZone = GetZoneText and GetZoneText() or NS.session.lastZone
+      NS.Emit("ZONE_CHANGED_NEW_AREA", ...)
+    elseif event == "PLAYER_DEAD" then
+      NS.Emit("PLAYER_DEAD", ...)
+    elseif event == "ACHIEVEMENT_EARNED" then
+      NS.Emit("ACHIEVEMENT_EARNED", ...)
     elseif event == "PLAYER_LOGOUT" then
       NS.Emit("PLAYER_LOGOUT")
     end

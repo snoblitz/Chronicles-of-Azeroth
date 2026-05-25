@@ -39,18 +39,70 @@ end
 -- Helpers: collect narrative events from db.events, newest-first.
 ------------------------------------------------------------------------
 
-local function collectNarrativeEvents()
+local function zoneOf(ev)
+  return (ev.enrichment and ev.enrichment.zoneText) or "Unknown Lands"
+end
+
+-- Returns a flat row list newest-first, composed of three row kinds:
+--   { kind = "bible" }                          (only when db.bible set)
+--   { kind = "chapter", index, zone, count }    (header row above a run)
+--   { kind = "event",   entry, idx }
+--
+-- Chapter numbers are assigned oldest -> newest, so the most recent visit
+-- has the highest Roman numeral. Re-entries to a zone get their own
+-- chapter ("Return to Westfall" idea, even if we don't render that yet).
+local function collectRows()
   local db = NS.GetDB and NS.GetDB() or ChroniclesOfAzerothDB
   if not db or not db.events then return {} end
-  local out = {}
+
+  local oldestFirst = {}
   for i, ev in ipairs(db.events) do
     if NS.Templates.IsNarrativeEvent(ev.event) then
-      table.insert(out, { idx = i, entry = ev })
+      table.insert(oldestFirst, { entry = ev, idx = i })
     end
   end
-  -- Newest first feels right in an album.
-  table.sort(out, function(a, b) return (a.entry.t or 0) > (b.entry.t or 0) end)
-  return out
+  table.sort(oldestFirst, function(a, b) return (a.entry.t or 0) < (b.entry.t or 0) end)
+
+  -- Walk oldest -> newest, group consecutive same-zone runs into chapters.
+  -- Each "chapter" carries its own ordered event list.
+  local chapters = {}
+  local curZone, curChap = nil, nil
+  for _, item in ipairs(oldestFirst) do
+    local z = zoneOf(item.entry)
+    if z ~= curZone then
+      curChap = { zone = z, events = {}, index = #chapters + 1 }
+      table.insert(chapters, curChap)
+      curZone = z
+    end
+    table.insert(curChap.events, item)
+  end
+
+  -- Render newest-first: iterate chapters in reverse, events within each
+  -- chapter also newest-first.
+  local rows = {}
+  if db.bible and db.bible ~= "" then
+    table.insert(rows, { kind = "bible" })
+  end
+  for c = #chapters, 1, -1 do
+    local ch = chapters[c]
+    table.insert(rows, {
+      kind  = "chapter",
+      index = ch.index,
+      zone  = ch.zone,
+      count = #ch.events,
+    })
+    for e = #ch.events, 1, -1 do
+      local item = ch.events[e]
+      table.insert(rows, {
+        kind  = "event",
+        entry = item.entry,
+        idx   = item.idx,
+        chapterIndex = ch.index,
+        chapterZone  = ch.zone,
+      })
+    end
+  end
+  return rows
 end
 
 local function getNarrationFor(entry)
@@ -131,18 +183,54 @@ local function buildRightPage(parent)
   return page
 end
 
-local function renderEntry(page, entry)
-  if not entry then
+local function renderEntry(page, row)
+  if not row or not row.kind then
     page.chapter:SetText("")
     page.title:SetText("")
     page.body:SetText("")
     page.footer:SetText("")
-    page.pin:SetTexture(nil)
+    if page.pin then page.pin:SetTexture(nil) end
     page.empty:Show()
     return
   end
   page.empty:Hide()
 
+  if row.kind == "bible" then
+    -- Title-page rendering. Bigger title, no timestamp, special pin.
+    local db = NS.GetDB and NS.GetDB() or ChroniclesOfAzerothDB
+    local char = NS.GetCurrentCharacter and select(1, NS.GetCurrentCharacter()) or nil
+    local name = (char and char.identity and char.identity.name) or "the traveler"
+    local raceCls
+    if char and char.identity then
+      local r = char.identity.race or ""
+      local c = char.identity.class or ""
+      raceCls = (r .. " " .. c):gsub("^%s+", ""):gsub("%s+$", "")
+    end
+    page.pin:SetTexture(art("Pin1.tga"))
+    page.chapter:SetText("|cFF6B3410-- title page --|r")
+    page.title:SetText("The Chronicle of " .. name)
+    local body = db.bible or ""
+    if body == "" then
+      body = "|cFF8B7355(No bible yet. Roll your hero in the web companion and /coa sync to enrich this page.)|r"
+    end
+    page.body:SetText(body)
+    page.footer:SetText(raceCls and raceCls ~= "" and raceCls or "")
+    return
+  end
+
+  if row.kind == "chapter" then
+    page.pin:SetTexture(art("Pin2.tga"))
+    page.chapter:SetText("|cFF6B3410-- a chapter --|r")
+    page.title:SetText(NS.Templates.ChapterLabel(row.index, row.zone))
+    page.body:SetText(string.format(
+      "|cFF8B7355This chapter holds %d entr%s from %s.\n\nSelect a chapter entry from the list to read it.|r",
+      row.count, row.count == 1 and "y" or "ies", row.zone))
+    page.footer:SetText("")
+    return
+  end
+
+  -- Default: event row.
+  local entry = row.entry
   local pinStyle = ((NS.Templates.EntryID(entry):byte(1) or 0) % 3) + 1
   page.pin:SetTexture(art("Pin" .. pinStyle .. ".tga"))
 
@@ -154,11 +242,18 @@ local function renderEntry(page, entry)
     title = "Level " .. tostring(enr.level or "?")
   elseif entry.event == "ZONE_CHANGED_NEW_AREA" then
     title = enr.zoneText or "A new place"
+  elseif entry.event == "PLAYER_DEAD" then
+    title = "A death in " .. (enr.zoneText or "the field")
+  elseif entry.event == "ACHIEVEMENT_EARNED" then
+    title = enr.achievementName or "An achievement"
   else
     title = entry.event
   end
   page.title:SetText(title)
-  page.chapter:SetText("|cFF6B3410-- a chapter --|r")
+  local chapterText = row.chapterIndex
+    and NS.Templates.ChapterLabel(row.chapterIndex, row.chapterZone)
+    or "|cFF6B3410-- a chapter --|r"
+  page.chapter:SetText("|cFF6B3410" .. chapterText .. "|r")
 
   local narration, isEnriched = getNarrationFor(entry)
   page.body:SetText(narration)
@@ -178,20 +273,60 @@ end
 -- the preview line + relative date.
 ------------------------------------------------------------------------
 
-local ROW_HEIGHT = 28
+local ROW_HEIGHT_EVENT   = 28
+local ROW_HEIGHT_HEADER  = 22
+local ROW_HEIGHT_BIBLE   = 36
 
-local function buildEntryRow(parent, idx)
+local function styleRowAsBible(row)
+  row.icon:SetText("✦")
+  row.icon:SetTextColor(1.0, 0.85, 0.30, 1)
+  row.label:SetText("|cFFFFE08AThe Hero's Bible|r")
+  row.label:SetFont(GameFontNormalLarge:GetFont(), 13, "")
+  row.meta:SetText("title page")
+  row.meta:SetTextColor(0.85, 0.65, 0.30, 0.9)
+  row.divider:Hide()
+end
+
+local function styleRowAsChapter(row, chapter)
+  row.icon:SetText("")
+  row.label:SetText("|cFFD9B47A" .. NS.Templates.ChapterLabel(chapter.index, chapter.zone) .. "|r")
+  row.label:SetFont(GameFontNormalSmall:GetFont(), 11, "")
+  row.meta:SetText(tostring(chapter.count))
+  row.meta:SetTextColor(0.65, 0.50, 0.28, 0.9)
+  row.divider:Show()
+end
+
+local function styleRowAsEvent(row, entry, isSelected)
+  row.icon:SetText("")
+  local char = NS.GetCurrentCharacter and select(1, NS.GetCurrentCharacter()) or nil
+  local name = (char and char.identity and char.identity.name) or "Traveler"
+  row.label:SetFont(GameFontNormalSmall:GetFont(), 12, "")
+  row.label:SetText(NS.Templates.Preview(entry, name))
+  local lvl = entry.enrichment and entry.enrichment.level
+  row.meta:SetText(lvl and ("lvl " .. lvl) or "")
+  row.meta:SetTextColor(0.7, 0.55, 0.32, 1)
+  row.divider:Hide()
+end
+
+local function buildEntryRow(parent)
   local row = CreateFrame("Button", nil, parent)
-  row:SetSize(360, ROW_HEIGHT)
+  row:SetSize(360, ROW_HEIGHT_EVENT)
 
   local hl = row:CreateTexture(nil, "BACKGROUND")
   hl:SetAllPoints(row)
-  hl:SetColorTexture(1, 0.85, 0.4, 0)  -- transparent unless selected
+  hl:SetColorTexture(1, 0.85, 0.4, 0)
   row.hl = hl
 
-  local label = row:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-  label:SetPoint("LEFT", row, "LEFT", 12, 0)
-  label:SetPoint("RIGHT", row, "RIGHT", -60, 0)
+  local icon = row:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  icon:SetPoint("LEFT", row, "LEFT", 6, 0)
+  icon:SetWidth(18)
+  icon:SetJustifyH("CENTER")
+  row.icon = icon
+
+  local label = row:CreateFontString(nil, "OVERLAY")
+  label:SetFont(GameFontNormalSmall:GetFont(), 12, "")
+  label:SetPoint("LEFT", icon, "RIGHT", 4, 0)
+  label:SetPoint("RIGHT", row, "RIGHT", -56, 0)
   label:SetJustifyH("LEFT")
   label:SetWordWrap(false)
   label:SetTextColor(0.9, 0.85, 0.7, 1)
@@ -202,9 +337,17 @@ local function buildEntryRow(parent, idx)
   meta:SetTextColor(0.7, 0.55, 0.32, 1)
   row.meta = meta
 
+  local divider = row:CreateTexture(nil, "ARTWORK")
+  divider:SetColorTexture(0.55, 0.42, 0.22, 0.45)
+  divider:SetPoint("BOTTOMLEFT",  row, "BOTTOMLEFT",   16, 1)
+  divider:SetPoint("BOTTOMRIGHT", row, "BOTTOMRIGHT", -16, 1)
+  divider:SetHeight(1)
+  divider:Hide()
+  row.divider = divider
+
   row:SetScript("OnEnter", function()
     if row._selected then return end
-    hl:SetColorTexture(1, 0.85, 0.4, 0.12)
+    if row._clickable then hl:SetColorTexture(1, 0.85, 0.4, 0.12) end
   end)
   row:SetScript("OnLeave", function()
     if row._selected then return end
@@ -216,56 +359,83 @@ end
 
 local function refreshList()
   if not book then return end
-  currentList = collectNarrativeEvents()
+  currentList = collectRows()
 
   entryButtons = entryButtons or {}
   local scrollChild = book.scrollChild
 
   local y = -2
-  for i, item in ipairs(currentList) do
-    local row = entryButtons[i]
-    if not row then
-      row = buildEntryRow(scrollChild, i)
-      entryButtons[i] = row
+  for i, row in ipairs(currentList) do
+    local rowFrame = entryButtons[i]
+    if not rowFrame then
+      rowFrame = buildEntryRow(scrollChild)
+      entryButtons[i] = rowFrame
     end
-    row:Show()
-    row:ClearAllPoints()
-    row:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 6, y)
-    row:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -6, y)
+    rowFrame:Show()
+    rowFrame:ClearAllPoints()
+    rowFrame:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 6, y)
+    rowFrame:SetPoint("TOPRIGHT", scrollChild, "TOPRIGHT", -6, y)
 
-    local char = NS.GetCurrentCharacter and select(1, NS.GetCurrentCharacter()) or nil
-    local name = (char and char.identity and char.identity.name) or "Traveler"
-    row.label:SetText(NS.Templates.Preview(item.entry, name))
-    local lvl = item.entry.enrichment and item.entry.enrichment.level
-    row.meta:SetText(lvl and ("lvl " .. lvl) or "")
+    local h = ROW_HEIGHT_EVENT
+    if row.kind == "bible" then
+      h = ROW_HEIGHT_BIBLE
+      rowFrame:SetHeight(h)
+      styleRowAsBible(rowFrame)
+      rowFrame._clickable = true
+    elseif row.kind == "chapter" then
+      h = ROW_HEIGHT_HEADER
+      rowFrame:SetHeight(h)
+      styleRowAsChapter(rowFrame, row)
+      rowFrame._clickable = true   -- clicking a chapter header shows its summary
+    else
+      h = ROW_HEIGHT_EVENT
+      rowFrame:SetHeight(h)
+      styleRowAsEvent(rowFrame, row.entry, i == selectedIdx)
+      rowFrame._clickable = true
+    end
 
-    row._selected = (i == selectedIdx)
-    row.hl:SetColorTexture(1, 0.85, 0.4, row._selected and 0.22 or 0)
+    rowFrame._selected = (i == selectedIdx)
+    rowFrame.hl:SetColorTexture(1, 0.85, 0.4, rowFrame._selected and 0.22 or 0)
 
-    row:SetScript("OnClick", function()
-      selectedIdx = i
-      renderEntry(book.rightPage, item.entry)
+    local rowIndex = i
+    rowFrame:SetScript("OnClick", function()
+      selectedIdx = rowIndex
+      renderEntry(book.rightPage, currentList[rowIndex])
       if PlaySound and SOUNDKIT then
         pcall(PlaySound, SOUNDKIT.IG_QUEST_LIST_SELECT)
       end
       refreshList()
     end)
 
-    y = y - ROW_HEIGHT - 2
+    y = y - h - 2
   end
 
-  -- Hide unused rows from a previous render
   for i = #currentList + 1, #entryButtons do
     entryButtons[i]:Hide()
   end
 
   scrollChild:SetHeight(math.max(1, -y + 4))
 
-  -- Auto-select the most recent entry on first open
-  if not selectedIdx and #currentList > 0 then
-    selectedIdx = 1
-    renderEntry(book.rightPage, currentList[1].entry)
-  elseif #currentList == 0 then
+  -- Default selection. If no selection yet, prefer the first event row
+  -- (the most recent entry); fall back to bible if no events exist.
+  if not selectedIdx then
+    local fallback
+    for i, row in ipairs(currentList) do
+      if row.kind == "event" then fallback = i; break end
+    end
+    if not fallback then
+      for i, row in ipairs(currentList) do
+        if row.kind == "bible" then fallback = i; break end
+      end
+    end
+    selectedIdx = fallback
+    if selectedIdx then
+      renderEntry(book.rightPage, currentList[selectedIdx])
+    end
+  end
+
+  -- Empty hint when there's literally nothing to show (no bible, no events).
+  if #currentList == 0 then
     renderEntry(book.rightPage, nil)
     book.emptyHint:Show()
   else
@@ -385,7 +555,14 @@ end
 -- Live updates: when a new narrative event lands, refresh the list if
 -- the book happens to be open. (Doesn't auto-open; that would be rude.)
 if NS.On then
-  for _, evt in ipairs({ "QUEST_ACCEPTED", "QUEST_TURNED_IN", "PLAYER_LEVEL_UP", "ZONE_CHANGED_NEW_AREA" }) do
+  for _, evt in ipairs({
+    "QUEST_ACCEPTED",
+    "QUEST_TURNED_IN",
+    "PLAYER_LEVEL_UP",
+    "ZONE_CHANGED_NEW_AREA",
+    "PLAYER_DEAD",
+    "ACHIEVEMENT_EARNED",
+  }) do
     NS.On(evt, function() if book and book:IsShown() then refreshList() end end)
   end
 end

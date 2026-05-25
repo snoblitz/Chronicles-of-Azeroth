@@ -72,6 +72,30 @@ T.ZONE_CHANGED_NEW_AREA = {
   "{zone} welcomes {name} the way places do -- without comment.",
 }
 
+T.PLAYER_DEAD = {
+  "{name} falls in {zone}. The wind does not stop for them.",
+  "Death finds {name} in {zone}. Death will be patient enough to be answered.",
+  "{name} learns the shape of {zone} the hard way.",
+  "It was not the day {name} thought it would be. {zone} closes over them.",
+  "{name}'s knees go. {zone} watches without comment.",
+  "Down. {name} is down, and {zone} is colder than it was a moment ago.",
+  "{name} pays a tax to {zone} they did not know was owed.",
+  "There are places one does not stand for long. {name} found one in {zone}.",
+  "{name} dies. The story is not finished; it merely turns a page.",
+  "Something hit harder than {name} expected. {zone} keeps the lesson.",
+}
+
+T.ACHIEVEMENT_EARNED = {
+  "{name} has done it -- '{achievement}' is theirs by right.",
+  "'{achievement}'. A small word on a long road. {name} carries it now.",
+  "Few enough will ever say they earned '{achievement}'. {name} is one.",
+  "{name} unlocks '{achievement}'. Some doors only open after you've walked far enough.",
+  "'{achievement}' -- spoken plainly by {name}, who has the right to say it.",
+  "It is not nothing, '{achievement}'. {name} feels the weight of it settle.",
+  "{name} stands a little taller. '{achievement}' will live on the back of every story they tell tonight.",
+  "A line drawn under {name}'s name: '{achievement}'.",
+}
+
 ------------------------------------------------------------------------
 -- Helpers
 ------------------------------------------------------------------------
@@ -107,11 +131,12 @@ function T.Narrate(entry, charName)
   local pool = T[entry.event]
   local enr  = entry.enrichment or {}
   local vars = {
-    name  = charName or "the traveler",
-    npc   = (enr.npc and enr.npc.name) or "an old face",
-    quest = enr.questTitle or "the matter at hand",
-    zone  = enr.zoneText or "the road",
-    level = tostring(enr.level or "?"),
+    name        = charName or "the traveler",
+    npc         = (enr.npc and enr.npc.name) or "an old face",
+    quest       = enr.questTitle or "the matter at hand",
+    zone        = enr.zoneText or "the road",
+    level       = tostring(enr.level or "?"),
+    achievement = enr.achievementName or "a quiet honor",
   }
   if not pool then
     return string.format("%s in %s. (%s)", vars.name, vars.zone, entry.event)
@@ -132,6 +157,10 @@ function T.Preview(entry, charName)
     return "Reached level " .. tostring(enr.level or "?")
   elseif e == "ZONE_CHANGED_NEW_AREA" then
     return "Entered " .. (enr.zoneText or "new ground")
+  elseif e == "PLAYER_DEAD" then
+    return "Fell in " .. (enr.zoneText or "battle")
+  elseif e == "ACHIEVEMENT_EARNED" then
+    return "Earned: " .. (enr.achievementName or "an achievement")
   end
   return e
 end
@@ -141,6 +170,8 @@ function T.IsNarrativeEvent(eventName)
       or eventName == "QUEST_TURNED_IN"
       or eventName == "PLAYER_LEVEL_UP"
       or eventName == "ZONE_CHANGED_NEW_AREA"
+      or eventName == "PLAYER_DEAD"
+      or eventName == "ACHIEVEMENT_EARNED"
 end
 
 -- Chapter label: "Chapter III -- Westfall" derived from grouping by

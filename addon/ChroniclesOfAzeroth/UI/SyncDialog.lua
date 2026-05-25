@@ -72,7 +72,48 @@ end
 
 local function unescape(s)
   -- Web companion encodes paragraph newlines as literal "\n".
-  return (s:gsub("\\n", "\n"):gsub("\\t", "\t"))
+  return (s:gsub("\\n", "\n"):gsub("\\t", "\t"):gsub("\\|", "|"))
+end
+
+-- Tiny base64 decoder. Used when blob payloads are prefixed with "b64:".
+-- Falls back to nil on malformed input so the parser can keep going.
+local B64_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+local B64_LOOKUP
+local function ensureB64()
+  if B64_LOOKUP then return end
+  B64_LOOKUP = {}
+  for i = 1, #B64_CHARS do B64_LOOKUP[B64_CHARS:sub(i, i)] = i - 1 end
+end
+
+local function b64decode(s)
+  ensureB64()
+  s = s:gsub("%s+", ""):gsub("=+$", "")
+  if s == "" then return "" end
+  local out, buf, bits = {}, 0, 0
+  for i = 1, #s do
+    local c = s:sub(i, i)
+    local v = B64_LOOKUP[c]
+    if not v then return nil end
+    buf = buf * 64 + v
+    bits = bits + 6
+    if bits >= 8 then
+      bits = bits - 8
+      local byte = math.floor(buf / (2 ^ bits)) % 256
+      out[#out + 1] = string.char(byte)
+      buf = buf % (2 ^ bits)
+    end
+  end
+  return table.concat(out)
+end
+
+local function decodePayload(val)
+  -- Web companion may prefix paragraphs with "b64:" when they contain
+  -- characters that would otherwise need escaping (pipes, newlines, etc).
+  if val:sub(1, 4) == "b64:" then
+    local decoded = b64decode(val:sub(5))
+    if decoded then return decoded end
+  end
+  return unescape(val)
 end
 
 local function parseBlob(blob)
@@ -100,7 +141,8 @@ local function parseBlob(blob)
   local db = NS.GetDB and NS.GetDB() or ChroniclesOfAzerothDB
   db.enriched = db.enriched or {}
 
-  local enrichedCount, hadBible = 0, false
+  local added, updated, skipped, malformed = 0, 0, 0, 0
+  local hadBible, bibleChanged = false, false
   while i <= #lines do
     local line = lines[i]
     i = i + 1
@@ -112,21 +154,40 @@ local function parseBlob(blob)
       local key, val = line:match("^([^|]+)|(.*)$")
       if key and val then
         key = key:match("^%s*(.-)%s*$")
-        val = unescape(val)
+        val = decodePayload(val)
         if key == "BIBLE" then
+          if db.bible ~= val then
+            bibleChanged = true
+          end
           db.bible = val
           hadBible = true
+        elseif key == "" then
+          malformed = malformed + 1
         else
-          db.enriched[key] = val
-          enrichedCount = enrichedCount + 1
+          local existing = db.enriched[key]
+          if existing == nil then
+            db.enriched[key] = val
+            added = added + 1
+          elseif existing == val then
+            skipped = skipped + 1
+          else
+            db.enriched[key] = val
+            updated = updated + 1
+          end
         end
+      else
+        malformed = malformed + 1
       end
     end
   end
 
   return {
-    enriched = enrichedCount,
-    bible = hadBible,
+    added     = added,
+    updated   = updated,
+    skipped   = skipped,
+    malformed = malformed,
+    bible     = hadBible,
+    bibleChanged = bibleChanged,
   }
 end
 
@@ -230,10 +291,21 @@ local function build()
     end
     status:SetTextColor(0.18, 0.40, 0.18, 1)
     local parts = {}
-    table.insert(parts, string.format("Imported %d enriched chapter%s.",
-      res.enriched, res.enriched == 1 and "" or "s"))
-    if res.bible then table.insert(parts, "Bible refreshed.") end
-    status:SetText(table.concat(parts, "  "))
+    if res.added   > 0 then table.insert(parts, string.format("%d added", res.added)) end
+    if res.updated > 0 then table.insert(parts, string.format("%d updated", res.updated)) end
+    if res.skipped > 0 then table.insert(parts, string.format("%d unchanged", res.skipped)) end
+    if res.bible then
+      table.insert(parts, res.bibleChanged and "bible refreshed" or "bible unchanged")
+    end
+    if res.malformed > 0 then
+      table.insert(parts, string.format("|cFFB8650F%d skipped (malformed)|r", res.malformed))
+    end
+    if #parts == 0 then
+      status:SetTextColor(0.55, 0.42, 0.18, 1)
+      status:SetText("Nothing new to import. The chronicle is already in sync.")
+    else
+      status:SetText("Imported -- " .. table.concat(parts, ", ") .. ".")
+    end
     edit:SetText("")
     NS.PlaySound("paper-collect.mp3")
     if NS.RefreshBook then NS.RefreshBook() end

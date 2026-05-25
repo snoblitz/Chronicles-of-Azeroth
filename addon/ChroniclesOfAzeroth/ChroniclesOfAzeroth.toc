@@ -2,7 +2,7 @@
 ## Title: Chronicles of Azeroth
 ## Notes: Turn your play into a chronicle -- captures events + a parchment-style story UI.
 ## Author: snoblitz
-## Version: 0.5.0
+## Version: 0.5.1
 ## SavedVariables: ChroniclesOfAzerothDB
 ## DefaultState: enabled
 ## IconTexture: Interface\Icons\INV_Misc_Book_09
