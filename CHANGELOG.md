@@ -73,6 +73,33 @@ Phase 1 ships.
   another hero" (with a back button to your active hero). Preset loads are
   non-destructive: if you already have that hero's `createdAt` key in your
   roster, we just re-activate it instead of overwriting edits.
+- **Addon Simulator tab** (`src/components/AddonSimulator.tsx`,
+  `src/lib/addonEvents.ts`, `addonEventStore.ts`, `addonIngest.ts`,
+  `classicQuestFixtures.ts`) — Phase 0.75 bridge between the browser POC
+  and the future WoW addon. Emits normalized events shaped around real
+  addon hooks (`QUEST_DETAIL`, `QUEST_ACCEPTED`, `QUEST_TURNED_IN`,
+  `GOSSIP_SHOW`, `ZONE_CHANGED_NEW_AREA`, `COMBAT_LOG_EVENT_UNFILTERED`),
+  records raw events in localStorage, and ingests them into the active
+  bible's level / zone / chronicle history. Ships with ~650 lines of
+  Classic quest-chain fixtures (IDs, NPCs, Wowhead links, authored story
+  cards — no copied quest prose).
+- **Chronicle Reader tab** (`src/components/ChronicleReader.tsx`) — first-class
+  story-reader view. Latest-session vs full-saga modes, "so what" insight
+  cards, chapter timeline, model-generated campfire recaps using the
+  selected provider.
+- **WoW session trail** (`src/lib/sessionHistory.ts`) — groups addon events
+  into discrete play sessions with per-session stats (XP, kills, quests,
+  zones, deaths), expandable event history, and elevated recap UI in
+  Chronicle Reader.
+- **Mobile-responsive top tabs** — top-bar collapses gracefully on narrow
+  viewports so the live Pages site is usable from a phone.
+
+### Removed
+
+- **Smoke Test tab** retired (`src/components/SmokeTest.tsx`,
+  Smoke Test pricing strategy text). The Addon Simulator is now the
+  primary dev harness for poking at providers without disturbing real
+  character data.
 
 ### Fixed
 

@@ -65,32 +65,53 @@ when adding new vars.
 
 ```
 chronicles-of-azeroth/
+├── .github/workflows/        deploy.yml → Pages on push to main
 ├── docs/                     ← you are here
-├── public/                   Vite static assets
+├── public/
+│   └── npcs/                 NPC portrait PNGs (wrap paths in assetUrl())
 ├── src/
-│   ├── App.tsx               Top-level shell
+│   ├── App.tsx               Tab shell: Character / Chronicle / NPC / Addon
 │   ├── main.tsx              React entry
-│   ├── index.css             Minimal styling
+│   ├── index.css             Leather-bound spellbook design system
 │   ├── types.ts              Shared types (carry forward to Phase 1+)
 │   ├── pricing.ts            Single source of truth for model prices
+│   ├── vite-env.d.ts         `vite/client` types so `tsc -b` is happy
 │   ├── components/
-│   │   ├── SpendBar.tsx      Always-visible cost header
-│   │   ├── ChronicleReader.tsx Story-reader + recap surface
-│   │   └── AddonSimulator.tsx WoW-addon event harness
+│   │   ├── SpendBar.tsx          Always-visible cost header + ⚙ Keys
+│   │   ├── SettingsPanel.tsx     In-app API key entry modal
+│   │   ├── ModelPicker.tsx       Shared model dropdown
+│   │   ├── CharacterSelector.tsx Active-hero dropdown in the header
+│   │   ├── CharacterCreation.tsx Welcome → identity → interview → review → sheet
+│   │   ├── NpcChat.tsx           NPC tavern + per-(hero × NPC) transcripts
+│   │   ├── ChronicleReader.tsx   Story-reader + recap surface
+│   │   └── AddonSimulator.tsx    WoW-addon event harness
 │   ├── lib/
-│   │   └── spendTracker.ts   localStorage usage log + averages
+│   │   ├── apiKeys.ts            localStorage-first key lookup
+│   │   ├── assetUrl.ts           Resolves /public/* against BASE_URL
+│   │   ├── bibleStore.ts         Multi-character roster + envelopes
+│   │   ├── presetCharacters.ts   Built-in bibles (Magnus)
+│   │   ├── wowData.ts            Race/class/faction cascade
+│   │   ├── modelChoices.ts       Shared model registry
+│   │   ├── npcCatalog.ts         Curated dwarven NPCs
+│   │   ├── npcChatStore.ts       Per-(hero × NPC) transcript persistence
+│   │   ├── addonEvents.ts        Normalized event contract
+│   │   ├── addonEventStore.ts    Raw event log
+│   │   ├── addonIngest.ts        event → bible / chronicle mutator
+│   │   ├── classicQuestFixtures.ts Quest-chain fixtures (~650 lines)
+│   │   ├── sessionHistory.ts     Groups events into play sessions
+│   │   └── spendTracker.ts       Usage log + averages + CSV export
 │   └── providers/
 │       ├── GeminiProvider.ts
 │       └── AnthropicProvider.ts
 ├── .env.example
-├── .env.local                gitignored, holds real keys
+├── .env.local                gitignored, holds real keys (optional)
 ├── .gitignore
 ├── index.html
 ├── package.json
 ├── tsconfig.json             references both app + node configs
 ├── tsconfig.app.json         strict TS for src/
 ├── tsconfig.node.json        for vite.config.ts
-└── vite.config.ts            port pinned to 5180
+└── vite.config.ts            port pinned to 5180; base from COA_BASE
 ```
 
 ## Common dev workflows

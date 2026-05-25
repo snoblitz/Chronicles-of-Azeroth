@@ -21,20 +21,28 @@ sent to any server but the model provider itself.
 
 Grab a free Gemini key here: <https://aistudio.google.com/apikey>
 
-## What it does (eventually)
+## What it does
 
+- **Welcome screen** lets you start with a built-in hero (Magnus Brunn is
+  shipped) or roll your own.
 - **Character creation interview** generates a deep character bible (race,
   class, faction, backstory, beliefs, motivations, fears, flaws, voice, core
   quote).
 - **Full character sheet** with portrait, faction-tinted glow, level + zone
   pills, and an in-character chronicle log of recent deeds.
-- **Talk to famous NPCs** — Magni Bronzebeard and Muradin are first up;
-  Tirion, Sylvanas, Jaina, Bolvar coming. Grounded in WoW lore + your
-  character bible + recent chronicle entries. They remember you.
-- **Quests have permanent narrative impact.** Killing Hogger isn't just XP;
-  it's a moment in your story.
-- **Per-zone / per-arc summaries** that build into a readable novel of your
-  playthrough.
+- **Multi-character roster** — switch active hero from the header, edit any
+  bible in place, keep separate NPC transcripts per hero.
+- **Talk to famous NPCs** — Magni Bronzebeard and Muradin first up, more
+  dwarves coming. Grounded in WoW lore + your character bible + recent
+  chronicle entries. They remember you.
+- **Chronicle reader** — first-class story tab. Latest-session and full-saga
+  views, "so what" insight cards, chapter timeline, model-generated campfire
+  recaps.
+- **Addon Simulator** (dev harness) — emits WoW API-shaped events from
+  Classic quest-chain fixtures (`QUEST_DETAIL`, `QUEST_TURNED_IN`,
+  `ZONE_CHANGED_NEW_AREA`, `COMBAT_LOG_EVENT_UNFILTERED`, etc.) and ingests
+  them into the active bible. This is the bridge contract that the Phase 2
+  Lua addon will speak.
 - **In-game integration** (Phase 2) via a Lua addon extending YUI-Dialogue.
 
 ## Quick start (local dev)

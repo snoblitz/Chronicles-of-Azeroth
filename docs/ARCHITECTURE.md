@@ -44,28 +44,57 @@ and **character bible** primitives so nothing gets thrown away.
 
 ```
 src/
-├── App.tsx                   Top-level shell
+├── App.tsx                   Tab shell: Character / Chronicle / NPC / Addon
 ├── main.tsx                  React 19 entry
-├── index.css                 Minimal styling
+├── index.css                 Leather-bound spellbook design system
 ├── types.ts                  ALL shared types (carry forward to Phase 1+)
 ├── pricing.ts                Per-model pricing table + calculateCost()
+├── vite-env.d.ts             `vite/client` types so `tsc -b` is happy
 │
 ├── components/
-│   ├── SpendBar.tsx          Always-visible cost header (collapsible)
+│   ├── SpendBar.tsx          Always-visible cost header (collapsible) + ⚙ Keys
+│   ├── SettingsPanel.tsx     In-app API key entry modal (localStorage-backed)
+│   ├── ModelPicker.tsx       Shared Gemini/Claude model dropdown
+│   ├── CharacterSelector.tsx Active-hero dropdown in the header
+│   ├── CharacterCreation.tsx Welcome → identity → interview → review → sheet
+│   ├── NpcChat.tsx           NPC tavern + per-(hero × NPC) transcripts
 │   ├── ChronicleReader.tsx   Story-reader + model-generated recap surface
 │   └── AddonSimulator.tsx    Phase 0.75 WoW-addon event harness
 │
 ├── lib/
+│   ├── apiKeys.ts            localStorage-first key lookup + env fallback
+│   ├── assetUrl.ts           Resolves /public/* paths against BASE_URL
+│   ├── bibleStore.ts         Multi-character roster + envelopes + events
+│   ├── presetCharacters.ts   Ships pre-built bibles (Magnus) in the bundle
+│   ├── wowData.ts            Race/class/faction cascade (modern WoW scope)
+│   ├── modelChoices.ts       Shared model registry for the picker
+│   ├── npcCatalog.ts         Curated dwarven NPCs (Magni, Muradin, ...)
+│   ├── npcChatStore.ts       Per-(hero × NPC) transcript persistence
 │   ├── addonEvents.ts        WoW API-shaped normalized event contract
 │   ├── addonEventStore.ts    localStorage raw event log
 │   ├── addonIngest.ts        event → character bible / chronicle memory
 │   ├── classicQuestFixtures.ts Classic quest-chain simulator fixtures
+│   ├── sessionHistory.ts     Groups events into play sessions w/ stats
 │   └── spendTracker.ts       localStorage usage log + averages + CSV export
 │
 └── providers/
-    ├── GeminiProvider.ts     @google/genai wrapper, records usage internally
-    └── AnthropicProvider.ts  @anthropic-ai/sdk wrapper, records usage internally
+    ├── GeminiProvider.ts     @google/genai 2.6 wrapper, records usage
+    └── AnthropicProvider.ts  @anthropic-ai/sdk wrapper, records usage
 ```
+
+### Key custom events
+
+The app coordinates same-tab state changes via `CustomEvent` on `window`
+(the native `storage` event only fires on *other* tabs):
+
+| Event                  | Fired when                          | Listened by              |
+| ---------------------- | ----------------------------------- | ------------------------ |
+| `coa:usage-updated`    | A provider records a usage entry    | `SpendBar`               |
+| `coa:bible-updated`    | Roster / active bible mutates       | `CharacterCreation`, `NpcChat`, `ChronicleReader` |
+| `coa:apikey-updated`   | A key is saved or cleared           | `App` (re-evaluates gate) |
+| `coa:request-tab`      | Component wants to navigate tabs    | `App`                    |
+| `coa:addon-event`      | An ingested addon event landed      | `ChronicleReader`        |
+
 
 ### Addon Simulator flow
 
