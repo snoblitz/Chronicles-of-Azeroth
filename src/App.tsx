@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { SpendBar } from './components/SpendBar';
-import { CharacterCreation } from './components/CharacterCreation';
+import { CharacterTab } from './components/CharacterTab';
 import { NpcChat } from './components/NpcChat';
 import { CharacterSelector } from './components/CharacterSelector';
 import { SettingsPanel } from './components/SettingsPanel';
@@ -108,7 +108,7 @@ export function App() {
         </nav>
 
         <div style={{ marginTop: '2rem' }}>
-          {tab === 'character' && <CharacterCreation />}
+          {tab === 'character' && <CharacterTab />}
           {tab === 'chronicle' && <ChronicleReader />}
           {tab === 'npc' && <NpcChat />}
           {tab === 'addon' && <AddonSimulator />}
