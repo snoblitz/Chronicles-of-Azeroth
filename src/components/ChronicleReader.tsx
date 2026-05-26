@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ModelPicker } from './ModelPicker';
+import { AddonImport } from './AddonImport';
 import { MODEL_CHOICES, DEFAULT_MODEL_INDEX } from '../lib/modelChoices';
 import { loadBible } from '../lib/bibleStore';
 import { loadAddonEventRecords, type AddonEventRecord } from '../lib/addonEventStore';
@@ -8,6 +9,9 @@ import {
   eventFactLine,
   type ChronicleSession,
 } from '../lib/sessionHistory';
+import { buildChronicleBlob, entryId } from '../lib/chronicleExport';
+import { enrichEvent } from '../lib/eventEnrichment';
+import type { AddonEvent } from '../lib/addonEvents';
 import type { CharacterBible, HistoryEntry, LLMResponse } from '../types';
 
 const SESSION_WINDOW_MS = 9 * 60 * 60 * 1000;
@@ -169,9 +173,10 @@ export function ChronicleReader() {
         <div className="coa-chronicle-empty">
           <h3>No story entries yet</h3>
           <p className="muted">
-            Run the Addon Sim, turn in quests from the future addon bridge, or add manual deeds from the character sheet.
+            Drop your <code>ChroniclesOfAzeroth.lua</code> below to pull in real game data, or run the Addon Sim, or add manual deeds from the character sheet.
           </p>
-          <div className="coa-chronicle-empty-actions">
+          <AddonImport />
+          <div className="coa-chronicle-empty-actions" style={{ marginTop: '1rem' }}>
             <button className="coa-btn coa-btn-primary" onClick={() => requestTab('addon')}>
               ◆ Open Addon Sim
             </button>
@@ -182,6 +187,7 @@ export function ChronicleReader() {
         </div>
       ) : (
         <>
+          <AddonImport />
           {mode !== 'sessions' && insight && <InsightGrid insight={insight} mode={mode} />}
 
           {mode !== 'sessions' && visibleEntries.length > 0 && (
@@ -272,6 +278,10 @@ export function ChronicleReader() {
               </div>
             </section>
           )}
+
+          {scopedAddonRecords.length > 0 && (
+            <CompanionExport bible={bible} records={scopedAddonRecords} />
+          )}
         </>
       )}
     </section>
@@ -283,6 +293,247 @@ function latestSessionEntries(entries: HistoryEntry[]): HistoryEntry[] {
   const latest = entries[entries.length - 1].timestamp;
   return entries.filter((entry) => latest - entry.timestamp <= SESSION_WINDOW_MS);
 }
+
+const ENRICH_CONCURRENCY = 3;
+
+function CompanionExport({
+  bible,
+  records,
+}: {
+  bible: CharacterBible;
+  records: AddonEventRecord[];
+}) {
+  const events = useMemo<AddonEvent[]>(
+    () => [...records].sort((a, b) => a.event.timestamp - b.event.timestamp).map((r) => r.event),
+    [records],
+  );
+
+  const [modelIdx, setModelIdx] = useState(DEFAULT_MODEL_INDEX);
+  const [enriched, setEnriched] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUsage, setLastUsage] = useState<{ count: number; cost: number } | null>(null);
+  const [includeBible, setIncludeBible] = useState(true);
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle');
+
+  const ids = useMemo(() => events.map((event) => entryId(event)), [events]);
+  const enrichedCount = useMemo(
+    () => ids.filter((id) => Boolean(enriched[id])).length,
+    [ids, enriched],
+  );
+
+  const bibleProse = useMemo(() => {
+    if (!includeBible) return null;
+    const lines = [
+      bible.backstory?.trim(),
+      bible.coreQuote ? `Core sentence: ${bible.coreQuote}` : null,
+    ].filter((l): l is string => Boolean(l && l.trim()));
+    return lines.length ? lines.join('\n\n') : null;
+  }, [bible, includeBible]);
+
+  const blob = useMemo(
+    () =>
+      buildChronicleBlob({
+        bible: bibleProse,
+        enrichments: ids
+          .map((id) => ({ id, paragraph: enriched[id] ?? '' }))
+          .filter((e) => e.paragraph.trim().length > 0),
+      }),
+    [bibleProse, ids, enriched],
+  );
+
+  async function runEnrichAll() {
+    if (busy || events.length === 0) return;
+    setBusy(true);
+    setError(null);
+    setLastUsage(null);
+    const queue = events.filter((event) => !enriched[entryId(event)]);
+    const total = queue.length;
+    if (total === 0) {
+      setBusy(false);
+      return;
+    }
+    setProgress({ done: 0, total });
+    let done = 0;
+    let cost = 0;
+    try {
+      for (let i = 0; i < queue.length; i += ENRICH_CONCURRENCY) {
+        const batch = queue.slice(i, i + ENRICH_CONCURRENCY);
+        const results = await Promise.all(
+          batch.map(async (event) => {
+            try {
+              const res = await enrichEvent(event, bible, modelIdx);
+              return { id: entryId(event), paragraph: res.paragraph, response: res.response };
+            } catch (err) {
+              return { id: entryId(event), error: err instanceof Error ? err.message : String(err) };
+            }
+          }),
+        );
+        setEnriched((current) => {
+          const next = { ...current };
+          for (const r of results) {
+            if ('paragraph' in r && r.paragraph) next[r.id] = r.paragraph;
+          }
+          return next;
+        });
+        for (const r of results) {
+          if ('response' in r && r.response) cost += guessCostUsd(r.response);
+          if ('error' in r && r.error && !error) setError(r.error);
+        }
+        done += batch.length;
+        setProgress({ done, total });
+      }
+      setLastUsage({ count: done, cost });
+    } finally {
+      setBusy(false);
+      setProgress(null);
+    }
+  }
+
+  async function copyBlob() {
+    try {
+      await navigator.clipboard.writeText(blob);
+      setCopyState('copied');
+      setTimeout(() => setCopyState('idle'), 2200);
+    } catch {
+      setCopyState('failed');
+      setTimeout(() => setCopyState('idle'), 2200);
+    }
+  }
+
+  function downloadBlob() {
+    const file = new Blob([blob], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chronicle_${bible.name.replace(/\s+/g, '_')}_${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  return (
+    <section className="coa-chronicle-generate" style={{ marginTop: '1.5rem' }}>
+      <div>
+        <p className="coa-kicker">Companion export</p>
+        <h3>Send enriched chronicle back to the addon</h3>
+        <p className="muted" style={{ marginTop: 0 }}>
+          Generate one prose paragraph per addon event, then paste the resulting{' '}
+          <code>COA-CHRONICLE-V1</code> blob into <code>/coa sync</code> inside WoW.
+          The addon stores each paragraph under its EntryID so the parchment book renders
+          your story instead of the default templated line.
+        </p>
+        <p className="muted" style={{ marginTop: '0.25rem' }}>
+          {events.length} addon {events.length === 1 ? 'event' : 'events'} ·{' '}
+          {enrichedCount} enriched
+          {lastUsage
+            ? ` · last run: ${lastUsage.count} calls, ~$${lastUsage.cost.toFixed(4)}`
+            : ''}
+        </p>
+      </div>
+      <div className="coa-chronicle-generate-controls" style={{ flexWrap: 'wrap' }}>
+        <ModelPicker value={modelIdx} onChange={setModelIdx} disabled={busy} label="Enrichment model" />
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            fontSize: '0.85rem',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={includeBible}
+            onChange={(e) => setIncludeBible(e.target.checked)}
+            disabled={busy}
+          />
+          Include BIBLE line
+        </label>
+        <button
+          className="coa-btn coa-btn-primary"
+          onClick={runEnrichAll}
+          disabled={busy || events.length === 0}
+          title="Calls the LLM once per event. Skips events already enriched."
+        >
+          {busy && progress
+            ? `Enriching... ${progress.done}/${progress.total}`
+            : enrichedCount === events.length && events.length > 0
+              ? '◆ Re-run missing (none)'
+              : `◆ Enrich ${events.length - enrichedCount || events.length} event${
+                  (events.length - enrichedCount || events.length) === 1 ? '' : 's'
+                }`}
+        </button>
+        <button
+          className="coa-btn coa-btn-secondary"
+          onClick={copyBlob}
+          disabled={busy || enrichedCount === 0}
+          title="Copy the COA-CHRONICLE-V1 blob to your clipboard"
+        >
+          {copyState === 'copied'
+            ? '✓ Copied'
+            : copyState === 'failed'
+              ? '✗ Clipboard blocked'
+              : '⧉ Copy chronicle blob'}
+        </button>
+        <button
+          className="coa-btn coa-btn-secondary"
+          onClick={downloadBlob}
+          disabled={busy || enrichedCount === 0}
+          title="Download the blob as a .txt file"
+        >
+          ⬇ Download .txt
+        </button>
+        {enrichedCount > 0 && (
+          <button
+            className="coa-btn coa-btn-secondary"
+            onClick={() => setEnriched({})}
+            disabled={busy}
+            title="Discard generated paragraphs and start over"
+          >
+            ✕ Clear enrichments
+          </button>
+        )}
+      </div>
+      {error && (
+        <div className="coa-callout-danger coa-chronicle-error" style={{ marginTop: '0.75rem' }}>
+          <strong>Enrichment hit a snag:</strong> {error}
+        </div>
+      )}
+      {enrichedCount > 0 && (
+        <details style={{ marginTop: '0.75rem' }}>
+          <summary className="muted" style={{ cursor: 'pointer' }}>
+            Preview blob ({blob.length.toLocaleString()} chars)
+          </summary>
+          <pre
+            style={{
+              maxHeight: '320px',
+              overflow: 'auto',
+              padding: '0.75rem',
+              background: 'var(--cp-surface-soft, rgba(0,0,0,0.04))',
+              fontSize: '0.78rem',
+              lineHeight: 1.45,
+              borderRadius: '0.5rem',
+              marginTop: '0.5rem',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {blob}
+          </pre>
+        </details>
+      )}
+    </section>
+  );
+}
+
+function guessCostUsd(response: LLMResponse): number {
+  // Best-effort: the response may carry costUsd directly (some providers).
+  const maybe = (response as unknown as { costUsd?: number }).costUsd;
+  return typeof maybe === 'number' ? maybe : 0;
+}
+
 
 function buildChapters(entries: HistoryEntry[]): Chapter[] {
   const chapters: Chapter[] = [];
