@@ -151,6 +151,23 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ---------- Meet the hero (exhibit + sample chapter) ---------- */}
+      <section className="at-section at-section-sample" id="sample">
+        <div className="at-container">
+          <Reveal variant="up">
+            <p className="at-kicker at-kicker-center">✦ Meet a hero</p>
+            <h2 className="at-section-h2 at-section-h2-center">This is Magnus. This is his Aftertale.</h2>
+            <p className="at-section-sub-center">
+              Scroll through five pages: who he is, how he speaks, where he came from — then the
+              chapter Aftertale wrote from one quiet hour of his story.
+            </p>
+          </Reveal>
+          <Reveal variant="scale" delay={150}>
+            <HeroExhibit />
+          </Reveal>
+        </div>
+      </section>
+
       {/* ---------- Magic moment ---------- */}
       <section className="at-section at-section-magic" id="magic">
         <div className="at-container at-magic-inner">
@@ -168,23 +185,6 @@ export function LandingPage() {
           </Reveal>
           <Reveal variant="right" delay={150}>
             <PhoneMockup />
-          </Reveal>
-        </div>
-      </section>
-
-      {/* ---------- Meet the hero (exhibit + sample chapter) ---------- */}
-      <section className="at-section at-section-sample" id="sample">
-        <div className="at-container">
-          <Reveal variant="up">
-            <p className="at-kicker at-kicker-center">✦ Meet a hero</p>
-            <h2 className="at-section-h2 at-section-h2-center">This is Magnus. This is his Aftertale.</h2>
-            <p className="at-section-sub-center">
-              Scroll through five pages: who he is, how he speaks, where he came from — then the
-              chapter Aftertale wrote from one quiet hour of his story.
-            </p>
-          </Reveal>
-          <Reveal variant="scale" delay={150}>
-            <HeroExhibit />
           </Reveal>
         </div>
       </section>
@@ -2124,8 +2124,8 @@ const landingStyles = `
      the flex track would otherwise stretch every panel to match the tallest
      (Backstory). Anything taller gets internal scroll on .at-panel-content. */
   .at-exhibit-page {
-    min-height: 420px;
-    max-height: 460px;
+    min-height: 540px;
+    max-height: 600px;
     padding: 0;
   }
 `;
