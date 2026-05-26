@@ -1,4 +1,4 @@
-# Chronicles of Azeroth — Constraints Excerpt
+# Aftertale — Constraints Excerpt
 
 **This is a trimmed excerpt of the full monetization plan.** It contains only the sections that downstream agents and contributors need to know about while building the addon and companion. The full plan (pricing tiers, revenue modeling, launch sequencing, competitive analysis) lives outside this repo by design — those are business decisions, not engineering constraints.
 
@@ -22,7 +22,7 @@
 ## §0. Contract surface between the addon and the web companion
 
 > **Status (2026-05-26):** Round-trip **fixed pre-launch**. Replaced the
-> lossy `COA-CHRONICLE-V1` blob (C3 below) with a structured
+> lossy `at-CHRONICLE-V1` blob (C3 below) with a structured
 > `ChroniclesOfAzerothRestore.lua` snippet — see
 > [`companion-architecture.md`](./companion-architecture.md) §12 and the
 > `2026-05-26` entries in [`CHANGELOG.md`](../CHANGELOG.md). The blob
@@ -41,7 +41,7 @@ The system has many files but only **three contracts** must stay in sync. Everyt
   │    DB.events[*]        │                         │                         │
   └────────────────────────┘                         └─────────────────────────┘
               ▲                                                   │
-              │                COA-CHRONICLE-V1 blob              │
+              │                at-CHRONICLE-V1 blob              │
               └───────────────────────────────────────────────────┘
                   (clipboard or .txt, pasted into /coa sync)
 ```
@@ -63,7 +63,7 @@ The addon also reads `ChroniclesOfAzerothCompanion = { schemaVersion, ingestedEv
 1. **Player plays WoW.** Addon writes `ChroniclesOfAzeroth.lua` on `/reload` or logout (each new event has a UUID v4 `id`).
 2. **User drops the SV file** into the web Chronicle tab → `savedVariablesIngest.ts` produces `AddonEvent[]` with `rawTs` + `rawArgs` preserved.
 3. **User clicks "Enrich"** → per-event LLM call (80–150 word paragraph), stored in component state keyed by `entryId(event)`.
-4. **User clicks "Copy chronicle blob"** → `buildChronicleBlob({ bible, enrichments })` produces a `COA-CHRONICLE-V1` text blob.
+4. **User clicks "Copy chronicle blob"** → `buildChronicleBlob({ bible, enrichments })` produces a `at-CHRONICLE-V1` text blob.
 5. **User pastes into `/coa sync`** inside WoW → addon's `parseBlob` populates `ChroniclesOfAzerothDB.enriched[entryId] = paragraph`.
 6. **User runs `/coa chronicle`** → `UI/ChronicleBook.lua` renders the parchment book; for each event it looks up `db.enriched[id]` and prints the prose if present, otherwise falls back to the templated narration.
 
@@ -169,7 +169,7 @@ The Zygor pattern, but using the WeakAuras Companion stack:
 
 If/when we pivot to the generic-engine positioning (§10 decision pending), the mitigation stack is:
 
-1. **Rename** away from "Chronicles of Azeroth" / "Azeroth" trademark
+1. **Rename** away from "Aftertale" / "Azeroth" trademark
 2. **Strip Blizzard-IP-laden prompts** from the shipped repo (Magni, Muradin, etc.). The example character "Magnus Brunn" stays — he's original.
 3. **Generic-engine marketing** — "AI narrative companion for fantasy RPGs." WoW happens to work great if you describe it.
 4. **BYO-world templates** — users create and share their own world packs. We never officially curate WoW packs.
@@ -197,7 +197,7 @@ An AI-generated chronicle featuring Magni Bronzebeard set in Azeroth is a litera
 
 | Element | Risk contribution |
 |---|---|
-| Name "Chronicles of Azeroth" | Trademark on "Azeroth" |
+| Name "Aftertale" | Trademark on "Azeroth" |
 | Domain `snoblitz.github.io/Chronicles-of-Azeroth` | Same trademark + public URL |
 | Shipped prompts for Magni Bronzebeard, Muradin | Copyright on characters |
 | Planned premium tier | Commercial exploitation, the Legal FAQ "No" |

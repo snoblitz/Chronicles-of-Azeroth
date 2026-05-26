@@ -9,7 +9,7 @@
 > first for the canonical current direction; come back here for Phase 0
 > internals (provider contract, custom events, simulator flow).
 
-Chronicles of Azeroth is a three-phase build. Each phase is deployable on its
+Aftertale is a three-phase build. Each phase is deployable on its
 own, and each one keeps the same **provider abstraction**, **spend tracker**,
 and **character bible** primitives so nothing gets thrown away.
 
@@ -97,11 +97,11 @@ The app coordinates same-tab state changes via `CustomEvent` on `window`
 
 | Event                  | Fired when                          | Listened by              |
 | ---------------------- | ----------------------------------- | ------------------------ |
-| `coa:usage-updated`    | A provider records a usage entry    | `SpendBar`               |
-| `coa:bible-updated`    | Roster / active bible mutates       | `CharacterCreation`, `NpcChat`, `ChronicleReader` |
-| `coa:apikey-updated`   | A key is saved or cleared           | `App` (re-evaluates gate) |
-| `coa:request-tab`      | Component wants to navigate tabs    | `App`                    |
-| `coa:addon-event`      | An ingested addon event landed      | `ChronicleReader`        |
+| `at:usage-updated`    | A provider records a usage entry    | `SpendBar`               |
+| `at:bible-updated`    | Roster / active bible mutates       | `CharacterCreation`, `NpcChat`, `ChronicleReader` |
+| `at:apikey-updated`   | A key is saved or cleared           | `App` (re-evaluates gate) |
+| `at:request-tab`      | Component wants to navigate tabs    | `App`                    |
+| `at:addon-event`      | An ingested addon event landed      | `ChronicleReader`        |
 
 
 ### Addon Simulator flow

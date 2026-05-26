@@ -5,7 +5,7 @@
 The following art and sound assets in this addon are sourced from
 [YUI-Dialogue](https://github.com/Peterodox/YUI-Dialogue) by **Peterodox**,
 used here with the author's express written permission (granted directly to
-the Chronicles of Azeroth author).
+the Aftertale author).
 
 ### Art
 

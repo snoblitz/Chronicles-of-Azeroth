@@ -27,7 +27,7 @@ investing in Electron and addon work.
 - [x] Gemini thinking-tokens accounted for in cost
 - [x] Reusable `ModelPicker` component shared by character creation and NPC chat
 - [x] **Character creation interview** → `CharacterBible` in localStorage
-- [x] **Multi-character storage** (`coa.bible.roster.v1` + per-character entries) with a CharacterSelector dropdown in the header
+- [x] **Multi-character storage** (`at.bible.roster.v1` + per-character entries) with a CharacterSelector dropdown in the header
 - [x] **Full character sheet** with portrait, faction-tinted glow, voice, backstory, beliefs, motivations, fears, flaws, core quote, level + zone pills, chronicle log
 - [x] **Inline bible editor** (Edit on the sheet → ReviewView with edit fields for name, homeland, level, zone, fears, flaws, quote)
 - [x] **NPC chat screen** with portrait header, Magni Bronzebeard portrait shipped, hero-assist drafts, transcript persistence per `(character × NPC)`
@@ -177,7 +177,7 @@ companion → addon round-trip. Bible renders, chapters group, but the
 narrative read is broken. Needs rework before this pipeline is shippable.
 
 ### 1. Blob format is too lossy — ✅ Built (pre-launch) 2026-05-26
-**Problem:** `COA-CHRONICLE-V1` only carries `EntryID + paragraph`. The book's
+**Problem:** `at-CHRONICLE-V1` only carries `EntryID + paragraph`. The book's
 resolvers and chapter grouping need event metadata that's getting dropped at
 export time:
 - `enrichment.zoneText` → chapters all collapse to "Unknown Lands"
@@ -238,4 +238,4 @@ with spaces. Locking this in any future Lua-snippet generator (web side too).
 
 ## Backlog — small follow-ups
 
-- [x] **Per-event-type filter in CompanionExport.** *(2026-05-26)* Added `src/lib/eventFilter.ts` + a category-grouped checkbox panel in `ChronicleReader`'s `CompanionExport`. Defaults to the 8 narrative events (matches addon `Templates.IsNarrativeEvent`, which was simultaneously expanded to add `ENCOUNTER_END` + `BOSS_KILL`). Per-event counts from the current SV import are shown next to each checkbox so the user sees where the cost lives. Persists to `localStorage` under `coa.enrichFilter.v1` (global, not per-character). Unknown event types from future addon versions surface in their own "Unknown" group and persist if toggled on. New ENCOUNTER_END / BOSS_KILL template pools + `Preview` cases added to `Lore/Templates.lua`.
+- [x] **Per-event-type filter in CompanionExport.** *(2026-05-26)* Added `src/lib/eventFilter.ts` + a category-grouped checkbox panel in `ChronicleReader`'s `CompanionExport`. Defaults to the 8 narrative events (matches addon `Templates.IsNarrativeEvent`, which was simultaneously expanded to add `ENCOUNTER_END` + `BOSS_KILL`). Per-event counts from the current SV import are shown next to each checkbox so the user sees where the cost lives. Persists to `localStorage` under `at.enrichFilter.v1` (global, not per-character). Unknown event types from future addon versions surface in their own "Unknown" group and persist if toggled on. New ENCOUNTER_END / BOSS_KILL template pools + `Preview` cases added to `Lore/Templates.lua`.

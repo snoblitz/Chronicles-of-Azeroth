@@ -4,7 +4,7 @@
 > table below is the curated set we ship in the model picker. Verify
 > against <https://openrouter.ai/models> when updating.
 
-Chronicles of Azeroth makes many LLM calls per play session. To keep this
+Aftertale makes many LLM calls per play session. To keep this
 sustainable (and avoid surprise bills), the app ships with always-on cost
 tracking from day one.
 
@@ -76,7 +76,7 @@ OpenRouter's defaults:
 ## Spend tracker
 
 Lives in `src/lib/spendTracker.ts`. Backed by `localStorage`, keyed per day
-(`coa.spend.YYYY-MM-DD`). Records are kept until the user manually exports,
+(`at.spend.YYYY-MM-DD`). Records are kept until the user manually exports,
 resets, or purges old history from the spend bar.
 
 ### Public API
@@ -91,7 +91,7 @@ sumCost(records: UsageRecord[]): number
 exportCsv(records: UsageRecord[]): string
 ```
 
-`recordUsage()` dispatches a `coa:usage-updated` CustomEvent on `window` so
+`recordUsage()` dispatches a `at:usage-updated` CustomEvent on `window` so
 in-tab listeners refresh immediately. (The browser's native `storage` event
 only fires on OTHER tabs — this was a real bug we hit.)
 
@@ -121,7 +121,7 @@ leveling = $X" with confidence per model.
 
 - **Top strip** (collapsed): Today total / Session total / Last call cost
 - **Expanded panel**: averages table grouped by task::model, CSV export button
-- **Updates live** via the `coa:usage-updated` CustomEvent
+- **Updates live** via the `at:usage-updated` CustomEvent
 
 ## Privacy / training data
 

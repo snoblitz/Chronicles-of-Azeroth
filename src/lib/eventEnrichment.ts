@@ -1,6 +1,6 @@
 // ============================================================================
 // Per-event enrichment — turns one AddonEvent into an 80-150 word paragraph
-// of in-world prose ready to ship back to the addon via the COA-CHRONICLE-V1
+// of in-world prose ready to ship back to the addon via the at-CHRONICLE-V1
 // blob. Mirrors the requestCampfireRecap pattern in ChronicleReader.tsx so
 // spend tracking + provider selection stay consistent.
 // ============================================================================

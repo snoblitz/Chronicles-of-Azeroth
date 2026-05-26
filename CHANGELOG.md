@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Chronicles of Azeroth. Format loosely follows
+All notable changes to Aftertale. Format loosely follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Pre-1.0, every
 change is technically breaking — we'll start being strict about SemVer when
 Phase 1 ships.
@@ -37,7 +37,7 @@ older docs is superseded by that document.
   for power-user toggling (default visible pre-launch; post-launch it flips
   to default-hidden for paid tiers where the daemon does this automatically).
   Settings panel gained an "Advanced" section with the toggle. New tab
-  request `coa:request-tab` accepts `'desk'`. Reader's empty state now
+  request `at:request-tab` accepts `'desk'`. Reader's empty state now
   routes the user to the desk. `ChronicleReader.tsx` shrank from 1327 to
   759 lines.
 - **LLM layer is now OpenRouter-only** *(2026-05-26)*. Removed the direct
@@ -72,7 +72,7 @@ older docs is superseded by that document.
   events + enrichments + bible into `ChroniclesOfAzerothDB` on `PLAYER_LOGIN`.
   Carries the entire `enrichment` subtable per event (`zoneText`, `questTitle`,
   `npc.name`, `encounterName`, `loot[]`) so chapter grouping and entry titles
-  render correctly — the COA-CHRONICLE-V1 blob was dropping all of that and
+  render correctly — the at-CHRONICLE-V1 blob was dropping all of that and
   leaving the book stuck on "Unknown Lands" / "Accepted: a quest". Also
   bypasses the 471 KB EditBox bottleneck. Snippet uses auto-leveled Lua
   long brackets so any LLM-generated content (including `]==]` tokens or
@@ -88,7 +88,7 @@ older docs is superseded by that document.
 - **Per-event-type filter in CompanionExport** *(2026-05-26)*. Category-grouped
   checkbox panel above the enrich controls, defaulting to the 8 narrative
   events the parchment book actually renders. Persists globally to
-  `localStorage` (`coa.enrichFilter.v1`). Per-import counts shown beside each
+  `localStorage` (`at.enrichFilter.v1`). Per-import counts shown beside each
   event name so cost is visible before kicking off a run. Closes the
   ~95%-waste finding from the May 25 stress test.
 - **`ENCOUNTER_END` + `BOSS_KILL` are now narrative events.** Added template
@@ -110,9 +110,9 @@ older docs is superseded by that document.
   Review → Save) with a `loremaster` LLM persona that probes for voice,
   beliefs, motivations, fears, and flaws. Generates a complete
   `CharacterBible` JSON.
-- **Multi-character storage.** Roster index at `coa.bible.roster.v1` plus
-  one envelope per hero at `coa.bible.entry.<characterKey>`. Old
-  `coa.bible.current` is migrated on load (idempotent).
+- **Multi-character storage.** Roster index at `at.bible.roster.v1` plus
+  one envelope per hero at `at.bible.entry.<characterKey>`. Old
+  `at.bible.current` is migrated on load (idempotent).
 - **CharacterSelector** dropdown in the header — switch active hero,
   shows race/class/faction at a glance, save indicator.
 - **Full character sheet view** replacing the old minimal banner:
@@ -130,7 +130,7 @@ older docs is superseded by that document.
   the hero's current level + zone at write time.
 - **NPC chat screen** with portrait header card grid, hero-assist drafts
   ("draft a reply in my voice"), and per-character × per-NPC transcript
-  persistence (`coa.npcChat.thread.<characterKey>.<npcId>`).
+  persistence (`at.npcChat.thread.<characterKey>.<npcId>`).
 - **Magni Bronzebeard** as the first art-assetted NPC (portrait shipped at
   `public/npcs/magni-bronzebeard.png`).
 - **NPC system prompt** injects voice, beliefs, motivations, fears, flaws,
@@ -141,10 +141,10 @@ older docs is superseded by that document.
   editing mode (Save changes / Cancel buttons), exposing Name + Homeland +
   Level + Current zone alongside the existing backstory/beliefs/motivations
   fields, plus textareas for fears + flaws and an input for core quote.
-- **Cross-tab navigation** via `coa:request-tab` custom event — sheet's
+- **Cross-tab navigation** via `at:request-tab` custom event — sheet's
   "Talk to NPCs" button hops to the Tavern tab without prop drilling.
 - **`appendHistoryEntry`, `deleteHistoryEntry`, `updateActiveBible`**
-  helper APIs in `bibleStore`, all firing `coa:bible-updated` so the UI
+  helper APIs in `bibleStore`, all firing `at:bible-updated` so the UI
   auto-refreshes.
 - **In-app API key entry** (`SettingsPanel` + `apiKeyStore`). Keys live
   in localStorage and override anything baked in at build time. Opens
@@ -159,7 +159,7 @@ older docs is superseded by that document.
   so `import.meta.env` and CSS imports type-check under `tsc -b`.
 - **Magnus seed backfill.** One-time migration patches the hand-written
   Magnus bible with the fears/flaws/coreQuote Jeff dictated, gated on
-  `coa.migrations.fears-flaws-quote.v1`.
+  `at.migrations.fears-flaws-quote.v1`.
 - **Preset characters registry** (`src/lib/presetCharacters.ts`) — ships
   fully-formed bibles inside the bundle so a brand-new visitor can pick a
   ready-made hero (currently: Magnus Brunn) instead of being forced through
@@ -206,7 +206,7 @@ older docs is superseded by that document.
   assist call. Error messages now surface billed tokens vs visible word
   count when truncation does happen.
 - **`storage` event scope.** Native `storage` only fires on OTHER tabs.
-  Added `coa:usage-updated`, `coa:bible-updated`, and `coa:apikey-updated`
+  Added `at:usage-updated`, `at:bible-updated`, and `at:apikey-updated`
   custom events for same-tab refresh.
 - **Underreported Gemini cost.** `outputTokens` now includes
   `thoughtsTokenCount` (Google bills thinking at the output rate).
@@ -231,7 +231,7 @@ older docs is superseded by that document.
 
 ### Project meta
 
-- Renamed from "Azeroth Chronicle" to **Chronicles of Azeroth**.
+- Renamed from "Azeroth Chronicle" to **Aftertale**.
 - Repo: <https://github.com/snoblitz/Chronicles-of-Azeroth>.
 - Live demo: <https://snoblitz.github.io/Chronicles-of-Azeroth/>.
 

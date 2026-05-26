@@ -1,5 +1,5 @@
 /* ============================================================================
-   Chronicles of Azeroth — design system
+   Aftertale — design system
    "Leather-bound spellbook on an oak table" — warm, tactile, a little magical.
    ============================================================================ */
 
@@ -152,10 +152,10 @@ code, kbd, samp, pre {
    Form controls — input, textarea, select share the same look
    =========================================================================== */
 
-.coa-input,
-.coa-input-wrap input,
-.coa-input-wrap textarea,
-.coa-input-wrap select {
+.at-input,
+.at-input-wrap input,
+.at-input-wrap textarea,
+.at-input-wrap select {
   background: var(--bg-inset);
   color: var(--fg);
   border: 1px solid var(--border);
@@ -169,37 +169,37 @@ code, kbd, samp, pre {
   outline: none;
 }
 
-.coa-input:hover:not(:disabled),
-.coa-input-wrap input:hover:not(:disabled),
-.coa-input-wrap textarea:hover:not(:disabled),
-.coa-input-wrap select:hover:not(:disabled) {
+.at-input:hover:not(:disabled),
+.at-input-wrap input:hover:not(:disabled),
+.at-input-wrap textarea:hover:not(:disabled),
+.at-input-wrap select:hover:not(:disabled) {
   border-color: var(--border-strong);
 }
 
-.coa-input:focus,
-.coa-input-wrap input:focus,
-.coa-input-wrap textarea:focus,
-.coa-input-wrap select:focus {
+.at-input:focus,
+.at-input-wrap input:focus,
+.at-input-wrap textarea:focus,
+.at-input-wrap select:focus {
   border-color: var(--gold);
   box-shadow: var(--sh-inset), 0 0 0 1px var(--gold), 0 0 12px rgba(212, 163, 115, 0.25);
 }
 
-.coa-input:disabled,
-.coa-input-wrap input:disabled,
-.coa-input-wrap textarea:disabled,
-.coa-input-wrap select:disabled {
+.at-input:disabled,
+.at-input-wrap input:disabled,
+.at-input-wrap textarea:disabled,
+.at-input-wrap select:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.coa-input::placeholder,
-.coa-input-wrap input::placeholder,
-.coa-input-wrap textarea::placeholder {
+.at-input::placeholder,
+.at-input-wrap input::placeholder,
+.at-input-wrap textarea::placeholder {
   color: var(--fg-faint);
   font-style: italic;
 }
 
-select.coa-input {
+select.at-input {
   appearance: none;
   -webkit-appearance: none;
   background-image:
@@ -212,7 +212,7 @@ select.coa-input {
 }
 
 /* Reusable serif body for textareas that display prose */
-.coa-prose {
+.at-prose {
   font-family: var(--font-body);
   font-size: 16px;
   line-height: 1.55;
@@ -222,13 +222,13 @@ select.coa-input {
    Field — label + control wrapper
    =========================================================================== */
 
-.coa-field {
+.at-field {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.coa-field-label {
+.at-field-label {
   font-family: var(--font-ui);
   font-size: 11px;
   font-weight: 600;
@@ -241,7 +241,7 @@ select.coa-input {
    Buttons
    =========================================================================== */
 
-.coa-btn {
+.at-btn {
   font-family: var(--font-ui);
   font-size: 14px;
   font-weight: 500;
@@ -259,64 +259,64 @@ select.coa-input {
   gap: 0.4rem;
   user-select: none;
 }
-.coa-btn:active { transform: translateY(1px); }
+.at-btn:active { transform: translateY(1px); }
 
-.coa-btn-primary {
+.at-btn-primary {
   background: linear-gradient(180deg, #6b4520 0%, #4a2f15 100%);
   border-color: var(--gold-deep);
   color: var(--gold-bright);
   letter-spacing: 0.04em;
 }
-.coa-btn-primary:hover:not(:disabled) {
+.at-btn-primary:hover:not(:disabled) {
   background: linear-gradient(180deg, #7a5128 0%, #553519 100%);
   border-color: var(--gold);
   box-shadow: var(--sh-glow-gold);
   color: #fff3dd;
 }
 
-.coa-btn-secondary {
+.at-btn-secondary {
   background: var(--bg-surface);
   border-color: var(--border-strong);
   color: var(--fg);
 }
-.coa-btn-secondary:hover:not(:disabled) {
+.at-btn-secondary:hover:not(:disabled) {
   background: var(--bg-surface-hover);
   border-color: var(--border-glow);
 }
 
-.coa-btn-danger {
+.at-btn-danger {
   background: linear-gradient(180deg, #4a1a18 0%, #2e110f 100%);
   border-color: #6a2a25;
   color: #f0b0a8;
 }
-.coa-btn-danger:hover:not(:disabled) {
+.at-btn-danger:hover:not(:disabled) {
   border-color: var(--danger);
   box-shadow: var(--sh-glow-danger);
   color: #ffd5cf;
 }
 
 /* AI assist — arcane purple, faint pulse */
-.coa-btn-assist {
+.at-btn-assist {
   background: linear-gradient(180deg, #2e2545 0%, #1f1a2e 100%);
   border-color: #4a3e6e;
   color: var(--magic);
   letter-spacing: 0.03em;
 }
-.coa-btn-assist:hover:not(:disabled) {
+.at-btn-assist:hover:not(:disabled) {
   border-color: var(--magic);
   box-shadow: var(--sh-glow-magic);
   color: #ebe0ff;
 }
-.coa-btn-assist .sparkle {
+.at-btn-assist .sparkle {
   display: inline-block;
-  animation: coa-sparkle 2.4s ease-in-out infinite;
+  animation: at-sparkle 2.4s ease-in-out infinite;
 }
-@keyframes coa-sparkle {
+@keyframes at-sparkle {
   0%, 100% { opacity: 0.7; transform: scale(1); }
   50%      { opacity: 1;   transform: scale(1.15); }
 }
 
-.coa-btn:disabled {
+.at-btn:disabled {
   background: var(--bg-surface);
   border-color: var(--border);
   color: var(--fg-faint);
@@ -325,13 +325,13 @@ select.coa-input {
   opacity: 0.7;
 }
 
-.coa-btn-sm {
+.at-btn-sm {
   padding: 0.35rem 0.7rem;
   font-size: 12.5px;
 }
 
 /* Square icon button (for the sparkle next to name) */
-.coa-btn-icon {
+.at-btn-icon {
   padding: 0.55rem 0.8rem;
   min-width: 2.5rem;
   justify-content: center;
@@ -341,7 +341,7 @@ select.coa-input {
    Panels / surfaces
    =========================================================================== */
 
-.coa-panel {
+.at-panel {
   position: relative;
   background:
     linear-gradient(180deg, var(--bg-elevated) 0%, #1a140f 100%);
@@ -351,7 +351,7 @@ select.coa-input {
   box-shadow: var(--sh-panel);
 }
 
-.coa-panel::before {
+.at-panel::before {
   /* Inner gold hairline highlight for that "tooled leather" feel */
   content: '';
   position: absolute;
@@ -361,28 +361,28 @@ select.coa-input {
   pointer-events: none;
 }
 
-.coa-callout {
+.at-callout {
   padding: 1rem 1.25rem;
   border-radius: var(--r-md);
   border: 1px solid var(--border-strong);
   background: var(--bg-inset);
 }
-.coa-callout-success {
+.at-callout-success {
   border-color: rgba(125, 216, 122, 0.4);
   background: rgba(40, 60, 35, 0.4);
 }
-.coa-callout-danger {
+.at-callout-danger {
   border-color: rgba(232, 93, 77, 0.5);
   background: rgba(60, 25, 22, 0.5);
   color: #f0b0a8;
 }
-.coa-callout-danger code { color: #ffc8c0; }
+.at-callout-danger code { color: #ffc8c0; }
 
 /* ===========================================================================
    Tabs — grimoire chapter dividers
    =========================================================================== */
 
-.coa-tabs {
+.at-tabs {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
@@ -392,7 +392,7 @@ select.coa-input {
   max-width: 100%;
 }
 
-.coa-tab {
+.at-tab {
   font-family: var(--font-display);
   letter-spacing: 0.08em;
   font-size: 13px;
@@ -407,11 +407,11 @@ select.coa-input {
   min-width: 0;
   transition: color 0.15s ease;
 }
-.coa-tab:hover { color: var(--fg); }
-.coa-tab[aria-selected='true'] {
+.at-tab:hover { color: var(--fg); }
+.at-tab[aria-selected='true'] {
   color: var(--gold-bright);
 }
-.coa-tab[aria-selected='true']::after {
+.at-tab[aria-selected='true']::after {
   content: '';
   position: absolute;
   left: 0; right: 0; bottom: -1px;
@@ -421,14 +421,14 @@ select.coa-input {
 }
 
 @media (max-width: 560px) {
-  .coa-tabs {
+  .at-tabs {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
     border-bottom: 0;
   }
 
-  .coa-tab {
+  .at-tab {
     width: 100%;
     border: 1px solid var(--border);
     border-radius: var(--r-md);
@@ -438,12 +438,12 @@ select.coa-input {
     letter-spacing: 0.05em;
   }
 
-  .coa-tab[aria-selected='true'] {
+  .at-tab[aria-selected='true'] {
     border-color: var(--gold-deep);
     background: rgba(178, 132, 49, 0.1);
   }
 
-  .coa-tab[aria-selected='true']::after {
+  .at-tab[aria-selected='true']::after {
     left: 0.35rem;
     right: 0.35rem;
     bottom: 0;
@@ -454,13 +454,13 @@ select.coa-input {
    Transcript bubbles
    =========================================================================== */
 
-.coa-transcript {
+.at-transcript {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.coa-bubble {
+.at-bubble {
   padding: 1rem 1.25rem 1.1rem 1.25rem;
   border-radius: var(--r-md);
   font-family: var(--font-body);
@@ -472,19 +472,19 @@ select.coa-input {
   background: var(--bg-surface);
 }
 
-.coa-bubble-loremaster {
+.at-bubble-loremaster {
   background: linear-gradient(180deg, #1a2218 0%, #131a12 100%);
   border-color: rgba(125, 165, 110, 0.25);
   border-left: 3px solid rgba(212, 163, 115, 0.6);
 }
 
-.coa-bubble-hero {
+.at-bubble-hero {
   background: linear-gradient(180deg, #181828 0%, #11111c 100%);
   border-color: rgba(120, 110, 165, 0.25);
   border-left: 3px solid var(--magic);
 }
 
-.coa-bubble-label {
+.at-bubble-label {
   font-family: var(--font-ui);
   font-size: 10px;
   font-weight: 700;
@@ -492,36 +492,36 @@ select.coa-input {
   margin-bottom: 0.5rem;
   display: block;
 }
-.coa-bubble-loremaster .coa-bubble-label { color: var(--gold); }
-.coa-bubble-hero       .coa-bubble-label { color: var(--magic); }
+.at-bubble-loremaster .at-bubble-label { color: var(--gold); }
+.at-bubble-hero       .at-bubble-label { color: var(--magic); }
 
-.coa-bubble-npc {
+.at-bubble-npc {
   background: linear-gradient(180deg, #15202d 0%, #0f1820 100%);
   border-color: rgba(106, 168, 255, 0.22);
   border-left: 3px solid var(--alliance);
 }
-.coa-bubble-npc .coa-bubble-label { color: var(--alliance); }
+.at-bubble-npc .at-bubble-label { color: var(--alliance); }
 
 /* Horde-faction variant for future use (Phase 2+: addon-driven NPC). */
-.coa-bubble-npc-horde {
+.at-bubble-npc-horde {
   background: linear-gradient(180deg, #2a160f 0%, #1d0e08 100%);
   border-color: rgba(215, 100, 80, 0.22);
   border-left: 3px solid var(--horde);
 }
-.coa-bubble-npc-horde .coa-bubble-label { color: var(--horde); }
+.at-bubble-npc-horde .at-bubble-label { color: var(--horde); }
 
 /* ===========================================================================
    NPC catalog picker — grid of selectable NPC cards
    =========================================================================== */
 
-.coa-npc-grid {
+.at-npc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
-.coa-npc-card {
+.at-npc-card {
   text-align: left;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -539,7 +539,7 @@ select.coa-input {
   overflow: hidden;
 }
 
-.coa-npc-card-portrait {
+.at-npc-card-portrait {
   display: block;
   width: 100%;
   height: 180px;
@@ -549,7 +549,7 @@ select.coa-input {
   border-bottom: 1px solid var(--border);
 }
 
-.coa-npc-card-portrait-placeholder {
+.at-npc-card-portrait-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -567,39 +567,39 @@ select.coa-input {
   opacity: 0.55;
 }
 
-.coa-npc-card-body {
+.at-npc-card-body {
   padding: 0.9rem 1.1rem 1rem 1.1rem;
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
 }
 
-.coa-npc-card:hover:not(:disabled) {
+.at-npc-card:hover:not(:disabled) {
   border-color: var(--gold);
   transform: translateY(-1px);
   box-shadow: var(--sh-panel), 0 0 18px rgba(212, 163, 115, 0.18);
 }
 
-.coa-npc-card:disabled {
+.at-npc-card:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.coa-npc-card-name {
+.at-npc-card-name {
   font-family: var(--font-display);
   font-size: 17px;
   color: var(--gold-bright);
   letter-spacing: 0.04em;
 }
 
-.coa-npc-card-title {
+.at-npc-card-title {
   font-family: var(--font-body);
   font-style: italic;
   font-size: 14px;
   color: var(--fg-muted);
 }
 
-.coa-npc-card-meta {
+.at-npc-card-meta {
   font-family: var(--font-ui);
   font-size: 11px;
   letter-spacing: 0.12em;
@@ -607,7 +607,7 @@ select.coa-input {
   color: var(--fg-faint);
 }
 
-.coa-npc-card-desc {
+.at-npc-card-desc {
   font-family: var(--font-body);
   font-size: 14.5px;
   line-height: 1.45;
@@ -616,7 +616,7 @@ select.coa-input {
 }
 
 /* NPC chat header (above the transcript) */
-.coa-npc-header {
+.at-npc-header {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -625,28 +625,28 @@ select.coa-input {
   border-bottom: 1px solid var(--border);
 }
 
-.coa-npc-header-name {
+.at-npc-header-name {
   font-family: var(--font-display);
   font-size: 22px;
   color: var(--gold-bright);
   letter-spacing: 0.04em;
 }
 
-.coa-npc-header-title {
+.at-npc-header-title {
   font-family: var(--font-body);
   font-style: italic;
   font-size: 14px;
   color: var(--fg-muted);
 }
 
-.coa-npc-header-row {
+.at-npc-header-row {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 1rem;
 }
 
-.coa-npc-header-portrait {
+.at-npc-header-portrait {
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -657,7 +657,7 @@ select.coa-input {
   flex-shrink: 0;
 }
 
-.coa-npc-header-portrait-placeholder {
+.at-npc-header-portrait-placeholder {
   width: 72px;
   height: 72px;
   border-radius: 50%;
@@ -675,7 +675,7 @@ select.coa-input {
   opacity: 0.65;
 }
 
-.coa-npc-saved {
+.at-npc-saved {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -686,7 +686,7 @@ select.coa-input {
   margin-top: 0.25rem;
   opacity: 0.85;
 }
-.coa-npc-saved::before {
+.at-npc-saved::before {
   content: '';
   display: inline-block;
   width: 6px;
@@ -700,13 +700,13 @@ select.coa-input {
    Character selector — header chip + dropdown
    =========================================================================== */
 
-.coa-char-selector {
+.at-char-selector {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.coa-char-selector-trigger {
+.at-char-selector-trigger {
   display: inline-flex;
   align-items: center;
   gap: 0.6rem;
@@ -720,35 +720,35 @@ select.coa-input {
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
-.coa-char-selector-trigger:hover {
+.at-char-selector-trigger:hover {
   border-color: var(--gold);
   background: rgba(0, 0, 0, 0.5);
 }
 
-.coa-char-selector-label {
+.at-char-selector-label {
   color: var(--fg-muted);
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.coa-char-selector-name {
+.at-char-selector-name {
   color: var(--gold);
   font-weight: 600;
   font-family: var(--font-display);
   letter-spacing: 0.02em;
 }
-.coa-char-selector-meta {
+.at-char-selector-meta {
   color: var(--fg-muted);
   font-size: 12px;
   font-style: italic;
 }
-.coa-char-selector-caret {
+.at-char-selector-caret {
   color: var(--fg-muted);
   font-size: 12px;
   margin-left: 0.15rem;
 }
 
-.coa-char-selector-menu {
+.at-char-selector-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -762,13 +762,13 @@ select.coa-input {
   overflow: hidden;
 }
 
-.coa-char-selector-section {
+.at-char-selector-section {
   padding: 0.6rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
-.coa-char-selector-section:last-child { border-bottom: none; }
+.at-char-selector-section:last-child { border-bottom: none; }
 
-.coa-char-selector-section-label {
+.at-char-selector-section-label {
   font-family: var(--font-mono);
   font-size: 10.5px;
   letter-spacing: 0.1em;
@@ -777,17 +777,17 @@ select.coa-input {
   margin-bottom: 0.4rem;
 }
 
-.coa-char-selector-active {
+.at-char-selector-active {
   background: rgba(214, 168, 88, 0.07);
 }
 
-.coa-char-selector-row {
+.at-char-selector-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0;
 }
-.coa-char-selector-row-main {
+.at-char-selector-row-main {
   flex: 1;
   text-align: left;
   background: none;
@@ -797,24 +797,24 @@ select.coa-input {
   padding: 0.35rem 0.5rem;
   border-radius: 4px;
 }
-.coa-char-selector-row-switch { cursor: pointer; }
-.coa-char-selector-row-switch:hover {
+.at-char-selector-row-switch { cursor: pointer; }
+.at-char-selector-row-switch:hover {
   background: rgba(214, 168, 88, 0.12);
 }
-.coa-char-selector-row-name {
+.at-char-selector-row-name {
   font-family: var(--font-display);
   color: var(--gold);
   font-size: 14px;
   letter-spacing: 0.02em;
 }
-.coa-char-selector-row-meta {
+.at-char-selector-row-meta {
   font-family: var(--font-body);
   color: var(--fg-muted);
   font-size: 12px;
   font-style: italic;
 }
 
-.coa-char-selector-row-delete {
+.at-char-selector-row-delete {
   background: none;
   border: 1px solid rgba(232, 93, 77, 0.4);
   color: #e85d4d;
@@ -826,12 +826,12 @@ select.coa-input {
   opacity: 0.7;
   transition: opacity 0.15s, background 0.15s;
 }
-.coa-char-selector-row-delete:hover {
+.at-char-selector-row-delete:hover {
   opacity: 1;
   background: rgba(232, 93, 77, 0.12);
 }
 
-.coa-char-selector-new {
+.at-char-selector-new {
   width: 100%;
   background: rgba(125, 216, 122, 0.08);
   border: 1px solid rgba(125, 216, 122, 0.4);
@@ -843,12 +843,12 @@ select.coa-input {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
-.coa-char-selector-new:hover {
+.at-char-selector-new:hover {
   background: rgba(125, 216, 122, 0.18);
   border-color: #9ce39a;
 }
 
-.coa-char-selector-foot {
+.at-char-selector-foot {
   margin-top: 0.5rem;
   font-family: var(--font-body);
   font-size: 11.5px;
@@ -861,7 +861,7 @@ select.coa-input {
    Spend bar — keep it monospaced/HUDish, but make it less ugly
    =========================================================================== */
 
-.coa-spendbar {
+.at-spendbar {
   background: linear-gradient(180deg, #1e1810 0%, #15100a 100%);
   border-bottom: 1px solid var(--border);
   padding: 0.5rem 1.25rem;
@@ -872,20 +872,20 @@ select.coa-input {
   z-index: 2;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
-.coa-spendbar strong { color: var(--gold); font-weight: 500; }
-.coa-spendbar-table {
+.at-spendbar strong { color: var(--gold); font-weight: 500; }
+.at-spendbar-table {
   border-collapse: collapse;
   font-size: 11.5px;
   width: 100%;
 }
-.coa-spendbar-table th {
+.at-spendbar-table th {
   text-align: left;
   padding: 0.35rem 0.6rem;
   font-weight: 600;
   color: var(--gold);
   border-bottom: 1px solid var(--border);
 }
-.coa-spendbar-table td {
+.at-spendbar-table td {
   padding: 0.3rem 0.6rem;
   border-bottom: 1px solid rgba(58, 46, 34, 0.5);
 }
@@ -922,12 +922,12 @@ select.coa-input {
    Character Sheet — full hero display
    ============================================================================ */
 
-.coa-sheet {
+.at-sheet {
   display: grid;
   gap: 1.5rem;
 }
 
-.coa-sheet-header {
+.at-sheet-header {
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
@@ -940,7 +940,7 @@ select.coa-input {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 220, 180, 0.04);
 }
 
-.coa-sheet-portrait {
+.at-sheet-portrait {
   flex-shrink: 0;
   width: 120px;
   height: 120px;
@@ -958,7 +958,7 @@ select.coa-input {
     linear-gradient(160deg, #2a2018, #15110d);
 }
 
-.coa-sheet-portrait.coa-faction-alliance {
+.at-sheet-portrait.at-faction-alliance {
   border-color: var(--alliance);
   box-shadow:
     0 0 0 4px var(--bg),
@@ -966,7 +966,7 @@ select.coa-input {
     inset 0 0 30px rgba(0, 0, 0, 0.4);
 }
 
-.coa-sheet-portrait.coa-faction-horde {
+.at-sheet-portrait.at-faction-horde {
   border-color: var(--horde);
   box-shadow:
     0 0 0 4px var(--bg),
@@ -974,7 +974,7 @@ select.coa-input {
     inset 0 0 30px rgba(0, 0, 0, 0.4);
 }
 
-.coa-sheet-portrait-monogram {
+.at-sheet-portrait-monogram {
   font-family: var(--font-display);
   font-size: 56px;
   font-weight: 600;
@@ -983,7 +983,7 @@ select.coa-input {
   letter-spacing: 0.02em;
 }
 
-.coa-sheet-title {
+.at-sheet-title {
   flex: 1;
   min-width: 0;
   display: grid;
@@ -991,7 +991,7 @@ select.coa-input {
   align-self: center;
 }
 
-.coa-sheet-name {
+.at-sheet-name {
   font-family: var(--font-display);
   font-size: clamp(28px, 4vw, 40px);
   font-weight: 600;
@@ -1002,7 +1002,7 @@ select.coa-input {
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-.coa-sheet-subtitle {
+.at-sheet-subtitle {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1012,15 +1012,15 @@ select.coa-input {
   color: var(--fg);
 }
 
-.coa-sheet-faction.coa-faction-alliance { color: var(--alliance); }
-.coa-sheet-faction.coa-faction-horde    { color: var(--horde); }
+.at-sheet-faction.at-faction-alliance { color: var(--alliance); }
+.at-sheet-faction.at-faction-horde    { color: var(--horde); }
 
-.coa-sheet-dot {
+.at-sheet-dot {
   color: var(--fg-faint);
   font-size: 10px;
 }
 
-.coa-sheet-meta {
+.at-sheet-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1031,14 +1031,14 @@ select.coa-input {
   margin-top: 0.2rem;
 }
 
-.coa-sheet-section {
+.at-sheet-section {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 1.25rem 1.5rem;
 }
 
-.coa-sheet-section-title {
+.at-sheet-section-title {
   font-family: var(--font-display);
   font-size: 13px;
   font-weight: 600;
@@ -1051,7 +1051,7 @@ select.coa-input {
   position: relative;
 }
 
-.coa-sheet-section-title::after {
+.at-sheet-section-title::after {
   content: '◆';
   position: absolute;
   right: 0;
@@ -1060,7 +1060,7 @@ select.coa-input {
   font-size: 10px;
 }
 
-.coa-sheet-voice {
+.at-sheet-voice {
   margin: 0;
   padding: 0.6rem 0 0.6rem 1.1rem;
   border-left: 3px solid var(--gold-deep);
@@ -1071,35 +1071,35 @@ select.coa-input {
   color: var(--fg);
 }
 
-.coa-sheet-backstory {
+.at-sheet-backstory {
   font-family: var(--font-body);
   font-size: 15.5px;
   line-height: 1.7;
   color: var(--fg);
 }
 
-.coa-sheet-backstory p {
+.at-sheet-backstory p {
   margin: 0 0 0.9rem 0;
 }
 
-.coa-sheet-backstory p:last-child {
+.at-sheet-backstory p:last-child {
   margin-bottom: 0;
 }
 
-.coa-sheet-two-col {
+.at-sheet-two-col {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
 }
 
 @media (max-width: 720px) {
-  .coa-sheet-two-col { grid-template-columns: 1fr; }
-  .coa-sheet-header { flex-direction: column; align-items: center; text-align: center; }
-  .coa-sheet-subtitle { justify-content: center; }
-  .coa-sheet-meta { justify-content: center; }
+  .at-sheet-two-col { grid-template-columns: 1fr; }
+  .at-sheet-header { flex-direction: column; align-items: center; text-align: center; }
+  .at-sheet-subtitle { justify-content: center; }
+  .at-sheet-meta { justify-content: center; }
 }
 
-.coa-sheet-list {
+.at-sheet-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -1107,7 +1107,7 @@ select.coa-input {
   gap: 0.55rem;
 }
 
-.coa-sheet-list li {
+.at-sheet-list li {
   position: relative;
   padding: 0.5rem 0.5rem 0.5rem 1.5rem;
   background: var(--bg-inset);
@@ -1119,7 +1119,7 @@ select.coa-input {
   color: var(--fg);
 }
 
-.coa-sheet-list li::before {
+.at-sheet-list li::before {
   content: '◆';
   position: absolute;
   left: 0.55rem;
@@ -1128,7 +1128,7 @@ select.coa-input {
   font-size: 10px;
 }
 
-.coa-sheet-actions {
+.at-sheet-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1136,24 +1136,24 @@ select.coa-input {
   padding-top: 0.5rem;
 }
 
-.coa-sheet-raw {
+.at-sheet-raw {
   margin-left: auto;
   font-family: var(--font-mono);
   font-size: 12px;
 }
 
-.coa-sheet-raw summary {
+.at-sheet-raw summary {
   cursor: pointer;
   color: var(--fg-muted);
   padding: 0.4rem 0.6rem;
   border-radius: var(--r-sm);
 }
 
-.coa-sheet-raw summary:hover {
+.at-sheet-raw summary:hover {
   color: var(--gold-bright);
 }
 
-.coa-sheet-raw pre {
+.at-sheet-raw pre {
   margin-top: 0.5rem;
   padding: 1rem;
   background: var(--bg-inset);
@@ -1166,11 +1166,11 @@ select.coa-input {
 }
 
 @media (max-width: 720px) {
-  .coa-sheet-raw { margin-left: 0; width: 100%; }
+  .at-sheet-raw { margin-left: 0; width: 100%; }
 }
 
 /* ---- Character Sheet: core quote banner ---- */
-.coa-sheet-corequote {
+.at-sheet-corequote {
   position: relative;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -1185,7 +1185,7 @@ select.coa-input {
   box-shadow: 0 0 18px rgba(212, 163, 115, 0.12), inset 0 0 28px rgba(0, 0, 0, 0.25);
 }
 
-.coa-sheet-corequote-mark {
+.at-sheet-corequote-mark {
   font-family: var(--font-display);
   font-size: 56px;
   line-height: 0.6;
@@ -1194,11 +1194,11 @@ select.coa-input {
   user-select: none;
 }
 
-.coa-sheet-corequote-mark-close {
+.at-sheet-corequote-mark-close {
   align-self: end;
 }
 
-.coa-sheet-corequote-text {
+.at-sheet-corequote-text {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(16px, 2vw, 19px);
@@ -1212,40 +1212,40 @@ select.coa-input {
 }
 
 /* ---- Character Sheet: fears + flaws variants ---- */
-.coa-sheet-section-fears .coa-sheet-section-title {
+.at-sheet-section-fears .at-sheet-section-title {
   color: #e8b09a;
 }
 
-.coa-sheet-section-fears .coa-sheet-section-title::after {
+.at-sheet-section-fears .at-sheet-section-title::after {
   content: '▼';
   color: #a55a45;
 }
 
-.coa-sheet-list-fears li {
+.at-sheet-list-fears li {
   border-left-color: #a55a45;
   background: rgba(168, 90, 69, 0.06);
 }
 
-.coa-sheet-list-fears li::before {
+.at-sheet-list-fears li::before {
   content: '▼';
   color: #a55a45;
 }
 
-.coa-sheet-section-flaws .coa-sheet-section-title {
+.at-sheet-section-flaws .at-sheet-section-title {
   color: #c9a874;
 }
 
-.coa-sheet-section-flaws .coa-sheet-section-title::after {
+.at-sheet-section-flaws .at-sheet-section-title::after {
   content: '✗';
   color: #8a6a44;
 }
 
-.coa-sheet-list-flaws li {
+.at-sheet-list-flaws li {
   border-left-color: #8a6a44;
   background: rgba(138, 106, 68, 0.06);
 }
 
-.coa-sheet-list-flaws li::before {
+.at-sheet-list-flaws li::before {
   content: '✗';
   color: #8a6a44;
   font-size: 11px;
@@ -1253,14 +1253,14 @@ select.coa-input {
 }
 /* Level/zone pills in sheet header */
 
-.coa-sheet-pills {
+.at-sheet-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   margin-top: 0.6rem;
 }
 
-.coa-sheet-pill {
+.at-sheet-pill {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -1274,33 +1274,33 @@ select.coa-input {
   color: var(--fg);
 }
 
-.coa-sheet-pill-level {
+.at-sheet-pill-level {
   border-color: var(--gold-deep);
   color: var(--gold-bright);
   background: rgba(178, 132, 49, 0.08);
 }
 
-.coa-sheet-pill-zone {
+.at-sheet-pill-zone {
   border-color: rgba(106, 168, 255, 0.45);
   color: #b9d4ff;
   background: rgba(106, 168, 255, 0.08);
 }
 
-.coa-sheet-pill-empty {
+.at-sheet-pill-empty {
   opacity: 0.55;
   font-style: italic;
 }
 
 /* Chronicle section */
 
-.coa-sheet-chronicle .coa-sheet-section-title::after {
+.at-sheet-chronicle .at-sheet-section-title::after {
   content: '✒';
   color: var(--gold);
   margin-left: 0.4rem;
   font-size: 14px;
 }
 
-.coa-sheet-chronicle-add {
+.at-sheet-chronicle-add {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 0.6rem;
@@ -1308,19 +1308,19 @@ select.coa-input {
   margin-bottom: 1rem;
 }
 
-.coa-sheet-chronicle-add textarea {
+.at-sheet-chronicle-add textarea {
   min-height: 2.6rem;
   resize: vertical;
 }
 
-.coa-sheet-chronicle-empty {
+.at-sheet-chronicle-empty {
   margin: 0;
   padding: 1rem 0;
   text-align: center;
   font-style: italic;
 }
 
-.coa-sheet-chronicle-list {
+.at-sheet-chronicle-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -1328,7 +1328,7 @@ select.coa-input {
   gap: 0.55rem;
 }
 
-.coa-sheet-chronicle-entry {
+.at-sheet-chronicle-entry {
   position: relative;
   border: 1px solid var(--border);
   border-left: 3px solid var(--gold-deep);
@@ -1338,12 +1338,12 @@ select.coa-input {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 
-.coa-sheet-chronicle-entry:hover {
+.at-sheet-chronicle-entry:hover {
   border-color: var(--border-strong);
   background: rgba(178, 132, 49, 0.07);
 }
 
-.coa-sheet-chronicle-entry-meta {
+.at-sheet-chronicle-entry-meta {
   display: flex;
   align-items: center;
   gap: 0.6rem;
@@ -1352,18 +1352,18 @@ select.coa-input {
   color: var(--fg-muted);
 }
 
-.coa-sheet-chronicle-time {
+.at-sheet-chronicle-time {
   font-family: var(--font-mono);
   letter-spacing: 0.04em;
 }
 
-.coa-sheet-chronicle-context {
+.at-sheet-chronicle-context {
   display: inline-flex;
   gap: 0.3rem;
   flex-wrap: wrap;
 }
 
-.coa-sheet-chronicle-chip {
+.at-sheet-chronicle-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -1376,7 +1376,7 @@ select.coa-input {
   color: var(--fg-muted);
 }
 
-.coa-sheet-chronicle-delete {
+.at-sheet-chronicle-delete {
   margin-left: auto;
   background: transparent;
   border: 1px solid transparent;
@@ -1393,17 +1393,17 @@ select.coa-input {
   font-size: 12px;
 }
 
-.coa-sheet-chronicle-entry:hover .coa-sheet-chronicle-delete,
-.coa-sheet-chronicle-delete:focus-visible {
+.at-sheet-chronicle-entry:hover .at-sheet-chronicle-delete,
+.at-sheet-chronicle-delete:focus-visible {
   opacity: 1;
 }
 
-.coa-sheet-chronicle-delete:hover {
+.at-sheet-chronicle-delete:hover {
   color: #d76450;
   border-color: rgba(215, 100, 80, 0.4);
 }
 
-.coa-sheet-chronicle-text {
+.at-sheet-chronicle-text {
   margin: 0;
   font-family: var(--font-body);
   font-size: 14px;
@@ -1413,7 +1413,7 @@ select.coa-input {
 
 /* Chronicle reader */
 
-.coa-kicker {
+.at-kicker {
   margin: 0 0 0.35rem;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -1422,12 +1422,12 @@ select.coa-input {
   color: var(--gold-deep);
 }
 
-.coa-chronicle-reader {
+.at-chronicle-reader {
   display: grid;
   gap: 1rem;
 }
 
-.coa-chronicle-hero {
+.at-chronicle-hero {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -1435,7 +1435,7 @@ select.coa-input {
   flex-wrap: wrap;
 }
 
-.coa-chronicle-hero-pills {
+.at-chronicle-hero-pills {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
@@ -1443,9 +1443,9 @@ select.coa-input {
   max-width: 440px;
 }
 
-.coa-chronicle-hero-pills span,
-.coa-chronicle-count,
-.coa-chronicle-arc-map span {
+.at-chronicle-hero-pills span,
+.at-chronicle-count,
+.at-chronicle-arc-map span {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--border);
@@ -1458,19 +1458,19 @@ select.coa-input {
   padding: 0.2rem 0.6rem;
 }
 
-.coa-chronicle-modebar {
+.at-chronicle-modebar {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.coa-chronicle-modebar .coa-btn[aria-pressed='true'] {
+.at-chronicle-modebar .at-btn[aria-pressed='true'] {
   border-color: var(--gold);
   color: var(--gold-bright);
   box-shadow: var(--sh-glow-gold);
 }
 
-.coa-chronicle-empty {
+.at-chronicle-empty {
   border: 1px dashed var(--border-strong);
   border-radius: var(--r-md);
   background: rgba(178, 132, 49, 0.04);
@@ -1478,7 +1478,7 @@ select.coa-input {
   text-align: center;
 }
 
-.coa-chronicle-empty-actions {
+.at-chronicle-empty-actions {
   display: flex;
   justify-content: center;
   gap: 0.6rem;
@@ -1486,13 +1486,13 @@ select.coa-input {
   margin-top: 1rem;
 }
 
-.coa-chronicle-insights {
+.at-chronicle-insights {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
 }
 
-.coa-chronicle-insights article {
+.at-chronicle-insights article {
   border: 1px solid var(--border);
   border-top: 2px solid var(--gold-deep);
   border-radius: var(--r-md);
@@ -1501,7 +1501,7 @@ select.coa-input {
   min-height: 138px;
 }
 
-.coa-chronicle-insights span {
+.at-chronicle-insights span {
   display: block;
   margin-bottom: 0.35rem;
   font-family: var(--font-mono);
@@ -1511,20 +1511,20 @@ select.coa-input {
   color: var(--fg-faint);
 }
 
-.coa-chronicle-insights strong {
+.at-chronicle-insights strong {
   display: block;
   font-family: var(--font-display);
   font-size: 1rem;
   color: var(--gold-bright);
 }
 
-.coa-chronicle-insights p {
+.at-chronicle-insights p {
   font-size: 14px;
   line-height: 1.35;
   color: var(--fg-muted);
 }
 
-.coa-chronicle-generate {
+.at-chronicle-generate {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -1536,19 +1536,19 @@ select.coa-input {
   padding: 1rem;
 }
 
-.coa-chronicle-generate-controls {
+.at-chronicle-generate-controls {
   display: flex;
   gap: 0.75rem;
   align-items: flex-end;
   flex-wrap: wrap;
 }
 
-.coa-chronicle-error {
+.at-chronicle-error {
   font-family: var(--font-mono);
   font-size: 13px;
 }
 
-.coa-chronicle-recap {
+.at-chronicle-recap {
   border: 1px solid rgba(184, 158, 255, 0.35);
   border-left: 3px solid var(--magic);
   border-radius: var(--r-md);
@@ -1562,7 +1562,7 @@ select.coa-input {
   white-space: pre-wrap;
 }
 
-.coa-chronicle-recap footer {
+.at-chronicle-recap footer {
   margin-top: 0.9rem;
   padding-top: 0.65rem;
   border-top: 1px solid var(--border);
@@ -1571,14 +1571,14 @@ select.coa-input {
   color: var(--fg-faint);
 }
 
-.coa-chronicle-book {
+.at-chronicle-book {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: rgba(17, 13, 9, 0.35);
   padding: 1rem;
 }
 
-.coa-chronicle-book > header {
+.at-chronicle-book > header {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -1586,12 +1586,12 @@ select.coa-input {
   margin-bottom: 1rem;
 }
 
-.coa-chronicle-chapters {
+.at-chronicle-chapters {
   display: grid;
   gap: 0.85rem;
 }
 
-.coa-chronicle-chapter {
+.at-chronicle-chapter {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background:
@@ -1600,7 +1600,7 @@ select.coa-input {
   overflow: hidden;
 }
 
-.coa-chronicle-chapter-head {
+.at-chronicle-chapter-head {
   display: grid;
   grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
@@ -1610,29 +1610,29 @@ select.coa-input {
   padding: 0.65rem 0.8rem;
 }
 
-.coa-chronicle-chapter-head h4 {
+.at-chronicle-chapter-head h4 {
   margin: 0;
   color: var(--gold-bright);
 }
 
-.coa-chronicle-chapter-head span {
+.at-chronicle-chapter-head span {
   font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--fg-faint);
 }
 
-.coa-chronicle-chapter-num {
+.at-chronicle-chapter-num {
   text-transform: uppercase;
 }
 
-.coa-chronicle-chapter ol {
+.at-chronicle-chapter ol {
   list-style: none;
   margin: 0;
   padding: 0.25rem 0;
 }
 
-.coa-chronicle-chapter li {
+.at-chronicle-chapter li {
   display: grid;
   grid-template-columns: 78px 1fr;
   column-gap: 0.85rem;
@@ -1641,47 +1641,47 @@ select.coa-input {
   border-bottom: 1px solid rgba(58, 46, 34, 0.65);
 }
 
-.coa-chronicle-chapter li:last-child {
+.at-chronicle-chapter li:last-child {
   border-bottom: 0;
 }
 
-.coa-chronicle-chapter li > span {
+.at-chronicle-chapter li > span {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--fg-faint);
 }
 
-.coa-chronicle-chapter li p {
+.at-chronicle-chapter li p {
   margin: 0;
   line-height: 1.45;
 }
 
-.coa-chronicle-chapter li small {
+.at-chronicle-chapter li small {
   grid-column: 2;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--fg-faint);
 }
 
-.coa-chronicle-arc-map {
+.at-chronicle-arc-map {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: rgba(17, 13, 9, 0.35);
   padding: 0.85rem;
 }
 
-.coa-chronicle-arc-map div {
+.at-chronicle-arc-map div {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
 }
 
-.coa-session-list {
+.at-session-list {
   display: grid;
   gap: 0.85rem;
 }
 
-.coa-session-card {
+.at-session-card {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background:
@@ -1690,7 +1690,7 @@ select.coa-input {
   overflow: hidden;
 }
 
-.coa-session-card summary {
+.at-session-card summary {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -1701,53 +1701,53 @@ select.coa-input {
   border-bottom: 1px solid transparent;
 }
 
-.coa-session-card summary::-webkit-details-marker {
+.at-session-card summary::-webkit-details-marker {
   display: none;
 }
 
-.coa-session-card summary h4,
-.coa-session-card summary p {
+.at-session-card summary h4,
+.at-session-card summary p {
   margin: 0;
 }
 
-.coa-session-card summary h4 {
+.at-session-card summary h4 {
   color: var(--gold-bright);
 }
 
-.coa-session-card summary p {
+.at-session-card summary p {
   margin-top: 0.2rem;
   color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: 12px;
 }
 
-.coa-session-card summary strong {
+.at-session-card summary strong {
   color: var(--magic);
   font-family: var(--font-mono);
   font-size: 12px;
   white-space: nowrap;
 }
 
-.coa-session-card[open] summary {
+.at-session-card[open] summary {
   border-bottom-color: var(--border);
   background: rgba(178, 132, 49, 0.06);
 }
 
-.coa-session-stats {
+.at-session-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.7rem;
   padding: 0.85rem 0.95rem;
 }
 
-.coa-session-stats article {
+.at-session-stats article {
   border: 1px solid rgba(58, 46, 34, 0.75);
   border-radius: var(--r-md);
   background: rgba(17, 13, 9, 0.5);
   padding: 0.75rem;
 }
 
-.coa-session-stats span {
+.at-session-stats span {
   display: block;
   margin-bottom: 0.3rem;
   color: var(--fg-faint);
@@ -1757,25 +1757,25 @@ select.coa-input {
   text-transform: uppercase;
 }
 
-.coa-session-stats strong {
+.at-session-stats strong {
   display: block;
   color: var(--gold-bright);
 }
 
-.coa-session-stats p {
+.at-session-stats p {
   color: var(--fg-muted);
   font-size: 13px;
   line-height: 1.35;
 }
 
-.coa-session-meta {
+.at-session-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
   padding: 0 0.95rem 0.85rem;
 }
 
-.coa-session-meta span {
+.at-session-meta span {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--border);
@@ -1787,18 +1787,18 @@ select.coa-input {
   padding: 0.2rem 0.55rem;
 }
 
-.coa-session-events {
+.at-session-events {
   border-top: 1px solid rgba(58, 46, 34, 0.65);
   padding: 0.85rem 0.95rem;
 }
 
-.coa-session-events ol {
+.at-session-events ol {
   list-style: none;
   margin: 0.55rem 0 0;
   padding: 0;
 }
 
-.coa-session-events li {
+.at-session-events li {
   display: grid;
   grid-template-columns: 78px 1fr;
   gap: 0.75rem;
@@ -1806,22 +1806,22 @@ select.coa-input {
   border-bottom: 1px solid rgba(58, 46, 34, 0.45);
 }
 
-.coa-session-events li:last-child {
+.at-session-events li:last-child {
   border-bottom: 0;
 }
 
-.coa-session-events li > span {
+.at-session-events li > span {
   color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: 12px;
 }
 
-.coa-session-events li p {
+.at-session-events li p {
   margin: 0;
   line-height: 1.4;
 }
 
-.coa-session-campfire-hero {
+.at-session-campfire-hero {
   display: grid;
   gap: 0.85rem;
   margin: 0.95rem;
@@ -1833,7 +1833,7 @@ select.coa-input {
   padding: 0.95rem;
 }
 
-.coa-session-campfire-head {
+.at-session-campfire-head {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
@@ -1841,16 +1841,16 @@ select.coa-input {
   flex-wrap: wrap;
 }
 
-.coa-session-campfire-head h4,
-.coa-session-campfire-head p {
+.at-session-campfire-head h4,
+.at-session-campfire-head p {
   margin: 0;
 }
 
-.coa-session-campfire-head h4 {
+.at-session-campfire-head h4 {
   color: var(--gold-bright);
 }
 
-.coa-session-campfire-empty {
+.at-session-campfire-empty {
   margin: 0;
   color: var(--fg);
   font-family: var(--font-body);
@@ -1859,50 +1859,50 @@ select.coa-input {
 }
 
 @media (max-width: 860px) {
-  .coa-chronicle-insights {
+  .at-chronicle-insights {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .coa-session-stats {
+  .at-session-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .coa-chronicle-chapter-head {
+  .at-chronicle-chapter-head {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 560px) {
-  .coa-chronicle-insights {
+  .at-chronicle-insights {
     grid-template-columns: 1fr;
   }
 
-  .coa-session-card summary {
+  .at-session-card summary {
     align-items: flex-start;
     flex-direction: column;
   }
 
-  .coa-session-card summary strong {
+  .at-session-card summary strong {
     white-space: normal;
   }
 
-  .coa-session-stats,
-  .coa-session-events li {
+  .at-session-stats,
+  .at-session-events li {
     grid-template-columns: 1fr;
   }
 
-  .coa-chronicle-chapter li {
+  .at-chronicle-chapter li {
     grid-template-columns: 1fr;
   }
 
-  .coa-chronicle-chapter li small {
+  .at-chronicle-chapter li small {
     grid-column: 1;
   }
 }
 
 /* Welcome / preset gallery */
 
-.coa-welcome {
+.at-welcome {
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem 0.5rem 3rem;
@@ -1911,14 +1911,14 @@ select.coa-input {
   gap: 2rem;
 }
 
-.coa-welcome-header {
+.at-welcome-header {
   text-align: center;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.coa-welcome-title {
+.at-welcome-title {
   margin: 0;
   font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 2.75rem);
@@ -1926,19 +1926,19 @@ select.coa-input {
   letter-spacing: 0.04em;
 }
 
-.coa-welcome-sub {
+.at-welcome-sub {
   margin: 0;
   color: var(--fg-muted);
   font-size: 1.05rem;
 }
 
-.coa-welcome-presets {
+.at-welcome-presets {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.25rem;
 }
 
-.coa-welcome-preset-card {
+.at-welcome-preset-card {
   display: flex;
   gap: 1rem;
   padding: 1.25rem;
@@ -1949,15 +1949,15 @@ select.coa-input {
   position: relative;
 }
 
-.coa-welcome-preset-card.coa-faction-alliance {
+.at-welcome-preset-card.at-faction-alliance {
   border-left: 4px solid var(--alliance);
 }
 
-.coa-welcome-preset-card.coa-faction-horde {
+.at-welcome-preset-card.at-faction-horde {
   border-left: 4px solid var(--horde);
 }
 
-.coa-welcome-preset-monogram {
+.at-welcome-preset-monogram {
   flex: 0 0 64px;
   width: 64px;
   height: 64px;
@@ -1972,7 +1972,7 @@ select.coa-input {
   color: var(--gold);
 }
 
-.coa-welcome-preset-body {
+.at-welcome-preset-body {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1980,20 +1980,20 @@ select.coa-input {
   min-width: 0;
 }
 
-.coa-welcome-preset-name {
+.at-welcome-preset-name {
   margin: 0;
   font-family: var(--font-display);
   font-size: 1.35rem;
   color: var(--gold);
 }
 
-.coa-welcome-preset-meta {
+.at-welcome-preset-meta {
   font-size: 0.85rem;
   color: var(--fg-muted);
   letter-spacing: 0.02em;
 }
 
-.coa-welcome-preset-tagline {
+.at-welcome-preset-tagline {
   margin: 0;
   color: var(--fg);
   font-size: 0.95rem;
@@ -2001,12 +2001,12 @@ select.coa-input {
   line-height: 1.4;
 }
 
-.coa-welcome-preset-body .coa-btn {
+.at-welcome-preset-body .at-btn {
   align-self: flex-start;
   margin-top: 0.25rem;
 }
 
-.coa-welcome-divider {
+.at-welcome-divider {
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -2016,8 +2016,8 @@ select.coa-input {
   font-size: 0.85rem;
 }
 
-.coa-welcome-divider::before,
-.coa-welcome-divider::after {
+.at-welcome-divider::before,
+.at-welcome-divider::after {
   content: '';
   flex: 1;
   height: 1px;
@@ -2030,19 +2030,19 @@ select.coa-input {
   );
 }
 
-.coa-welcome-roll {
+.at-welcome-roll {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.65rem;
 }
 
-.coa-welcome-roll-btn {
+.at-welcome-roll-btn {
   font-size: 1.05rem;
   padding: 0.75rem 1.5rem;
 }
 
-.coa-welcome-roll-hint {
+.at-welcome-roll-hint {
   margin: 0;
   max-width: 520px;
   text-align: center;
@@ -2050,14 +2050,14 @@ select.coa-input {
   font-size: 0.9rem;
 }
 
-.coa-welcome-cancel {
+.at-welcome-cancel {
   display: flex;
   justify-content: center;
 }
 
 /* Settings modal */
 
-.coa-modal-backdrop {
+.at-modal-backdrop {
   position: fixed;
   inset: 0;
   background: rgba(10, 7, 4, 0.78);
@@ -2067,15 +2067,15 @@ select.coa-input {
   justify-content: center;
   padding: 6vh 1rem 2rem;
   z-index: 1000;
-  animation: coa-fade-in 120ms ease;
+  animation: at-fade-in 120ms ease;
 }
 
-@keyframes coa-fade-in {
+@keyframes at-fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
 
-.coa-modal {
+.at-modal {
   width: 100%;
   max-width: 560px;
   background:
@@ -2093,19 +2093,19 @@ select.coa-input {
   overflow-y: auto;
 }
 
-.coa-modal-header {
+.at-modal-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 0.75rem;
 }
 
-.coa-modal-header h2 {
+.at-modal-header h2 {
   font-family: var(--font-display);
   font-size: 22px;
 }
 
-.coa-modal-close {
+.at-modal-close {
   background: transparent;
   border: 1px solid transparent;
   color: var(--fg-muted);
@@ -2119,12 +2119,12 @@ select.coa-input {
   font-size: 14px;
 }
 
-.coa-modal-close:hover {
+.at-modal-close:hover {
   color: var(--fg);
   border-color: var(--border-strong);
 }
 
-.coa-modal-footer {
+.at-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 0.6rem;
@@ -2133,7 +2133,7 @@ select.coa-input {
   border-top: 1px solid var(--border);
 }
 
-.coa-settings-section {
+.at-settings-section {
   margin-top: 1rem;
   padding: 0.9rem 1rem;
   border: 1px solid var(--border);
@@ -2141,14 +2141,14 @@ select.coa-input {
   border-radius: 4px;
 }
 
-.coa-settings-section-head {
+.at-settings-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
 }
 
-.coa-settings-row {
+.at-settings-row {
   display: flex;
   gap: 0.4rem;
   align-items: center;
@@ -2156,12 +2156,12 @@ select.coa-input {
   margin-top: 0.5rem;
 }
 
-.coa-settings-row .coa-input {
+.at-settings-row .at-input {
   flex: 1 1 220px;
   min-width: 0;
 }
 
-.coa-key-badge {
+.at-key-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.15rem 0.55rem;
@@ -2174,29 +2174,29 @@ select.coa-input {
   color: var(--fg-muted);
 }
 
-.coa-key-badge-local {
+.at-key-badge-local {
   border-color: rgba(125, 216, 122, 0.5);
   color: #9be19a;
   background: rgba(125, 216, 122, 0.07);
 }
 
-.coa-key-badge-env {
+.at-key-badge-env {
   border-color: var(--gold-deep);
   color: var(--gold-bright);
   background: rgba(178, 132, 49, 0.08);
 }
 
-.coa-key-badge-missing {
+.at-key-badge-missing {
   border-color: rgba(215, 100, 80, 0.55);
   color: #f3a191;
   background: rgba(215, 100, 80, 0.08);
 }
 
 @media (max-width: 520px) {
-  .coa-modal {
+  .at-modal {
     padding: 1.1rem 1rem 1rem;
   }
-  .coa-modal-header h2 {
+  .at-modal-header h2 {
     font-size: 19px;
   }
 }
@@ -2205,7 +2205,7 @@ select.coa-input {
    Trait Selection Wizard + Inspire Me cards
    ============================================================================ */
 
-.coa-trait-wizard {
+.at-trait-wizard {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -2214,7 +2214,7 @@ select.coa-input {
   margin: 0 auto;
 }
 
-.coa-trait-wizard-header h2 {
+.at-trait-wizard-header h2 {
   font-family: var(--font-display);
   color: var(--gold-bright);
   margin: 0 0 0.4rem;
@@ -2222,31 +2222,31 @@ select.coa-input {
   letter-spacing: 0.02em;
 }
 
-.coa-trait-wizard-header .muted {
+.at-trait-wizard-header .muted {
   margin: 0;
   font-family: var(--font-body);
   font-size: 1.02rem;
   line-height: 1.5;
 }
 
-.coa-trait-buckets {
+.at-trait-buckets {
   display: flex;
   flex-direction: column;
   gap: 1.4rem;
 }
 
-.coa-trait-bucket {
+.at-trait-bucket {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   padding: 1rem 1.1rem 1.2rem;
   background: var(--bg-elevated);
 }
 
-.coa-trait-bucket-header {
+.at-trait-bucket-header {
   margin-bottom: 0.8rem;
 }
 
-.coa-trait-bucket-label {
+.at-trait-bucket-label {
   font-family: var(--font-display);
   color: var(--gold);
   margin: 0 0 0.2rem;
@@ -2254,20 +2254,20 @@ select.coa-input {
   letter-spacing: 0.04em;
 }
 
-.coa-trait-bucket-desc {
+.at-trait-bucket-desc {
   margin: 0;
   font-family: var(--font-body);
   font-size: 0.95rem;
   line-height: 1.45;
 }
 
-.coa-trait-chip-row {
+.at-trait-chip-row {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.55rem;
 }
 
-.coa-trait-chip {
+.at-trait-chip {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2283,46 +2283,46 @@ select.coa-input {
   transition: border-color 120ms, background 120ms, transform 80ms;
 }
 
-.coa-trait-chip:hover {
+.at-trait-chip:hover {
   background: var(--bg-surface-hover);
   border-color: var(--border-strong);
 }
 
-.coa-trait-chip:active {
+.at-trait-chip:active {
   transform: translateY(1px);
 }
 
-.coa-trait-chip-selected,
-.coa-trait-chip-selected:hover {
+.at-trait-chip-selected,
+.at-trait-chip-selected:hover {
   border-color: var(--gold);
   background: linear-gradient(180deg, rgba(212, 163, 115, 0.12), rgba(212, 163, 115, 0.04));
   box-shadow: var(--sh-glow-gold);
 }
 
-.coa-trait-chip:focus-visible {
+.at-trait-chip:focus-visible {
   outline: 2px solid var(--gold-bright);
   outline-offset: 2px;
 }
 
-.coa-trait-chip-label {
+.at-trait-chip-label {
   font-weight: 600;
   font-size: 0.98rem;
   color: var(--gold-bright);
   letter-spacing: 0.01em;
 }
 
-.coa-trait-chip-selected .coa-trait-chip-label {
+.at-trait-chip-selected .at-trait-chip-label {
   color: var(--gold-bright);
 }
 
-.coa-trait-chip-desc {
+.at-trait-chip-desc {
   font-family: var(--font-body);
   font-size: 0.88rem;
   color: var(--fg-muted);
   line-height: 1.35;
 }
 
-.coa-trait-wizard-footer {
+.at-trait-wizard-footer {
   position: sticky;
   bottom: 0;
   display: flex;
@@ -2336,37 +2336,37 @@ select.coa-input {
   backdrop-filter: blur(6px);
 }
 
-.coa-trait-progress {
+.at-trait-progress {
   font-family: var(--font-body);
   color: var(--fg-muted);
   font-size: 0.95rem;
 }
 
-.coa-trait-wizard-actions {
+.at-trait-wizard-actions {
   display: flex;
   gap: 0.5rem;
 }
 
 /* --- Inspire Me cards (used in onboarding open-text answer screen) --- */
 
-.coa-inspire-panel {
+.at-inspire-panel {
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
   margin-top: 0.8rem;
 }
 
-.coa-inspire-trigger {
+.at-inspire-trigger {
   align-self: flex-start;
 }
 
-.coa-inspire-cards {
+.at-inspire-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 0.7rem;
 }
 
-.coa-inspire-card {
+.at-inspire-card {
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -2381,25 +2381,25 @@ select.coa-input {
   font-family: inherit;
 }
 
-.coa-inspire-card:hover {
+.at-inspire-card:hover {
   background: var(--bg-surface-hover);
   border-color: var(--magic);
   box-shadow: var(--sh-glow-magic);
 }
 
-.coa-inspire-card-selected,
-.coa-inspire-card-selected:hover {
+.at-inspire-card-selected,
+.at-inspire-card-selected:hover {
   border-color: var(--magic);
   background: linear-gradient(180deg, rgba(184, 158, 255, 0.12), rgba(184, 158, 255, 0.04));
   box-shadow: var(--sh-glow-magic);
 }
 
-.coa-inspire-card:focus-visible {
+.at-inspire-card:focus-visible {
   outline: 2px solid var(--magic);
   outline-offset: 2px;
 }
 
-.coa-inspire-card-title {
+.at-inspire-card-title {
   font-family: var(--font-display);
   color: var(--magic);
   font-size: 1.02rem;
@@ -2407,14 +2407,14 @@ select.coa-input {
   font-weight: 600;
 }
 
-.coa-inspire-card-text {
+.at-inspire-card-text {
   font-family: var(--font-body);
   font-size: 0.96rem;
   line-height: 1.45;
   color: var(--fg);
 }
 
-.coa-inspire-meta {
+.at-inspire-meta {
   display: flex;
   gap: 0.6rem;
   align-items: center;

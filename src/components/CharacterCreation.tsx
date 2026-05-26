@@ -86,10 +86,10 @@ export function CharacterCreation() {
   // Refresh existingBible if another tab updates it.
   useEffect(() => {
     const handler = () => setExistingBible(loadBible());
-    window.addEventListener('coa:bible-updated', handler);
+    window.addEventListener('at:bible-updated', handler);
     window.addEventListener('storage', handler);
     return () => {
-      window.removeEventListener('coa:bible-updated', handler);
+      window.removeEventListener('at:bible-updated', handler);
       window.removeEventListener('storage', handler);
     };
   }, []);
@@ -154,7 +154,7 @@ export function CharacterCreation() {
   }
 
   function handleGoToTavern() {
-    window.dispatchEvent(new CustomEvent('coa:request-tab', { detail: 'tavern' }));
+    window.dispatchEvent(new CustomEvent('at:request-tab', { detail: 'tavern' }));
   }
 
   // ----------------------------------------------------------------
@@ -492,7 +492,7 @@ export function CharacterCreation() {
     ].join('\n');
 
     return [
-      { role: 'system', content: 'You are a careful JSON generator for the Chronicles of Azeroth bible.' },
+      { role: 'system', content: 'You are a careful JSON generator for the Aftertale bible.' },
       { role: 'user', content: schemaHint },
     ];
   }
@@ -649,7 +649,7 @@ export function CharacterCreation() {
   // ----------------------------------------------------------------
 
   return (
-    <section className="coa-panel">
+    <section className="at-panel">
       <h2>Character creation</h2>
       <hr className="ornament" style={{ marginTop: '0.25rem', marginBottom: '1.25rem' }} />
 
@@ -668,7 +668,7 @@ export function CharacterCreation() {
 
       {error && (
         <div
-          className="coa-callout coa-callout-danger"
+          className="at-callout at-callout-danger"
           style={{
             marginBottom: '1.25rem',
             fontFamily: 'var(--font-mono)',
@@ -771,7 +771,7 @@ export function CharacterCreation() {
 
       {step === 'saved' && draftBible && (
         <div style={{ display: 'grid', gap: '1rem' }}>
-          <div className="coa-callout coa-callout-success">
+          <div className="at-callout at-callout-success">
             <p style={{ margin: 0, color: 'var(--success)', fontSize: 16 }}>
               ✓ Saved. <strong style={{ color: 'var(--gold-bright)' }}>{draftBible.name}</strong> is ready to walk Azeroth.
             </p>
@@ -807,40 +807,40 @@ function WelcomeView({
   cancelLabel?: string;
 }) {
   return (
-    <section className="coa-welcome">
-      <div className="coa-welcome-header">
-        <h2 className="coa-welcome-title">Begin your saga</h2>
-        <p className="coa-welcome-sub">
+    <section className="at-welcome">
+      <div className="at-welcome-header">
+        <h2 className="at-welcome-title">Begin your saga</h2>
+        <p className="at-welcome-sub">
           Step into Azeroth with a pre-built hero, or roll your own from scratch.
         </p>
       </div>
 
       {presets.length > 0 && (
         <>
-          <div className="coa-welcome-presets">
+          <div className="at-welcome-presets">
             {presets.map((preset) => {
               const factionClass =
                 preset.bible.faction === 'Alliance'
-                  ? 'coa-faction-alliance'
-                  : 'coa-faction-horde';
+                  ? 'at-faction-alliance'
+                  : 'at-faction-horde';
               const initial = (preset.bible.name.trim()[0] ?? '?').toUpperCase();
               return (
                 <article
                   key={preset.id}
-                  className={`coa-welcome-preset-card ${factionClass}`}
+                  className={`at-welcome-preset-card ${factionClass}`}
                 >
-                  <div className="coa-welcome-preset-monogram">{initial}</div>
-                  <div className="coa-welcome-preset-body">
-                    <h3 className="coa-welcome-preset-name">{preset.bible.name}</h3>
-                    <div className="coa-welcome-preset-meta">
+                  <div className="at-welcome-preset-monogram">{initial}</div>
+                  <div className="at-welcome-preset-body">
+                    <h3 className="at-welcome-preset-name">{preset.bible.name}</h3>
+                    <div className="at-welcome-preset-meta">
                       {preset.bible.race} · {preset.bible.class} ·{' '}
                       {preset.bible.faction}
                       {preset.bible.homeland ? ` · ${preset.bible.homeland}` : ''}
                     </div>
-                    <p className="coa-welcome-preset-tagline">{preset.tagline}</p>
+                    <p className="at-welcome-preset-tagline">{preset.tagline}</p>
                     <button
                       type="button"
-                      className="coa-btn coa-btn-primary"
+                      className="at-btn at-btn-primary"
                       onClick={() => onLoadPreset(preset.id)}
                     >
                       Play as {preset.bible.name.split(' ')[0]}
@@ -851,29 +851,29 @@ function WelcomeView({
             })}
           </div>
 
-          <div className="coa-welcome-divider">
+          <div className="at-welcome-divider">
             <span>or forge your own legend</span>
           </div>
         </>
       )}
 
-      <div className="coa-welcome-roll">
+      <div className="at-welcome-roll">
         <button
           type="button"
-          className="coa-btn coa-btn-primary coa-welcome-roll-btn"
+          className="at-btn at-btn-primary at-welcome-roll-btn"
           onClick={onRollCustom}
         >
           ✨ Roll a new hero
         </button>
-        <p className="coa-welcome-roll-hint">
+        <p className="at-welcome-roll-hint">
           A 5–7 question interview with the Loremaster builds a unique Character
           Bible from your answers.
         </p>
       </div>
 
       {onCancel && (
-        <div className="coa-welcome-cancel">
-          <button type="button" className="coa-btn coa-btn-secondary" onClick={onCancel}>
+        <div className="at-welcome-cancel">
+          <button type="button" className="at-btn at-btn-secondary" onClick={onCancel}>
             {cancelLabel ?? 'Cancel'}
           </button>
         </div>
@@ -897,54 +897,54 @@ function CharacterSheet({
 }) {
   const initial = (bible.name.trim()[0] ?? '?').toUpperCase();
   const factionClass =
-    bible.faction === 'Alliance' ? 'coa-faction-alliance' : 'coa-faction-horde';
+    bible.faction === 'Alliance' ? 'at-faction-alliance' : 'at-faction-horde';
   const factionGlyph = bible.faction === 'Alliance' ? '⚜' : '⛧';
   const updated = formatSheetTimestamp(bible.updatedAt);
   const created = formatSheetTimestamp(bible.createdAt);
 
   return (
-    <div className="coa-sheet">
-      <header className="coa-sheet-header">
-        <div className={`coa-sheet-portrait ${factionClass}`}>
-          <span className="coa-sheet-portrait-monogram">{initial}</span>
+    <div className="at-sheet">
+      <header className="at-sheet-header">
+        <div className={`at-sheet-portrait ${factionClass}`}>
+          <span className="at-sheet-portrait-monogram">{initial}</span>
         </div>
-        <div className="coa-sheet-title">
-          <h2 className="coa-sheet-name">{bible.name}</h2>
-          <div className="coa-sheet-subtitle">
+        <div className="at-sheet-title">
+          <h2 className="at-sheet-name">{bible.name}</h2>
+          <div className="at-sheet-subtitle">
             <span>
               {bible.race} {bible.class}
             </span>
-            <span className="coa-sheet-dot">•</span>
-            <span className={`coa-sheet-faction ${factionClass}`}>
+            <span className="at-sheet-dot">•</span>
+            <span className={`at-sheet-faction ${factionClass}`}>
               {factionGlyph} {bible.faction}
             </span>
             {bible.homeland && (
               <>
-                <span className="coa-sheet-dot">•</span>
+                <span className="at-sheet-dot">•</span>
                 <span>{bible.homeland}</span>
               </>
             )}
             {typeof bible.age === 'number' && (
               <>
-                <span className="coa-sheet-dot">•</span>
+                <span className="at-sheet-dot">•</span>
                 <span>Age {bible.age}</span>
               </>
             )}
           </div>
-          <div className="coa-sheet-pills">
-            <span className={`coa-sheet-pill coa-sheet-pill-level${typeof bible.level === 'number' ? '' : ' coa-sheet-pill-empty'}`}>
+          <div className="at-sheet-pills">
+            <span className={`at-sheet-pill at-sheet-pill-level${typeof bible.level === 'number' ? '' : ' at-sheet-pill-empty'}`}>
               {typeof bible.level === 'number' ? `Lvl ${bible.level}` : 'Lvl —'}
             </span>
-            <span className={`coa-sheet-pill coa-sheet-pill-zone${bible.currentZone ? '' : ' coa-sheet-pill-empty'}`}>
+            <span className={`at-sheet-pill at-sheet-pill-zone${bible.currentZone ? '' : ' at-sheet-pill-empty'}`}>
               <span aria-hidden>📍</span>
               {bible.currentZone || 'Zone unset'}
             </span>
           </div>
-          <div className="coa-sheet-meta">
+          <div className="at-sheet-meta">
             <span>◆ {mode === 'just-saved' ? 'Just saved' : 'Auto-saved'} {updated}</span>
             {created !== updated && (
               <>
-                <span className="coa-sheet-dot">•</span>
+                <span className="at-sheet-dot">•</span>
                 <span>Created {created}</span>
               </>
             )}
@@ -953,21 +953,21 @@ function CharacterSheet({
       </header>
 
       {bible.coreQuote && bible.coreQuote.trim() && (
-        <div className="coa-sheet-corequote">
-          <span className="coa-sheet-corequote-mark" aria-hidden>“</span>
-          <p className="coa-sheet-corequote-text">{bible.coreQuote.trim()}</p>
-          <span className="coa-sheet-corequote-mark coa-sheet-corequote-mark-close" aria-hidden>”</span>
+        <div className="at-sheet-corequote">
+          <span className="at-sheet-corequote-mark" aria-hidden>“</span>
+          <p className="at-sheet-corequote-text">{bible.coreQuote.trim()}</p>
+          <span className="at-sheet-corequote-mark at-sheet-corequote-mark-close" aria-hidden>”</span>
         </div>
       )}
 
-      <section className="coa-sheet-section">
-        <h3 className="coa-sheet-section-title">Voice</h3>
-        <blockquote className="coa-sheet-voice">{bible.voice}</blockquote>
+      <section className="at-sheet-section">
+        <h3 className="at-sheet-section-title">Voice</h3>
+        <blockquote className="at-sheet-voice">{bible.voice}</blockquote>
       </section>
 
-      <section className="coa-sheet-section">
-        <h3 className="coa-sheet-section-title">Backstory</h3>
-        <div className="coa-sheet-backstory">
+      <section className="at-sheet-section">
+        <h3 className="at-sheet-section-title">Backstory</h3>
+        <div className="at-sheet-backstory">
           {bible.backstory
             .split(/\n\s*\n/)
             .map((para, i) => (
@@ -976,18 +976,18 @@ function CharacterSheet({
         </div>
       </section>
 
-      <div className="coa-sheet-two-col">
-        <section className="coa-sheet-section">
-          <h3 className="coa-sheet-section-title">Beliefs</h3>
-          <ul className="coa-sheet-list">
+      <div className="at-sheet-two-col">
+        <section className="at-sheet-section">
+          <h3 className="at-sheet-section-title">Beliefs</h3>
+          <ul className="at-sheet-list">
             {bible.beliefs.map((b, i) => (
               <li key={i}>{b}</li>
             ))}
           </ul>
         </section>
-        <section className="coa-sheet-section">
-          <h3 className="coa-sheet-section-title">Motivations</h3>
-          <ul className="coa-sheet-list">
+        <section className="at-sheet-section">
+          <h3 className="at-sheet-section-title">Motivations</h3>
+          <ul className="at-sheet-list">
             {bible.motivations.map((m, i) => (
               <li key={i}>{m}</li>
             ))}
@@ -996,11 +996,11 @@ function CharacterSheet({
       </div>
 
       {((bible.fears && bible.fears.length > 0) || (bible.flaws && bible.flaws.length > 0)) && (
-        <div className="coa-sheet-two-col">
+        <div className="at-sheet-two-col">
           {bible.fears && bible.fears.length > 0 && (
-            <section className="coa-sheet-section coa-sheet-section-fears">
-              <h3 className="coa-sheet-section-title">Fears</h3>
-              <ul className="coa-sheet-list coa-sheet-list-fears">
+            <section className="at-sheet-section at-sheet-section-fears">
+              <h3 className="at-sheet-section-title">Fears</h3>
+              <ul className="at-sheet-list at-sheet-list-fears">
                 {bible.fears.map((f, i) => (
                   <li key={i}>{f}</li>
                 ))}
@@ -1008,9 +1008,9 @@ function CharacterSheet({
             </section>
           )}
           {bible.flaws && bible.flaws.length > 0 && (
-            <section className="coa-sheet-section coa-sheet-section-flaws">
-              <h3 className="coa-sheet-section-title">Flaws</h3>
-              <ul className="coa-sheet-list coa-sheet-list-flaws">
+            <section className="at-sheet-section at-sheet-section-flaws">
+              <h3 className="at-sheet-section-title">Flaws</h3>
+              <ul className="at-sheet-list at-sheet-list-flaws">
                 {bible.flaws.map((f, i) => (
                   <li key={i}>{f}</li>
                 ))}
@@ -1022,17 +1022,17 @@ function CharacterSheet({
 
       <ChronicleSection bible={bible} />
 
-      <footer className="coa-sheet-actions">
-        <button className="coa-btn coa-btn-primary" onClick={onTalkToNpcs}>
+      <footer className="at-sheet-actions">
+        <button className="at-btn at-btn-primary" onClick={onTalkToNpcs}>
           ◆ Talk to NPCs
         </button>
-        <button className="coa-btn coa-btn-secondary" onClick={onEdit}>
+        <button className="at-btn at-btn-secondary" onClick={onEdit}>
           Edit bible
         </button>
-        <button className="coa-btn coa-btn-secondary" onClick={onRollAnother}>
+        <button className="at-btn at-btn-secondary" onClick={onRollAnother}>
           Roll another hero
         </button>
-        <details className="coa-sheet-raw">
+        <details className="at-sheet-raw">
           <summary>View raw JSON</summary>
           <pre>{JSON.stringify(bible, null, 2)}</pre>
         </details>
@@ -1096,12 +1096,12 @@ function ChronicleSection({ bible }: { bible: CharacterBible }) {
   }
 
   return (
-    <section className="coa-sheet-section coa-sheet-chronicle">
-      <h3 className="coa-sheet-section-title">Chronicle</h3>
+    <section className="at-sheet-section at-sheet-chronicle">
+      <h3 className="at-sheet-section-title">Chronicle</h3>
 
-      <div className="coa-sheet-chronicle-add">
+      <div className="at-sheet-chronicle-add">
         <textarea
-          className="coa-input"
+          className="at-input"
           placeholder={
             typeof bible.level === 'number' || bible.currentZone
               ? `What happened? (will snapshot ${[
@@ -1123,7 +1123,7 @@ function ChronicleSection({ bible }: { bible: CharacterBible }) {
           rows={2}
         />
         <button
-          className="coa-btn coa-btn-primary"
+          className="at-btn at-btn-primary"
           onClick={handleAdd}
           disabled={!draft.trim()}
         >
@@ -1132,27 +1132,27 @@ function ChronicleSection({ bible }: { bible: CharacterBible }) {
       </div>
 
       {sortedEntries.length === 0 ? (
-        <p className="coa-sheet-chronicle-empty muted">
+        <p className="at-sheet-chronicle-empty muted">
           No chronicled deeds yet. Log your first one above — slain foes, sights seen, oaths sworn.
         </p>
       ) : (
-        <ol className="coa-sheet-chronicle-list">
+        <ol className="at-sheet-chronicle-list">
           {sortedEntries.map((entry) => (
-            <li key={entry.id} className="coa-sheet-chronicle-entry">
-              <div className="coa-sheet-chronicle-entry-meta">
-                <span className="coa-sheet-chronicle-time">{formatRelativeTime(entry.timestamp)}</span>
+            <li key={entry.id} className="at-sheet-chronicle-entry">
+              <div className="at-sheet-chronicle-entry-meta">
+                <span className="at-sheet-chronicle-time">{formatRelativeTime(entry.timestamp)}</span>
                 {(typeof entry.level === 'number' || entry.zone) && (
-                  <span className="coa-sheet-chronicle-context">
+                  <span className="at-sheet-chronicle-context">
                     {typeof entry.level === 'number' && (
-                      <span className="coa-sheet-chronicle-chip">Lvl {entry.level}</span>
+                      <span className="at-sheet-chronicle-chip">Lvl {entry.level}</span>
                     )}
                     {entry.zone && (
-                      <span className="coa-sheet-chronicle-chip">📍 {entry.zone}</span>
+                      <span className="at-sheet-chronicle-chip">📍 {entry.zone}</span>
                     )}
                   </span>
                 )}
                 <button
-                  className="coa-sheet-chronicle-delete"
+                  className="at-sheet-chronicle-delete"
                   onClick={() => handleDelete(entry)}
                   aria-label="Delete entry"
                   title="Delete entry"
@@ -1160,7 +1160,7 @@ function ChronicleSection({ bible }: { bible: CharacterBible }) {
                   ✕
                 </button>
               </div>
-              <p className="coa-sheet-chronicle-text">{entry.text}</p>
+              <p className="at-sheet-chronicle-text">{entry.text}</p>
             </li>
           ))}
         </ol>
@@ -1192,7 +1192,7 @@ function IdentityForm(p: IdentityFormProps) {
       <Field label="Name">
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input
-            className="coa-input"
+            className="at-input"
             value={p.name}
             onChange={(e) => p.setName(e.target.value)}
             placeholder="e.g. Bellara Stormhand"
@@ -1200,7 +1200,7 @@ function IdentityForm(p: IdentityFormProps) {
           />
           <button
             type="button"
-            className="coa-btn coa-btn-assist coa-btn-icon"
+            className="at-btn at-btn-assist at-btn-icon"
             onClick={p.onSuggestName}
             disabled={!p.canSuggestName}
             title="Suggest a name (uses race/faction if picked)"
@@ -1212,7 +1212,7 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Faction">
         <select
-          className="coa-input"
+          className="at-input"
           value={p.faction}
           onChange={(e) => p.setFaction(e.target.value as Faction | '')}
         >
@@ -1224,7 +1224,7 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Race">
         <select
-          className="coa-input"
+          className="at-input"
           value={p.race}
           onChange={(e) => p.setRace(e.target.value)}
           disabled={!p.faction}
@@ -1237,7 +1237,7 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Class">
         <select
-          className="coa-input"
+          className="at-input"
           value={p.className_}
           onChange={(e) => p.setClassName(e.target.value)}
           disabled={!p.race}
@@ -1250,7 +1250,7 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Homeland (optional)">
         <input
-          className="coa-input"
+          className="at-input"
           value={p.homeland}
           onChange={(e) => p.setHomeland(e.target.value)}
           placeholder={p.homelandSuggestions[0] ?? 'free text'}
@@ -1264,7 +1264,7 @@ function IdentityForm(p: IdentityFormProps) {
       </Field>
       <Field label="Age (optional)">
         <input
-          className="coa-input"
+          className="at-input"
           value={p.ageStr}
           onChange={(e) => p.setAgeStr(e.target.value.replace(/[^0-9]/g, ''))}
           placeholder="e.g. 34"
@@ -1274,7 +1274,7 @@ function IdentityForm(p: IdentityFormProps) {
 
       <div style={{ gridColumn: '1 / -1', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
         <button
-          className="coa-btn coa-btn-primary"
+          className="at-btn at-btn-primary"
           onClick={p.onBegin}
           disabled={!p.canBegin}
         >
@@ -1316,7 +1316,7 @@ function InterviewView(p: InterviewViewProps) {
       {lastLoremaster && !p.loading && !p.atMax && (
         <div style={{ marginTop: '1.25rem' }}>
           <textarea
-            className="coa-input coa-prose"
+            className="at-input at-prose"
             value={p.answer}
             onChange={(e) => p.setAnswer(e.target.value)}
             rows={5}
@@ -1325,14 +1325,14 @@ function InterviewView(p: InterviewViewProps) {
           />
           <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
             <button
-              className="coa-btn coa-btn-primary"
+              className="at-btn at-btn-primary"
               onClick={p.onSubmit}
               disabled={!p.answer.trim() || p.generatingAnswer}
             >
               ◆ Answer ({p.userTurnsSoFar + 1}/{MAX_TURNS})
             </button>
             <button
-              className="coa-btn coa-btn-assist"
+              className="at-btn at-btn-assist"
               onClick={p.onSuggestAnswer}
               disabled={!p.canSuggestAnswer}
               title="Have the AI draft an in-character answer for you (you can still edit it)"
@@ -1341,7 +1341,7 @@ function InterviewView(p: InterviewViewProps) {
               {p.generatingAnswer ? ' drafting\u2026' : ' Answer for me'}
             </button>
             <button
-              className="coa-btn coa-btn-secondary"
+              className="at-btn at-btn-secondary"
               onClick={p.onGenerate}
               disabled={!p.canGenerate || p.generatingAnswer}
               title={p.canGenerate ? '' : `Answer at least ${MIN_TURNS_BEFORE_GENERATE} questions first`}
@@ -1349,7 +1349,7 @@ function InterviewView(p: InterviewViewProps) {
               I&apos;m ready — generate the bible
             </button>
             <button
-              className="coa-btn coa-btn-secondary"
+              className="at-btn at-btn-secondary"
               onClick={p.onRetryQuestion}
               disabled={p.generatingAnswer}
               title="Re-ask the loremaster (use if the question was truncated or off-base)"
@@ -1380,13 +1380,13 @@ function TranscriptView({ transcript }: { transcript: TranscriptTurn[] }) {
     return <p className="muted" style={{ fontStyle: 'italic' }}>Waiting for the loremaster to begin…</p>;
   }
   return (
-    <div className="coa-transcript">
+    <div className="at-transcript">
       {transcript.map((t, i) => (
         <div
           key={i}
-          className={`coa-bubble ${t.role === 'assistant' ? 'coa-bubble-loremaster' : 'coa-bubble-hero'}`}
+          className={`at-bubble ${t.role === 'assistant' ? 'at-bubble-loremaster' : 'at-bubble-hero'}`}
         >
-          <span className="coa-bubble-label">
+          <span className="at-bubble-label">
             {t.role === 'assistant' ? 'LOREMASTER' : 'HERO'}
           </span>
           {t.content}
@@ -1422,17 +1422,17 @@ function ParseErrorView({
         </ul>
       )}
       <textarea
-        className="coa-input"
+        className="at-input"
         value={rawText}
         onChange={(e) => setRawText(e.target.value)}
         rows={20}
         style={{ fontFamily: 'var(--font-mono)', fontSize: 13, whiteSpace: 'pre-wrap' }}
       />
       <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem' }}>
-        <button className="coa-btn coa-btn-primary" onClick={onTryAgain}>
+        <button className="at-btn at-btn-primary" onClick={onTryAgain}>
           Try parsing again
         </button>
-        <button className="coa-btn coa-btn-secondary" onClick={onRetryLLM}>
+        <button className="at-btn at-btn-secondary" onClick={onRetryLLM}>
           Retry with the LLM
         </button>
       </div>
@@ -1469,14 +1469,14 @@ function ReviewView({
           <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '1fr 1fr' }}>
             <Field label="Name">
               <input
-                className="coa-input"
+                className="at-input"
                 value={bible.name}
                 onChange={(e) => onChange({ ...bible, name: e.target.value })}
               />
             </Field>
             <Field label="Homeland">
               <input
-                className="coa-input"
+                className="at-input"
                 value={bible.homeland ?? ''}
                 onChange={(e) => onChange({ ...bible, homeland: e.target.value || undefined })}
               />
@@ -1485,7 +1485,7 @@ function ReviewView({
           <div style={{ display: 'grid', gap: '0.6rem', gridTemplateColumns: '160px 1fr' }}>
             <Field label="Level">
               <input
-                className="coa-input"
+                className="at-input"
                 type="number"
                 min={1}
                 max={80}
@@ -1504,7 +1504,7 @@ function ReviewView({
             </Field>
             <Field label="Current zone">
               <input
-                className="coa-input"
+                className="at-input"
                 value={bible.currentZone ?? ''}
                 placeholder="e.g. Westfall, Ironforge, Goldshire"
                 onChange={(e) => onChange({ ...bible, currentZone: e.target.value || undefined })}
@@ -1515,7 +1515,7 @@ function ReviewView({
       )}
       <Field label="Backstory">
         <textarea
-          className="coa-input coa-prose"
+          className="at-input at-prose"
           value={bible.backstory}
           onChange={(e) => onChange({ ...bible, backstory: e.target.value })}
           rows={9}
@@ -1523,7 +1523,7 @@ function ReviewView({
       </Field>
       <Field label="Beliefs (one per line)">
         <textarea
-          className="coa-input"
+          className="at-input"
           value={beliefsText}
           onChange={(e) =>
             onChange({ ...bible, beliefs: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
@@ -1533,7 +1533,7 @@ function ReviewView({
       </Field>
       <Field label="Motivations (one per line)">
         <textarea
-          className="coa-input"
+          className="at-input"
           value={motivationsText}
           onChange={(e) =>
             onChange({ ...bible, motivations: e.target.value.split('\n').map((s) => s.trim()).filter(Boolean) })
@@ -1543,7 +1543,7 @@ function ReviewView({
       </Field>
       <Field label="Fears (one per line)">
         <textarea
-          className="coa-input"
+          className="at-input"
           value={fearsText}
           onChange={(e) => {
             const arr = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -1554,7 +1554,7 @@ function ReviewView({
       </Field>
       <Field label="Flaws (one per line)">
         <textarea
-          className="coa-input"
+          className="at-input"
           value={flawsText}
           onChange={(e) => {
             const arr = e.target.value.split('\n').map((s) => s.trim()).filter(Boolean);
@@ -1565,7 +1565,7 @@ function ReviewView({
       </Field>
       <Field label="Core quote (one sentence that distills the hero)">
         <input
-          className="coa-input"
+          className="at-input"
           value={bible.coreQuote ?? ''}
           onChange={(e) => onChange({ ...bible, coreQuote: e.target.value || undefined })}
           placeholder="e.g. Magnus Brunn held the line, but never forgot why the line mattered."
@@ -1573,7 +1573,7 @@ function ReviewView({
       </Field>
       <Field label="Voice">
         <textarea
-          className="coa-input"
+          className="at-input"
           value={bible.voice}
           onChange={(e) => onChange({ ...bible, voice: e.target.value })}
           rows={3}
@@ -1582,13 +1582,13 @@ function ReviewView({
 
       <div style={{ display: 'flex', gap: '0.6rem' }}>
         <button
-          className="coa-btn coa-btn-primary"
+          className="at-btn at-btn-primary"
           onClick={onSave}
           disabled={!validateBible(bible)}
         >
           ◆ {isEditing ? 'Save changes' : 'Save bible'}
         </button>
-        <button className="coa-btn coa-btn-secondary" onClick={onStartOver}>
+        <button className="at-btn at-btn-secondary" onClick={onStartOver}>
           {isEditing ? 'Cancel' : 'Start over'}
         </button>
       </div>
@@ -1605,8 +1605,8 @@ function ReviewView({
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label className="coa-field">
-      <span className="coa-field-label">{label}</span>
+    <label className="at-field">
+      <span className="at-field-label">{label}</span>
       {children}
     </label>
   );

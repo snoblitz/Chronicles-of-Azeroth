@@ -21,7 +21,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 // OpenRouter recommends sending these so requests show up nicely in the
 // account's activity feed and qualify for any app-discovery features.
 const ATTRIBUTION_REFERER = 'https://snoblitz.github.io/Chronicles-of-Azeroth/';
-const ATTRIBUTION_TITLE = 'Chronicles of Azeroth';
+const ATTRIBUTION_TITLE = 'Aftertale';
 
 interface OpenRouterChoice {
   message?: { role?: string; content?: string };

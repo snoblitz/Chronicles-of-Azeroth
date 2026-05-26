@@ -50,7 +50,7 @@ export function EventFilterPanel({
         {' · '}
         <button
           type="button"
-          className="coa-btn-link"
+          className="at-btn-link"
           onClick={(e) => {
             e.preventDefault();
             onReset();
@@ -79,9 +79,9 @@ export function EventFilterPanel({
             fontSize: '0.82rem',
           }}
         >
-          <label htmlFor="coa-loot-quality">Loot quality floor:</label>
+          <label htmlFor="at-loot-quality">Loot quality floor:</label>
           <select
-            id="coa-loot-quality"
+            id="at-loot-quality"
             value={filter.lootMinQuality}
             onChange={(e) => onLootMinQualityChange(Number(e.target.value))}
             disabled={disabled}

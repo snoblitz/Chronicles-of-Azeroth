@@ -43,16 +43,16 @@ export function ScribesDesk() {
       const detail = (e as CustomEvent<CharacterBible | null>).detail;
       setBible(detail ?? loadBible());
     };
-    window.addEventListener('coa:bible-updated', onBible);
-    return () => window.removeEventListener('coa:bible-updated', onBible);
+    window.addEventListener('at:bible-updated', onBible);
+    return () => window.removeEventListener('at:bible-updated', onBible);
   }, []);
 
   useEffect(() => {
     const onAddon = () => setRecords(loadAddonEventRecords());
-    window.addEventListener('coa:addon-events-updated', onAddon);
+    window.addEventListener('at:addon-events-updated', onAddon);
     window.addEventListener('storage', onAddon);
     return () => {
-      window.removeEventListener('coa:addon-events-updated', onAddon);
+      window.removeEventListener('at:addon-events-updated', onAddon);
       window.removeEventListener('storage', onAddon);
     };
   }, []);
@@ -98,7 +98,7 @@ export function ScribesDesk() {
       <div className="desk-layout">
         <div className="desk-main">
           <header>
-            <p className="coa-kicker">Scribe's Desk · Artisan workflow ✦</p>
+            <p className="at-kicker">Scribe's Desk · Artisan workflow ✦</p>
             <h2 style={{ margin: '0 0 0.25rem' }}>Turn raw play into a chapter, your way</h2>
             <p className="muted" style={{ margin: 0 }}>
               Import your save file, pick which moments become prose, enrich them with the model
@@ -123,12 +123,12 @@ export function ScribesDesk() {
           </Step>
 
           {!bible ? (
-            <div className="coa-callout" style={{ padding: '0.75rem 1rem' }}>
+            <div className="at-callout" style={{ padding: '0.75rem 1rem' }}>
               Roll or select a character first — Scribe's Desk needs a bible to know whose voice
               it's writing in.
             </div>
           ) : scopedRecords.length === 0 ? (
-            <div className="coa-callout" style={{ padding: '0.75rem 1rem' }}>
+            <div className="at-callout" style={{ padding: '0.75rem 1rem' }}>
               Nothing to filter or enrich yet. Drop an SV file above to begin.
             </div>
           ) : (
@@ -149,7 +149,7 @@ export function ScribesDesk() {
 // users see the magic moment + the tier comparison before they roll up their
 // sleeves. Pricing is the launch straw-man; revisit before billing goes live.
 //
-// CTAs are wired to a `coa:upgrade-clicked` window event for now — Stripe
+// CTAs are wired to a `at:upgrade-clicked` window event for now — Stripe
 // Checkout will replace this handler when billing lands.
 // ----------------------------------------------------------------------------
 
@@ -246,7 +246,7 @@ function CompanionPitchCompact() {
   const companionTier = TIERS.find((t) => t.id === 'companion')!;
 
   function upgrade(tierId: string) {
-    window.dispatchEvent(new CustomEvent('coa:upgrade-clicked', { detail: tierId }));
+    window.dispatchEvent(new CustomEvent('at:upgrade-clicked', { detail: tierId }));
   }
 
   return (
@@ -261,7 +261,7 @@ function CompanionPitchCompact() {
           color: 'var(--cp-text, #f0e6d2)',
         }}
       >
-        <p className="coa-kicker" style={{ margin: 0 }}>
+        <p className="at-kicker" style={{ margin: 0 }}>
           ✦ Beyond the logout
         </p>
         <h3
@@ -285,7 +285,7 @@ function CompanionPitchCompact() {
 
       <button
         type="button"
-        className="coa-btn coa-btn-secondary coa-btn-sm"
+        className="at-btn at-btn-secondary at-btn-sm"
         onClick={() => setShowAll(true)}
         style={{ width: '100%' }}
       >
@@ -344,7 +344,7 @@ function TierComparisonModal({
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="coa-tier-compare-title"
+        aria-labelledby="at-tier-compare-title"
         style={{
           width: '100%',
           maxWidth: 1100,
@@ -357,7 +357,7 @@ function TierComparisonModal({
         }}
       >
         <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-          <h2 id="coa-tier-compare-title" style={{ margin: 0, fontFamily: 'var(--font-display)' }}>
+          <h2 id="at-tier-compare-title" style={{ margin: 0, fontFamily: 'var(--font-display)' }}>
             Compare all tiers
           </h2>
           <button
@@ -528,7 +528,7 @@ export function TierCard({ tier, onUpgrade }: { tier: TierDef; onUpgrade: () => 
       <div style={{ flex: 1 }} />
       <button
         type="button"
-        className={tier.ctaVariant === 'primary' ? 'coa-btn coa-btn-primary' : 'coa-btn coa-btn-secondary'}
+        className={tier.ctaVariant === 'primary' ? 'at-btn at-btn-primary' : 'at-btn at-btn-secondary'}
         onClick={onUpgrade}
         disabled={tier.ctaVariant === 'ghost'}
         style={{ marginTop: 4 }}
@@ -804,7 +804,7 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
         title="Enrich with your model of choice"
         helper={`One LLM call per event. ${events.length} would run; ${enrichedCount} already done.`}
       >
-        <div className="coa-chronicle-generate-controls" style={{ flexWrap: 'wrap' }}>
+        <div className="at-chronicle-generate-controls" style={{ flexWrap: 'wrap' }}>
           <ModelPicker
             value={modelIdx}
             onChange={setModelIdx}
@@ -828,7 +828,7 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
             Include bible line in export
           </label>
           <button
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             onClick={runEnrichAll}
             disabled={busy || events.length === 0}
             title="Calls the LLM once per event. Skips events already enriched."
@@ -843,7 +843,7 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
           </button>
           {enrichedCount > 0 && (
             <button
-              className="coa-btn coa-btn-secondary"
+              className="at-btn at-btn-secondary"
               onClick={() => setEnriched({})}
               disabled={busy}
               title="Discard generated paragraphs and start over"
@@ -858,7 +858,7 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
           </p>
         )}
         {error && (
-          <div className="coa-callout-danger coa-chronicle-error" style={{ marginTop: '0.75rem' }}>
+          <div className="at-callout-danger at-chronicle-error" style={{ marginTop: '0.75rem' }}>
             <strong>Enrichment hit a snag:</strong> {error}
           </div>
         )}
@@ -873,9 +873,9 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
             : `Drop ${SNIPPET_FILENAME} into your save data folder, launch the game — done.`
         }
       >
-        <div className="coa-chronicle-generate-controls" style={{ flexWrap: 'wrap' }}>
+        <div className="at-chronicle-generate-controls" style={{ flexWrap: 'wrap' }}>
           <button
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             onClick={downloadSnippet}
             disabled={busy || enrichedCount === 0}
             title="Download a restore file to drop into your save data folder."
@@ -887,14 +887,14 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
               Legacy: copy/paste blob
             </summary>
             <div
-              className="coa-chronicle-generate-controls"
+              className="at-chronicle-generate-controls"
               style={{ flexWrap: 'wrap', marginTop: '0.5rem' }}
             >
               <button
-                className="coa-btn coa-btn-secondary"
+                className="at-btn at-btn-secondary"
                 onClick={copyBlob}
                 disabled={busy || enrichedCount === 0}
-                title="Copy the COA-CHRONICLE-V1 blob to your clipboard for /coa sync"
+                title="Copy the at-CHRONICLE-V1 blob to your clipboard for /coa sync"
               >
                 {copyState === 'copied'
                   ? '✓ Copied'
@@ -903,7 +903,7 @@ function DeskWorkflow({ bible, records }: { bible: CharacterBible; records: Addo
                     : '⧉ Copy chronicle blob'}
               </button>
               <button
-                className="coa-btn coa-btn-secondary"
+                className="at-btn at-btn-secondary"
                 onClick={downloadBlob}
                 disabled={busy || enrichedCount === 0}
                 title="Download the blob as a .txt file"

@@ -1,9 +1,9 @@
 {
-  "name": "chronicles-of-azeroth",
+  "name": "aftertale",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "AI-powered narrative engine for World of Warcraft — Phase 0 proof of concept",
+  "description": "Aftertale — AI narrative engine that turns your gameplay into a personalized novel.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

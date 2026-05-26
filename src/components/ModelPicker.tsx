@@ -14,10 +14,10 @@ interface Props {
 
 export function ModelPicker({ value, onChange, disabled, label }: Props) {
   return (
-    <label className="coa-field" style={{ minWidth: 220 }}>
-      {label && <span className="coa-field-label">{label}</span>}
+    <label className="at-field" style={{ minWidth: 220 }}>
+      {label && <span className="at-field-label">{label}</span>}
       <select
-        className="coa-input"
+        className="at-input"
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         disabled={disabled}

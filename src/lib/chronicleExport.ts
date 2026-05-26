@@ -1,10 +1,10 @@
 // ============================================================================
-// Chronicle export — produces a COA-CHRONICLE-V1 blob that the Lua addon's
+// Chronicle export — produces a at-CHRONICLE-V1 blob that the Lua addon's
 // /coa sync dialog can ingest, populating db.enriched[entryId] = paragraph.
 //
 // Blob format (matches addon/ChroniclesOfAzeroth/UI/SyncDialog.lua):
 //
-//   COA-CHRONICLE-V1
+//   at-CHRONICLE-V1
 //   # comments and blank lines OK
 //   BIBLE|<overall chapter prose, optional>
 //   <EVENT_NAME>:<entry.ts>:<tostring(args[1]) or "">|<paragraph>
@@ -117,9 +117,9 @@ export function encodeValue(raw: string): string {
     .replace(/\t/g, '\\t');
 }
 
-/** Build the full COA-CHRONICLE-V1 blob string. */
+/** Build the full at-CHRONICLE-V1 blob string. */
 export function buildChronicleBlob({ bible, enrichments }: BuildChronicleBlobInput): string {
-  const lines: string[] = ['COA-CHRONICLE-V1'];
+  const lines: string[] = ['at-CHRONICLE-V1'];
   if (bible && bible.trim()) {
     lines.push(`BIBLE|${encodeValue(bible.trim())}`);
   }

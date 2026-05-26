@@ -138,7 +138,7 @@ export interface AddonEvent {
   summary: string;
   storyCard?: QuestStoryCard;
   questTextEnrichment?: QuestTextEnrichment;
-  // Round-trip metadata for the COA-CHRONICLE-V1 blob exported back to the
+  // Round-trip metadata for the at-CHRONICLE-V1 blob exported back to the
   // Lua addon. When the event was parsed out of the addon's SavedVariables,
   // we preserve the original ISO `ts` string (local time, second precision)
   // and the raw `args` array so we can reconstruct the addon's EntryID

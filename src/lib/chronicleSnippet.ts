@@ -1,7 +1,7 @@
 // ============================================================================
 // Chronicle restore snippet — produces a Lua file that the addon ingests as a
 // dedicated SavedVariables channel (ChroniclesOfAzerothRestore). Replaces the
-// lossy COA-CHRONICLE-V1 blob.
+// lossy at-CHRONICLE-V1 blob.
 //
 // User flow:
 //   1. Companion generates the snippet, browser downloads it.
@@ -200,7 +200,7 @@ function formatHeader(input: BuildChronicleSnippetInput, generatedAt: Date): str
     ? `${input.characterName}-${input.characterRealm}`
     : input.characterName;
   return [
-    `-- Chronicles of Azeroth -- companion restore snippet`,
+    `-- Aftertale -- companion restore snippet`,
     `-- Generated ${stamp} for character "${who}".`,
     `--`,
     `-- HOW TO USE:`,

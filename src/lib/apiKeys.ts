@@ -20,7 +20,7 @@
 
 export type Provider = 'openrouter';
 
-const STORAGE_KEY_PREFIX = 'coa.apikey.';
+const STORAGE_KEY_PREFIX = 'at.apikey.';
 
 function storageKey(provider: Provider): string {
   return `${STORAGE_KEY_PREFIX}${provider}`;
@@ -47,12 +47,12 @@ export function setApiKey(provider: Provider, value: string): void {
   } else {
     window.localStorage.setItem(storageKey(provider), trimmed);
   }
-  window.dispatchEvent(new CustomEvent('coa:apikey-updated', { detail: provider }));
+  window.dispatchEvent(new CustomEvent('at:apikey-updated', { detail: provider }));
 }
 
 export function clearApiKey(provider: Provider): void {
   window.localStorage.removeItem(storageKey(provider));
-  window.dispatchEvent(new CustomEvent('coa:apikey-updated', { detail: provider }));
+  window.dispatchEvent(new CustomEvent('at:apikey-updated', { detail: provider }));
 }
 
 export interface KeyStatus {

@@ -71,20 +71,20 @@ export function TraitSelectionWizard({
   const progress = PERSONALITY_BUCKETS.filter((b) => selections[b.id]).length;
 
   return (
-    <div className="coa-panel coa-trait-wizard">
-      <div className="coa-trait-wizard-header">
+    <div className="at-panel at-trait-wizard">
+      <div className="at-trait-wizard-header">
         <h2>{heading}</h2>
         {subtitle && <p className="muted">{subtitle}</p>}
       </div>
 
-      <div className="coa-trait-buckets">
+      <div className="at-trait-buckets">
         {PERSONALITY_BUCKETS.map((bucket) => (
-          <section key={bucket.id} className="coa-trait-bucket">
-            <header className="coa-trait-bucket-header">
-              <h3 className="coa-trait-bucket-label">{bucket.label}</h3>
-              <p className="muted coa-trait-bucket-desc">{bucket.description}</p>
+          <section key={bucket.id} className="at-trait-bucket">
+            <header className="at-trait-bucket-header">
+              <h3 className="at-trait-bucket-label">{bucket.label}</h3>
+              <p className="muted at-trait-bucket-desc">{bucket.description}</p>
             </header>
-            <div className="coa-trait-chip-row" role="radiogroup" aria-label={bucket.label}>
+            <div className="at-trait-chip-row" role="radiogroup" aria-label={bucket.label}>
               {bucket.options.map((opt) => (
                 <TraitChip
                   key={opt.id}
@@ -98,19 +98,19 @@ export function TraitSelectionWizard({
         ))}
       </div>
 
-      <div className="coa-trait-wizard-footer">
-        <span className="coa-trait-progress" aria-live="polite">
+      <div className="at-trait-wizard-footer">
+        <span className="at-trait-progress" aria-live="polite">
           {progress} of {PERSONALITY_BUCKETS.length} chosen
         </span>
-        <div className="coa-trait-wizard-actions">
+        <div className="at-trait-wizard-actions">
           {onCancel && (
-            <button type="button" className="coa-btn coa-btn-secondary" onClick={onCancel}>
+            <button type="button" className="at-btn at-btn-secondary" onClick={onCancel}>
               Cancel
             </button>
           )}
           <button
             type="button"
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             onClick={submit}
             disabled={!completed}
           >
@@ -134,12 +134,12 @@ function TraitChip({ option, selected, onSelect }: TraitChipProps) {
       type="button"
       role="radio"
       aria-checked={selected}
-      className={`coa-trait-chip${selected ? ' coa-trait-chip-selected' : ''}`}
+      className={`at-trait-chip${selected ? ' at-trait-chip-selected' : ''}`}
       onClick={onSelect}
       title={option.description}
     >
-      <span className="coa-trait-chip-label">{option.label}</span>
-      <span className="coa-trait-chip-desc">{option.description}</span>
+      <span className="at-trait-chip-label">{option.label}</span>
+      <span className="at-trait-chip-desc">{option.description}</span>
     </button>
   );
 }

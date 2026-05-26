@@ -44,8 +44,8 @@ export function NpcChat() {
       const detail = (e as CustomEvent<CharacterBible | null>).detail;
       setBible(detail ?? loadBible());
     };
-    window.addEventListener('coa:bible-updated', onUpdate);
-    return () => window.removeEventListener('coa:bible-updated', onUpdate);
+    window.addEventListener('at:bible-updated', onUpdate);
+    return () => window.removeEventListener('at:bible-updated', onUpdate);
   }, []);
 
   // Autoscroll to the latest message whenever the transcript grows.
@@ -398,9 +398,9 @@ export function NpcChat() {
 
   if (!bible) {
     return (
-      <div className="coa-panel">
+      <div className="at-panel">
         <h2>NPC chat</h2>
-        <p className="coa-callout-danger" style={{ marginTop: '0.75rem' }}>
+        <p className="at-callout-danger" style={{ marginTop: '0.75rem' }}>
           You need a character bible before you can talk to anyone. Head over to the
           <strong> Character </strong>tab and roll a hero first.
         </p>
@@ -409,7 +409,7 @@ export function NpcChat() {
   }
 
   return (
-    <div className="coa-panel">
+    <div className="at-panel">
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
         <h2 style={{ margin: 0 }}>Tavern</h2>
         <ModelPicker label="NPC model" value={modelIdx} onChange={setModelIdx} disabled={busy !== 'idle'} />
@@ -421,7 +421,7 @@ export function NpcChat() {
       </p>
 
       {error && (
-        <div className="coa-callout-danger" style={{ marginTop: '0.85rem' }}>
+        <div className="at-callout-danger" style={{ marginTop: '0.85rem' }}>
           {error}
         </div>
       )}
@@ -461,34 +461,34 @@ function NpcPicker({ onPick, disabled }: { onPick: (n: NpcEntry) => void; disabl
       <p className="muted" style={{ fontFamily: 'var(--font-body)', fontStyle: 'italic' }}>
         Who are you looking to speak with?
       </p>
-      <div className="coa-npc-grid">
+      <div className="at-npc-grid">
         {NPC_CATALOG.map((n) => (
           <button
             key={n.id}
             type="button"
-            className="coa-npc-card"
+            className="at-npc-card"
             onClick={() => onPick(n)}
             disabled={disabled}
           >
             {n.portrait ? (
               <img
-                className="coa-npc-card-portrait"
+                className="at-npc-card-portrait"
                 src={assetUrl(n.portrait)}
                 alt={`${n.name} portrait`}
                 loading="lazy"
               />
             ) : (
-              <div className="coa-npc-card-portrait-placeholder" aria-hidden="true">
+              <div className="at-npc-card-portrait-placeholder" aria-hidden="true">
                 {n.name.charAt(0)}
               </div>
             )}
-            <div className="coa-npc-card-body">
-              <div className="coa-npc-card-name">{n.name}</div>
-              <div className="coa-npc-card-title">{n.title}</div>
-              <div className="coa-npc-card-meta">
+            <div className="at-npc-card-body">
+              <div className="at-npc-card-name">{n.name}</div>
+              <div className="at-npc-card-title">{n.title}</div>
+              <div className="at-npc-card-meta">
                 {n.race} • {n.zone}
               </div>
-              <div className="coa-npc-card-desc">{n.shortDescription}</div>
+              <div className="at-npc-card-desc">{n.shortDescription}</div>
             </div>
           </button>
         ))}
@@ -536,29 +536,29 @@ function NpcChatView(p: ChatViewProps) {
   return (
     <div style={{ marginTop: '1rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem' }}>
-        <div className="coa-npc-header coa-npc-header-row" style={{ flex: 1, marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
+        <div className="at-npc-header at-npc-header-row" style={{ flex: 1, marginBottom: 0, borderBottom: 'none', paddingBottom: 0 }}>
           {p.npc.portrait ? (
             <img
-              className="coa-npc-header-portrait"
+              className="at-npc-header-portrait"
               src={assetUrl(p.npc.portrait)}
               alt={`${p.npc.name} portrait`}
             />
           ) : (
-            <div className="coa-npc-header-portrait-placeholder" aria-hidden="true">
+            <div className="at-npc-header-portrait-placeholder" aria-hidden="true">
               {p.npc.name.charAt(0)}
             </div>
           )}
           <div>
-            <div className="coa-npc-header-name">{p.npc.name}</div>
-            <div className="coa-npc-header-title">{p.npc.title} • {p.npc.zone}</div>
-            <div className="coa-npc-saved" title="Conversations are saved locally in your browser">
+            <div className="at-npc-header-name">{p.npc.name}</div>
+            <div className="at-npc-header-title">{p.npc.title} • {p.npc.zone}</div>
+            <div className="at-npc-saved" title="Conversations are saved locally in your browser">
               {formatSavedAt(p.savedAt)}
             </div>
           </div>
         </div>
         <button
           type="button"
-          className="coa-btn coa-btn-secondary coa-btn-sm"
+          className="at-btn at-btn-secondary at-btn-sm"
           onClick={p.onBack}
           disabled={p.busy !== 'idle'}
           title="Return to the NPC list"
@@ -574,13 +574,13 @@ function NpcChatView(p: ChatViewProps) {
           {p.npc.defaultScene}
         </p>
       ) : (
-        <div className="coa-transcript">
+        <div className="at-transcript">
           {p.turns.map((t, i) => (
             <div
               key={i}
-              className={`coa-bubble ${t.role === 'assistant' ? 'coa-bubble-npc' : 'coa-bubble-hero'}`}
+              className={`at-bubble ${t.role === 'assistant' ? 'at-bubble-npc' : 'at-bubble-hero'}`}
             >
-              <span className="coa-bubble-label">
+              <span className="at-bubble-label">
                 {t.role === 'assistant' ? p.npc.name : p.heroName}
               </span>
               {t.content}
@@ -598,7 +598,7 @@ function NpcChatView(p: ChatViewProps) {
 
       <div style={{ marginTop: '1.25rem' }}>
         <textarea
-          className="coa-input coa-prose"
+          className="at-input at-prose"
           value={p.heroInput}
           onChange={(e) => p.setHeroInput(e.target.value)}
           rows={4}
@@ -612,7 +612,7 @@ function NpcChatView(p: ChatViewProps) {
         <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
           <button
             type="button"
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             onClick={p.onSend}
             disabled={!canSend}
           >
@@ -620,7 +620,7 @@ function NpcChatView(p: ChatViewProps) {
           </button>
           <button
             type="button"
-            className="coa-btn coa-btn-assist"
+            className="at-btn at-btn-assist"
             onClick={p.onSuggestHeroLine}
             disabled={!canAssist}
             title="Have the AI draft an in-character line for the hero (you can still edit it)"
@@ -630,7 +630,7 @@ function NpcChatView(p: ChatViewProps) {
           </button>
           <button
             type="button"
-            className="coa-btn coa-btn-secondary"
+            className="at-btn at-btn-secondary"
             onClick={p.onRetryLast}
             disabled={!canRetry}
             title="Re-roll the NPC's most recent reply"
@@ -639,7 +639,7 @@ function NpcChatView(p: ChatViewProps) {
           </button>
           <button
             type="button"
-            className="coa-btn coa-btn-danger"
+            className="at-btn at-btn-danger"
             onClick={p.onReset}
             disabled={p.busy !== 'idle' || p.turns.length === 0}
             title="Delete the entire saved conversation with this NPC"

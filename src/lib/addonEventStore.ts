@@ -1,6 +1,6 @@
 import type { AddonEvent, AddonIngestResult } from './addonEvents';
 
-const STORAGE_KEY = 'coa.addon.events.v1';
+const STORAGE_KEY = 'at.addon.events.v1';
 
 export interface AddonEventRecord {
   event: AddonEvent;
@@ -11,7 +11,7 @@ export interface AddonEventRecord {
 
 function fireAddonEventsUpdated(): void {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('coa:addon-events-updated'));
+    window.dispatchEvent(new CustomEvent('at:addon-events-updated'));
   }
 }
 

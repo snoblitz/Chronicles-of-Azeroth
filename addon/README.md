@@ -1,4 +1,4 @@
-# Chronicles of Azeroth -- addon
+# Aftertale -- addon
 
 This is the in-game companion. Today it is a **pure event-capture spike**:
 it listens for every WoW event the [Addon Simulator][sim] promises and

@@ -7,7 +7,7 @@ import { getKeyStatus } from '../lib/apiKeys';
 import { generatePrologue, PrologueError } from '../lib/prologueGenerator';
 import { saveBible } from '../lib/bibleStore';
 
-const DRAFT_KEY = 'coa:autoimport-draft';
+const DRAFT_KEY = 'at:autoimport-draft';
 
 type Mode = 'manual' | 'auto';
 
@@ -107,14 +107,14 @@ export function CharacterTab() {
       >
         <button
           type="button"
-          className={`coa-btn ${mode === 'manual' ? 'coa-btn-primary' : 'coa-btn-secondary'}`}
+          className={`at-btn ${mode === 'manual' ? 'at-btn-primary' : 'at-btn-secondary'}`}
           onClick={() => setMode('manual')}
         >
           Interview (manual)
         </button>
         <button
           type="button"
-          className={`coa-btn ${mode === 'auto' ? 'coa-btn-primary' : 'coa-btn-secondary'}`}
+          className={`at-btn ${mode === 'auto' ? 'at-btn-primary' : 'at-btn-secondary'}`}
           onClick={() => setMode('auto')}
           title={hasKey ? '' : 'Auto-import uses the AI for Inspire Me. Add an OpenRouter key in ⚙ Keys.'}
         >
@@ -123,7 +123,7 @@ export function CharacterTab() {
       </div>
 
       {savedDraft && mode === 'auto' && (
-        <div className="coa-callout coa-callout-success" style={{ marginBottom: '1rem' }}>
+        <div className="at-callout at-callout-success" style={{ marginBottom: '1rem' }}>
           <strong>Draft saved.</strong> {savedDraft.character.identity.name}'s onboarding payload
           is in localStorage as <code>{DRAFT_KEY}</code>. The next step (prologue generator) will
           turn this into a full chronicle bible.
@@ -133,7 +133,7 @@ export function CharacterTab() {
       {mode === 'manual' && <CharacterCreation />}
 
       {mode === 'auto' && providerError && (
-        <div className="coa-callout coa-callout-danger">
+        <div className="at-callout at-callout-danger">
           <strong>Could not start auto-import.</strong> {providerError}
         </div>
       )}
@@ -158,7 +158,7 @@ export function CharacterTab() {
             <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className="coa-btn coa-btn-primary"
+                className="at-btn at-btn-primary"
                 onClick={handleGeneratePrologue}
                 disabled={generating}
               >
@@ -166,7 +166,7 @@ export function CharacterTab() {
               </button>
               <button
                 type="button"
-                className="coa-btn coa-btn-secondary"
+                className="at-btn at-btn-secondary"
                 onClick={() => setSavedDraft(null)}
                 disabled={generating}
               >
@@ -174,7 +174,7 @@ export function CharacterTab() {
               </button>
               <button
                 type="button"
-                className="coa-btn coa-btn-secondary"
+                className="at-btn at-btn-secondary"
                 onClick={() => setMode('manual')}
                 disabled={generating}
               >
@@ -184,13 +184,13 @@ export function CharacterTab() {
           )}
 
           {generateError && (
-            <div className="coa-callout coa-callout-danger">
+            <div className="at-callout at-callout-danger">
               <strong>Generation failed.</strong> {generateError}
             </div>
           )}
 
           {generatedBible && (
-            <div className="coa-panel" style={{ padding: '1.2rem' }}>
+            <div className="at-panel" style={{ padding: '1.2rem' }}>
               <h3 style={{ marginTop: 0 }}>{generatedBible.name}'s prologue draft</h3>
               <p className="muted" style={{ fontSize: '0.9rem' }}>
                 Generated from your trait selections and seed answer. Accept to save as
@@ -244,12 +244,12 @@ export function CharacterTab() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', justifyContent: 'center' }}>
-                <button type="button" className="coa-btn coa-btn-primary" onClick={handleAcceptBible}>
+                <button type="button" className="at-btn at-btn-primary" onClick={handleAcceptBible}>
                   ✓ Accept & save bible
                 </button>
                 <button
                   type="button"
-                  className="coa-btn coa-btn-secondary"
+                  className="at-btn at-btn-secondary"
                   onClick={() => {
                     setGeneratedBible(null);
                     handleGeneratePrologue();
@@ -259,7 +259,7 @@ export function CharacterTab() {
                 </button>
                 <button
                   type="button"
-                  className="coa-btn coa-btn-secondary"
+                  className="at-btn at-btn-secondary"
                   onClick={() => setGeneratedBible(null)}
                 >
                   Discard

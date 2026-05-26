@@ -107,7 +107,7 @@ export const LOOT_QUALITY_OPTIONS: { value: number; label: string }[] = [
 
 export const DEFAULT_LOOT_MIN_QUALITY = 2;
 
-const STORAGE_KEY = 'coa.enrichFilter.v1';
+const STORAGE_KEY = 'at.enrichFilter.v1';
 
 interface PersistedFilter {
   enabled: string[];

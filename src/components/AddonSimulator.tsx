@@ -35,16 +35,16 @@ export function AddonSimulator() {
 
   useEffect(() => {
     const refreshBible = () => setBible(loadBible());
-    window.addEventListener('coa:bible-updated', refreshBible);
-    return () => window.removeEventListener('coa:bible-updated', refreshBible);
+    window.addEventListener('at:bible-updated', refreshBible);
+    return () => window.removeEventListener('at:bible-updated', refreshBible);
   }, []);
 
   useEffect(() => {
     const refreshRecords = () => setRecords(loadAddonEventRecords());
-    window.addEventListener('coa:addon-events-updated', refreshRecords);
+    window.addEventListener('at:addon-events-updated', refreshRecords);
     window.addEventListener('storage', refreshRecords);
     return () => {
-      window.removeEventListener('coa:addon-events-updated', refreshRecords);
+      window.removeEventListener('at:addon-events-updated', refreshRecords);
       window.removeEventListener('storage', refreshRecords);
     };
   }, []);
@@ -182,9 +182,9 @@ export function AddonSimulator() {
 
   if (!chain) {
     return (
-      <section className="coa-panel">
+      <section className="at-panel">
         <h2>Addon Simulator</h2>
-        <p className="coa-callout-danger">No quest fixtures are available.</p>
+        <p className="at-callout-danger">No quest fixtures are available.</p>
       </section>
     );
   }
@@ -193,7 +193,7 @@ export function AddonSimulator() {
   const complete = !currentTemplate;
 
   return (
-    <section className="coa-panel">
+    <section className="at-panel">
       <header style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h2>Addon Simulator</h2>
@@ -201,9 +201,9 @@ export function AddonSimulator() {
             Step through Classic quest chains as if a future WoW addon emitted structured API events.
           </p>
         </div>
-        <label className="coa-field" style={{ minWidth: 280 }}>
-          <span className="coa-field-label">Quest chain fixture</span>
-          <select className="coa-input" value={chain.id} onChange={(e) => selectChain(e.target.value)}>
+        <label className="at-field" style={{ minWidth: 280 }}>
+          <span className="at-field-label">Quest chain fixture</span>
+          <select className="at-input" value={chain.id} onChange={(e) => selectChain(e.target.value)}>
             {CLASSIC_QUEST_CHAINS.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.faction} · {c.title}
@@ -216,13 +216,13 @@ export function AddonSimulator() {
       <hr className="ornament" />
 
       {!bible && (
-        <div className="coa-callout-danger" style={{ marginBottom: '1rem' }}>
+        <div className="at-callout-danger" style={{ marginBottom: '1rem' }}>
           Roll or select a character first. Events can be logged without a hero, but they cannot update story memory.
         </div>
       )}
 
         {bible && (
-          <div className={factionMismatch ? 'coa-callout-danger' : 'coa-callout'} style={{ marginBottom: '1rem' }}>
+          <div className={factionMismatch ? 'at-callout-danger' : 'at-callout'} style={{ marginBottom: '1rem' }}>
             <strong>Active hero:</strong> {bible.name} · {bible.faction} · {bible.race} {bible.class}
           {factionMismatch && (
             <span> — this chain is {chain.faction}, so use it as a cross-faction stress test only.</span>
@@ -230,7 +230,7 @@ export function AddonSimulator() {
           </div>
         )}
 
-        <section className="coa-panel" style={{ boxShadow: 'none', marginBottom: '1rem' }}>
+        <section className="at-panel" style={{ boxShadow: 'none', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
             <div>
               <h3>Simulated play session</h3>
@@ -242,16 +242,16 @@ export function AddonSimulator() {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-              <button className="coa-btn coa-btn-primary" onClick={startSession} disabled={Boolean(currentSessionId)}>
+              <button className="at-btn at-btn-primary" onClick={startSession} disabled={Boolean(currentSessionId)}>
                 Start session
               </button>
-              <button className="coa-btn coa-btn-secondary" onClick={emitDeath}>
+              <button className="at-btn at-btn-secondary" onClick={emitDeath}>
                 Emit death
               </button>
-              <button className="coa-btn coa-btn-secondary" onClick={endSession} disabled={!currentSessionId}>
+              <button className="at-btn at-btn-secondary" onClick={endSession} disabled={!currentSessionId}>
                 End session
               </button>
-              <button className="coa-btn coa-btn-secondary" onClick={emitFullChainSession}>
+              <button className="at-btn at-btn-secondary" onClick={emitFullChainSession}>
                 Run full chain as session
               </button>
             </div>
@@ -278,7 +278,7 @@ export function AddonSimulator() {
         )}
 
         {lastResult && (
-          <div className="coa-callout-success" style={{ fontSize: 14 }}>
+          <div className="at-callout-success" style={{ fontSize: 14 }}>
             {lastResult}
           </div>
         )}
@@ -293,15 +293,15 @@ export function AddonSimulator() {
 
 function ChainOverview({ chain }: { chain: QuestChainFixture }) {
   return (
-    <section className="coa-panel" style={{ boxShadow: 'none' }}>
+    <section className="at-panel" style={{ boxShadow: 'none' }}>
       <h3>{chain.title}</h3>
       <p className="muted">{chain.summary}</p>
       <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', marginTop: '0.75rem' }}>
-        <span className={`coa-sheet-pill ${chain.faction === 'Alliance' ? 'coa-faction-alliance' : 'coa-faction-horde'}`}>
+        <span className={`at-sheet-pill ${chain.faction === 'Alliance' ? 'at-faction-alliance' : 'at-faction-horde'}`}>
           {chain.faction}
         </span>
-        <span className="coa-sheet-pill">{chain.era}</span>
-        <span className="coa-sheet-pill">{chain.steps.length} quest steps</span>
+        <span className="at-sheet-pill">{chain.era}</span>
+        <span className="at-sheet-pill">{chain.steps.length} quest steps</span>
       </div>
       <p className="muted" style={{ fontSize: 13 }}>
         <strong>Path:</strong> {chain.zonePath.join(' → ')}
@@ -339,7 +339,7 @@ function CurrentStepPanel({
   onReset: () => void;
 }) {
   return (
-    <section className="coa-panel" style={{ boxShadow: 'none' }}>
+    <section className="at-panel" style={{ boxShadow: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap' }}>
         <div>
           <h3>
@@ -347,7 +347,7 @@ function CurrentStepPanel({
           </h3>
           <p className="muted">{step.storyCard.moment}</p>
         </div>
-        <a href={step.wowheadUrl} target="_blank" rel="noreferrer noopener" className="coa-btn coa-btn-secondary coa-btn-sm">
+        <a href={step.wowheadUrl} target="_blank" rel="noreferrer noopener" className="at-btn at-btn-secondary at-btn-sm">
           Wowhead
         </a>
       </div>
@@ -360,10 +360,10 @@ function CurrentStepPanel({
       </div>
 
       <div style={{ marginTop: '1rem' }}>
-        <label className="coa-field">
-          <span className="coa-field-label">Optional quest text / local story notes</span>
+        <label className="at-field">
+          <span className="at-field-label">Optional quest text / local story notes</span>
           <textarea
-            className="coa-input coa-prose"
+            className="at-input at-prose"
             rows={4}
             value={questText}
             onChange={(e) => setQuestText(e.target.value)}
@@ -373,7 +373,7 @@ function CurrentStepPanel({
       </div>
 
       <div style={{ marginTop: '1rem', display: 'grid', gap: '0.75rem' }}>
-        <div className="coa-callout">
+        <div className="at-callout">
           {template ? (
             <>
               <strong>Next simulated WoW event:</strong>{' '}
@@ -388,13 +388,13 @@ function CurrentStepPanel({
         </div>
 
         <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-          <button className="coa-btn coa-btn-primary" onClick={onEmitNext} disabled={complete}>
+          <button className="at-btn at-btn-primary" onClick={onEmitNext} disabled={complete}>
             Emit next event
           </button>
-          <button className="coa-btn coa-btn-secondary" onClick={onEmitStep} disabled={complete}>
+          <button className="at-btn at-btn-secondary" onClick={onEmitStep} disabled={complete}>
             Emit full quest step
           </button>
-          <button className="coa-btn coa-btn-secondary" onClick={onReset}>
+          <button className="at-btn at-btn-secondary" onClick={onReset}>
             Reset scenario cursor
           </button>
         </div>
@@ -406,7 +406,7 @@ function CurrentStepPanel({
 function StoryCardField({ label, text }: { label: string; text: string }) {
   return (
     <div style={{ border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '0.75rem', background: 'var(--bg-inset)' }}>
-      <div className="coa-field-label">{label}</div>
+      <div className="at-field-label">{label}</div>
       <p style={{ marginBottom: 0 }}>{text}</p>
     </div>
   );
@@ -414,7 +414,7 @@ function StoryCardField({ label, text }: { label: string; text: string }) {
 
 function StoryTestPanel() {
   return (
-    <section className="coa-panel" style={{ boxShadow: 'none' }}>
+    <section className="at-panel" style={{ boxShadow: 'none' }}>
       <h3>Story integrity prompts</h3>
       <p className="muted">
         After stepping a chain, jump to Tavern and ask an NPC one of these. If the answer loses the stakes, the story card is too thin.
@@ -430,10 +430,10 @@ function StoryTestPanel() {
 
 function EventLogPanel({ records, onClear }: { records: AddonEventRecord[]; onClear: () => void }) {
   return (
-    <section className="coa-panel" style={{ boxShadow: 'none' }}>
+    <section className="at-panel" style={{ boxShadow: 'none' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', alignItems: 'center' }}>
         <h3 style={{ margin: 0 }}>Addon event log</h3>
-        <button className="coa-btn coa-btn-secondary coa-btn-sm" onClick={onClear} disabled={records.length === 0}>
+        <button className="at-btn at-btn-secondary at-btn-sm" onClick={onClear} disabled={records.length === 0}>
           Clear log
         </button>
       </div>

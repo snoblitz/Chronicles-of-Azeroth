@@ -33,24 +33,24 @@ export function App() {
       else if (target === 'desk') setTab('desk');
       else if (target === 'addon' && SHOW_DEV_TOOLS) setTab('addon');
     }
-    window.addEventListener('coa:request-tab', handler);
-    return () => window.removeEventListener('coa:request-tab', handler);
+    window.addEventListener('at:request-tab', handler);
+    return () => window.removeEventListener('at:request-tab', handler);
   }, []);
 
   useEffect(() => {
     function bump() {
       setKeyTick((n) => n + 1);
     }
-    window.addEventListener('coa:apikey-updated', bump);
-    return () => window.removeEventListener('coa:apikey-updated', bump);
+    window.addEventListener('at:apikey-updated', bump);
+    return () => window.removeEventListener('at:apikey-updated', bump);
   }, []);
 
   useEffect(() => {
     function onFlags() {
       setShowDesk(getShowScribesDesk());
     }
-    window.addEventListener('coa:flags-updated', onFlags);
-    return () => window.removeEventListener('coa:flags-updated', onFlags);
+    window.addEventListener('at:flags-updated', onFlags);
+    return () => window.removeEventListener('at:flags-updated', onFlags);
   }, []);
 
   // First-run nudge: if no key, pop the settings panel automatically.
@@ -80,18 +80,18 @@ export function App() {
           <CharacterSelector />
         </div>
         <header style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-          <h1>Chronicles of Azeroth</h1>
+          <h1>Aftertale</h1>
           <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 17 }}>
             An AI-spun saga of your hero. Roll a character, then walk the world.
           </p>
           <hr className="ornament" />
         </header>
 
-        <nav className="coa-tabs" role="tablist">
+        <nav className="at-tabs" role="tablist">
           <button
             role="tab"
             aria-selected={tab === 'character'}
-            className="coa-tab"
+            className="at-tab"
             onClick={() => setTab('character')}
           >
             ◆ Character
@@ -99,7 +99,7 @@ export function App() {
           <button
             role="tab"
             aria-selected={tab === 'chronicle'}
-            className="coa-tab"
+            className="at-tab"
             onClick={() => setTab('chronicle')}
           >
             ◆ Chronicle
@@ -108,7 +108,7 @@ export function App() {
             <button
               role="tab"
               aria-selected={tab === 'desk'}
-              className="coa-tab"
+              className="at-tab"
               onClick={() => setTab('desk')}
               title="Import SavedVariables, enrich events into prose, and download a restore snippet for WoW"
             >
@@ -118,7 +118,7 @@ export function App() {
           <button
             role="tab"
             aria-selected={tab === 'npc'}
-            className="coa-tab"
+            className="at-tab"
             onClick={() => setTab('npc')}
           >
             ◆ Tavern
@@ -127,7 +127,7 @@ export function App() {
             <button
               role="tab"
               aria-selected={tab === 'addon'}
-              className="coa-tab"
+              className="at-tab"
               onClick={() => setTab('addon')}
               title="Developer-only: fires synthetic addon events"
             >

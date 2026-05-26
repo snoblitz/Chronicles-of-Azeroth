@@ -38,16 +38,16 @@ export function ChronicleReader() {
       const detail = (e as CustomEvent<CharacterBible | null>).detail;
       setBible(detail ?? loadBible());
     };
-    window.addEventListener('coa:bible-updated', onUpdate);
-    return () => window.removeEventListener('coa:bible-updated', onUpdate);
+    window.addEventListener('at:bible-updated', onUpdate);
+    return () => window.removeEventListener('at:bible-updated', onUpdate);
   }, []);
 
   useEffect(() => {
     const onAddonUpdate = () => setAddonRecords(loadAddonEventRecords());
-    window.addEventListener('coa:addon-events-updated', onAddonUpdate);
+    window.addEventListener('at:addon-events-updated', onAddonUpdate);
     window.addEventListener('storage', onAddonUpdate);
     return () => {
-      window.removeEventListener('coa:addon-events-updated', onAddonUpdate);
+      window.removeEventListener('at:addon-events-updated', onAddonUpdate);
       window.removeEventListener('storage', onAddonUpdate);
     };
   }, []);
@@ -73,7 +73,7 @@ export function ChronicleReader() {
   const hasStoryData = entries.length > 0 || sessions.length > 0;
 
   function requestTab(tab: string) {
-    window.dispatchEvent(new CustomEvent('coa:request-tab', { detail: tab }));
+    window.dispatchEvent(new CustomEvent('at:request-tab', { detail: tab }));
   }
 
   async function generateRecap() {
@@ -100,13 +100,13 @@ export function ChronicleReader() {
 
   if (!bible) {
     return (
-      <section className="coa-panel coa-chronicle-reader">
+      <section className="at-panel at-chronicle-reader">
         <h2>Chronicle</h2>
         <p className="muted" style={{ marginTop: 0 }}>
           Select or roll a hero first. The Chronicle turns quest turn-ins, levels, zones, and manual notes into the story you read after a session.
         </p>
-        <div className="coa-chronicle-empty-actions">
-          <button className="coa-btn coa-btn-primary" onClick={() => requestTab('character')}>
+        <div className="at-chronicle-empty-actions">
+          <button className="at-btn at-btn-primary" onClick={() => requestTab('character')}>
             ◆ Choose a hero
           </button>
         </div>
@@ -115,16 +115,16 @@ export function ChronicleReader() {
   }
 
   return (
-    <section className="coa-panel coa-chronicle-reader">
-      <header className="coa-chronicle-hero">
+    <section className="at-panel at-chronicle-reader">
+      <header className="at-chronicle-hero">
         <div>
-          <p className="coa-kicker">Story ledger</p>
+          <p className="at-kicker">Story ledger</p>
           <h2>{bible.name}'s Chronicle</h2>
           <p className="muted" style={{ marginTop: 0 }}>
             The "so what" layer: read the session, scan the arc, then generate a campfire recap when the log deserves prose.
           </p>
         </div>
-        <div className="coa-chronicle-hero-pills">
+        <div className="at-chronicle-hero-pills">
           <span>{bible.faction}</span>
           <span>{bible.race} {bible.class}</span>
           {typeof bible.level === 'number' && <span>Lvl {bible.level}</span>}
@@ -132,9 +132,9 @@ export function ChronicleReader() {
         </div>
       </header>
 
-      <div className="coa-chronicle-modebar" role="tablist" aria-label="Chronicle view">
+      <div className="at-chronicle-modebar" role="tablist" aria-label="Chronicle view">
         <button
-          className="coa-btn coa-btn-secondary"
+          className="at-btn at-btn-secondary"
           aria-pressed={mode === 'latest'}
           onClick={() => {
             setMode('latest');
@@ -144,7 +144,7 @@ export function ChronicleReader() {
           Latest session
         </button>
         <button
-          className="coa-btn coa-btn-secondary"
+          className="at-btn at-btn-secondary"
           aria-pressed={mode === 'full'}
           onClick={() => {
             setMode('full');
@@ -154,7 +154,7 @@ export function ChronicleReader() {
           Full saga
         </button>
         <button
-          className="coa-btn coa-btn-secondary"
+          className="at-btn at-btn-secondary"
           aria-pressed={mode === 'sessions'}
           onClick={() => {
             setMode('sessions');
@@ -166,21 +166,21 @@ export function ChronicleReader() {
       </div>
 
       {!hasStoryData ? (
-        <div className="coa-chronicle-empty">
+        <div className="at-chronicle-empty">
           <h3>No story entries yet</h3>
           <p className="muted">
             Visit the <strong>Scribe's Desk</strong> tab to import your{' '}
             <code>ChroniclesOfAzeroth.lua</code> and enrich it into prose, or run the Addon
             Sim, or add manual deeds from the character sheet.
           </p>
-          <div className="coa-chronicle-empty-actions" style={{ marginTop: '1rem' }}>
-            <button className="coa-btn coa-btn-primary" onClick={() => requestTab('desk')}>
+          <div className="at-chronicle-empty-actions" style={{ marginTop: '1rem' }}>
+            <button className="at-btn at-btn-primary" onClick={() => requestTab('desk')}>
               ◆ Open Scribe's Desk
             </button>
-            <button className="coa-btn coa-btn-secondary" onClick={() => requestTab('addon')}>
+            <button className="at-btn at-btn-secondary" onClick={() => requestTab('addon')}>
               ◆ Addon Sim
             </button>
-            <button className="coa-btn coa-btn-secondary" onClick={() => requestTab('character')}>
+            <button className="at-btn at-btn-secondary" onClick={() => requestTab('character')}>
               Add manual entry
             </button>
           </div>
@@ -190,7 +190,7 @@ export function ChronicleReader() {
           {mode !== 'sessions' && insight && <InsightGrid insight={insight} mode={mode} />}
 
           {mode !== 'sessions' && visibleEntries.length > 0 && (
-            <section className="coa-chronicle-generate">
+            <section className="at-chronicle-generate">
               <div>
                 <h3>Campfire recap</h3>
                 <p className="muted">
@@ -200,10 +200,10 @@ export function ChronicleReader() {
                     : ''}
                 </p>
               </div>
-              <div className="coa-chronicle-generate-controls">
+              <div className="at-chronicle-generate-controls">
                 <ModelPicker value={modelIdx} onChange={setModelIdx} disabled={busy} label="Narrator model" />
                 <button
-                  className="coa-btn coa-btn-primary"
+                  className="at-btn at-btn-primary"
                   onClick={generateRecap}
                   disabled={busy || visibleEntries.length === 0}
                 >
@@ -214,7 +214,7 @@ export function ChronicleReader() {
           )}
 
           {error && (
-            <div className="coa-callout-danger coa-chronicle-error">
+            <div className="at-callout-danger at-chronicle-error">
               <strong>Recap failed:</strong> {error}
             </div>
           )}
@@ -229,23 +229,23 @@ export function ChronicleReader() {
               onModelChange={setModelIdx}
             />
           ) : (
-            <section className="coa-chronicle-book">
+            <section className="at-chronicle-book">
               <header>
                 <div>
-                  <p className="coa-kicker">{mode === 'latest' ? 'Tonight at the table' : 'The road so far'}</p>
+                  <p className="at-kicker">{mode === 'latest' ? 'Tonight at the table' : 'The road so far'}</p>
                   <h3>{mode === 'latest' ? latestSessionTitle(visibleEntries) : 'Full saga timeline'}</h3>
                 </div>
-                <span className="coa-chronicle-count">{visibleEntries.length} deeds</span>
+                <span className="at-chronicle-count">{visibleEntries.length} deeds</span>
               </header>
 
               {visibleChapters.length === 0 ? (
                 <p className="muted">No entries fall inside the latest-session window. Switch to Full saga or Session trail.</p>
               ) : (
-                <div className="coa-chronicle-chapters">
+                <div className="at-chronicle-chapters">
                   {visibleChapters.map((chapter, i) => (
-                    <article key={chapter.id} className="coa-chronicle-chapter">
-                      <div className="coa-chronicle-chapter-head">
-                        <span className="coa-chronicle-chapter-num">Chapter {i + 1}</span>
+                    <article key={chapter.id} className="at-chronicle-chapter">
+                      <div className="at-chronicle-chapter-head">
+                        <span className="at-chronicle-chapter-num">Chapter {i + 1}</span>
                         <h4>{chapter.title}</h4>
                         <span>{formatDateRange(chapter.start, chapter.end)}</span>
                       </div>
@@ -266,8 +266,8 @@ export function ChronicleReader() {
           )}
 
           {mode !== 'sessions' && chapters.length > 0 && (
-            <section className="coa-chronicle-arc-map">
-              <p className="coa-kicker">Arc map</p>
+            <section className="at-chronicle-arc-map">
+              <p className="at-kicker">Arc map</p>
               <div>
                 {chapters.map((chapter, i) => (
                   <span key={chapter.id}>
@@ -351,7 +351,7 @@ function InsightGrid({
   mode: ReaderMode;
 }) {
   return (
-    <div className="coa-chronicle-insights">
+    <div className="at-chronicle-insights">
       <article>
         <span>Session shape</span>
         <strong>{insight.deeds} deeds</strong>
@@ -391,7 +391,7 @@ async function requestCampfireRecap(modelIdx: number, prompt: string): Promise<L
       {
         role: 'system',
         content: [
-          'You are the in-world chronicler for Chronicles of Azeroth.',
+          'You are the in-world chronicler for Aftertale.',
           'Write polished story prose from structured character-history notes.',
           'Use only the provided facts. Do not invent completed quests, locations, NPC relationships, or outcomes.',
           'Keep the hero as the subject. Do not mention prompts, models, localStorage, UI tabs, or the app.',
@@ -408,8 +408,8 @@ async function requestCampfireRecap(modelIdx: number, prompt: string): Promise<L
 
 function CampfireRecapArticle({ recap }: { recap: LLMResponse }) {
   return (
-    <article className="coa-chronicle-recap">
-      <span className="coa-bubble-label">CAMPFIRE RECAP</span>
+    <article className="at-chronicle-recap">
+      <span className="at-bubble-label">CAMPFIRE RECAP</span>
       <div>{recap.text}</div>
       <footer>
         {recap.inputTokens} in / {recap.cachedInputTokens} cached / {recap.outputTokens} out ·{' '}
@@ -459,13 +459,13 @@ function SessionTrail({
   }
 
   return (
-    <section className="coa-chronicle-book coa-session-trail">
+    <section className="at-chronicle-book at-session-trail">
       <header>
         <div>
-          <p className="coa-kicker">Session history</p>
+          <p className="at-kicker">Session history</p>
           <h3>The trail by play session</h3>
         </div>
-        <span className="coa-chronicle-count">{sessions.length} sessions</span>
+        <span className="at-chronicle-count">{sessions.length} sessions</span>
       </header>
 
       {sessions.length === 0 ? (
@@ -473,9 +473,9 @@ function SessionTrail({
           No addon-observed sessions yet. Open Addon Sim, start a session, emit a few WoW events, then end the session.
         </p>
       ) : (
-        <div className="coa-session-list">
+        <div className="at-session-list">
           {sessions.map((session) => (
-            <details key={session.id} className="coa-session-card" open={selectedSessionId === session.id}>
+            <details key={session.id} className="at-session-card" open={selectedSessionId === session.id}>
               <summary
                 onClick={(event) => {
                   event.preventDefault();
@@ -484,7 +484,7 @@ function SessionTrail({
                 }}
               >
                 <div>
-                  <span className="coa-chronicle-chapter-num">{session.isOpen ? 'Active session' : 'Closed session'}</span>
+                  <span className="at-chronicle-chapter-num">{session.isOpen ? 'Active session' : 'Closed session'}</span>
                   <h4>{session.title}</h4>
                   <p>
                     {formatDateRange(session.startedAt, session.finishedAt)}
@@ -495,19 +495,19 @@ function SessionTrail({
                 <strong>{session.stats.questsCompleted} quests · +{session.stats.levelsGained} levels</strong>
               </summary>
 
-              <section className="coa-session-campfire-hero">
-                <div className="coa-session-campfire-head">
+              <section className="at-session-campfire-hero">
+                <div className="at-session-campfire-head">
                   <div>
-                    <p className="coa-kicker">Selected session campfire</p>
+                    <p className="at-kicker">Selected session campfire</p>
                     <h4>Make this session the story</h4>
                     <p className="muted">
                       Writes the same full campfire recap as Latest session, scoped to this session's addon-observed facts.
                     </p>
                   </div>
-                  <div className="coa-chronicle-generate-controls">
+                  <div className="at-chronicle-generate-controls">
                     <ModelPicker value={modelIdx} onChange={onModelChange} disabled={Boolean(busySessionId)} label="Narrator model" />
                     <button
-                      className="coa-btn coa-btn-primary"
+                      className="at-btn at-btn-primary"
                       onClick={() => generateSelectedSessionRecap(session)}
                       disabled={Boolean(busySessionId)}
                     >
@@ -517,7 +517,7 @@ function SessionTrail({
                 </div>
 
                 {sessionError && selectedSessionId === session.id && (
-                  <div className="coa-callout-danger coa-chronicle-error">
+                  <div className="at-callout-danger at-chronicle-error">
                     <strong>Session recap failed:</strong> {sessionError}
                   </div>
                 )}
@@ -525,14 +525,14 @@ function SessionTrail({
                 {sessionRecaps[session.id] ? (
                   <CampfireRecapArticle recap={sessionRecaps[session.id]} />
                 ) : (
-                  <p className="coa-session-campfire-empty">
+                  <p className="at-session-campfire-empty">
                     No generated recap yet. Pick this session, hit the button, and the Chronicle will turn these facts into the
                     title, paragraphs, and "So what changed" section.
                   </p>
                 )}
               </section>
 
-              <div className="coa-session-stats">
+              <div className="at-session-stats">
                 <article>
                   <span>Session window</span>
                   <strong>
@@ -557,14 +557,14 @@ function SessionTrail({
                 </article>
               </div>
 
-              <div className="coa-session-meta">
+              <div className="at-session-meta">
                 <span>Zones: {session.stats.zonesVisited.length > 0 ? session.stats.zonesVisited.join(' -> ') : 'not captured'}</span>
                 {session.stats.notableItems.length > 0 && <span>Items: {session.stats.notableItems.join(', ')}</span>}
                 {session.stats.notableUnits.length > 0 && <span>Foes: {session.stats.notableUnits.join(', ')}</span>}
               </div>
 
-              <div className="coa-session-events">
-                <p className="coa-kicker">Addon-observed facts</p>
+              <div className="at-session-events">
+                <p className="at-kicker">Addon-observed facts</p>
                 <ol>
                   {session.records.map((record) => (
                     <li key={record.event.id}>

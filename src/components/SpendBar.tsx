@@ -22,10 +22,10 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
   useEffect(() => {
     const handler = () => setTick((n) => n + 1);
     window.addEventListener('storage', handler);
-    window.addEventListener('coa:usage-updated', handler);
+    window.addEventListener('at:usage-updated', handler);
     return () => {
       window.removeEventListener('storage', handler);
-      window.removeEventListener('coa:usage-updated', handler);
+      window.removeEventListener('at:usage-updated', handler);
     };
   }, []);
 
@@ -42,7 +42,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `coa-spend-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `at-spend-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -64,7 +64,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
   }
 
   return (
-    <div className="coa-spendbar">
+    <div className="at-spendbar">
       <div
         style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', cursor: 'pointer', flexWrap: 'wrap' }}
         onClick={() => setExpanded((v) => !v)}
@@ -86,7 +86,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
           {onOpenSettings && (
             <button
               type="button"
-              className={`coa-btn coa-btn-sm ${hasAnyKey ? 'coa-btn-secondary' : 'coa-btn-primary'}`}
+              className={`at-btn at-btn-sm ${hasAnyKey ? 'at-btn-secondary' : 'at-btn-primary'}`}
               onClick={(e) => {
                 e.stopPropagation();
                 onOpenSettings();
@@ -105,7 +105,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
           {averages.length === 0 ? (
             <p style={{ opacity: 0.6 }}>No usage yet today. Make an LLM call to see data.</p>
           ) : (
-            <table className="coa-spendbar-table">
+            <table className="at-spendbar-table">
               <thead>
                 <tr>
                   <th>Task</th>
@@ -136,7 +136,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
           )}
           <div style={{ display: 'flex', gap: '0.6rem', marginTop: '0.75rem', flexWrap: 'wrap' }}>
             <button
-              className="coa-btn coa-btn-secondary coa-btn-sm"
+              className="at-btn at-btn-secondary at-btn-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 handleExport();
@@ -145,7 +145,7 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
               Export CSV
             </button>
             <button
-              className="coa-btn coa-btn-secondary coa-btn-sm"
+              className="at-btn at-btn-secondary at-btn-sm"
               onClick={(e) => {
                 e.stopPropagation();
                 handlePurgeOldRecords();

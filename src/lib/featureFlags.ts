@@ -6,10 +6,10 @@
 // stay true for Free/BYOK. The flag mechanism exists now so the toggle UX
 // is already wired when that day comes.
 //
-// All flags fire `coa:flags-updated` when changed so consumers can react.
+// All flags fire `at:flags-updated` when changed so consumers can react.
 // ============================================================================
 
-const SCRIBES_DESK_KEY = 'coa.flags.scribesDesk';
+const SCRIBES_DESK_KEY = 'at.flags.scribesDesk';
 
 export function getShowScribesDesk(): boolean {
   try {
@@ -26,5 +26,5 @@ export function setShowScribesDesk(v: boolean): void {
   } catch {
     // localStorage may throw in private mode — caller's UI state still updates.
   }
-  window.dispatchEvent(new CustomEvent('coa:flags-updated'));
+  window.dispatchEvent(new CustomEvent('at:flags-updated'));
 }

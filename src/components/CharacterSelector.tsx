@@ -14,10 +14,10 @@ export function CharacterSelector() {
 
   useEffect(() => {
     const refresh = () => setRoster(listBibles());
-    window.addEventListener('coa:bible-updated', refresh);
+    window.addEventListener('at:bible-updated', refresh);
     window.addEventListener('storage', refresh);
     return () => {
-      window.removeEventListener('coa:bible-updated', refresh);
+      window.removeEventListener('at:bible-updated', refresh);
       window.removeEventListener('storage', refresh);
     };
   }, []);
@@ -57,49 +57,49 @@ export function CharacterSelector() {
 
   if (roster.length === 0) {
     return (
-      <div className="coa-char-selector">
-        <span className="coa-char-selector-label">No hero yet — start one below.</span>
+      <div className="at-char-selector">
+        <span className="at-char-selector-label">No hero yet — start one below.</span>
       </div>
     );
   }
 
   return (
-    <div className="coa-char-selector" ref={popRef}>
+    <div className="at-char-selector" ref={popRef}>
       <button
         type="button"
-        className="coa-char-selector-trigger"
+        className="at-char-selector-trigger"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
         title="Switch character or start a new one"
       >
-        <span className="coa-char-selector-label">Playing as</span>
-        <span className="coa-char-selector-name">
+        <span className="at-char-selector-label">Playing as</span>
+        <span className="at-char-selector-name">
           {active ? active.name : 'No active hero'}
         </span>
         {active && (
-          <span className="coa-char-selector-meta">
+          <span className="at-char-selector-meta">
             {active.race} {active.class} · {active.faction}
           </span>
         )}
-        <span className="coa-char-selector-caret" aria-hidden="true">▾</span>
+        <span className="at-char-selector-caret" aria-hidden="true">▾</span>
       </button>
 
       {open && (
-        <div className="coa-char-selector-menu" role="menu">
+        <div className="at-char-selector-menu" role="menu">
           {active && (
-            <div className="coa-char-selector-section coa-char-selector-active">
-              <div className="coa-char-selector-section-label">Active</div>
-              <div className="coa-char-selector-row">
-                <div className="coa-char-selector-row-main">
-                  <div className="coa-char-selector-row-name">{active.name}</div>
-                  <div className="coa-char-selector-row-meta">
+            <div className="at-char-selector-section at-char-selector-active">
+              <div className="at-char-selector-section-label">Active</div>
+              <div className="at-char-selector-row">
+                <div className="at-char-selector-row-main">
+                  <div className="at-char-selector-row-name">{active.name}</div>
+                  <div className="at-char-selector-row-meta">
                     {active.race} {active.class} · {active.faction}
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="coa-char-selector-row-delete"
+                  className="at-char-selector-row-delete"
                   onClick={() => handleDelete(active)}
                   title={`Delete ${active.name}`}
                 >
@@ -110,24 +110,24 @@ export function CharacterSelector() {
           )}
 
           {others.length > 0 && (
-            <div className="coa-char-selector-section">
-              <div className="coa-char-selector-section-label">Other heroes</div>
+            <div className="at-char-selector-section">
+              <div className="at-char-selector-section-label">Other heroes</div>
               {others.map((entry) => (
-                <div key={entry.key} className="coa-char-selector-row">
+                <div key={entry.key} className="at-char-selector-row">
                   <button
                     type="button"
-                    className="coa-char-selector-row-main coa-char-selector-row-switch"
+                    className="at-char-selector-row-main at-char-selector-row-switch"
                     onClick={() => handleSwitch(entry.key)}
                     title={`Switch to ${entry.name}`}
                   >
-                    <div className="coa-char-selector-row-name">{entry.name}</div>
-                    <div className="coa-char-selector-row-meta">
+                    <div className="at-char-selector-row-name">{entry.name}</div>
+                    <div className="at-char-selector-row-meta">
                       {entry.race} {entry.class} · {entry.faction}
                     </div>
                   </button>
                   <button
                     type="button"
-                    className="coa-char-selector-row-delete"
+                    className="at-char-selector-row-delete"
                     onClick={() => handleDelete(entry)}
                     title={`Delete ${entry.name}`}
                   >
@@ -138,15 +138,15 @@ export function CharacterSelector() {
             </div>
           )}
 
-          <div className="coa-char-selector-section">
+          <div className="at-char-selector-section">
             <button
               type="button"
-              className="coa-char-selector-new"
+              className="at-char-selector-new"
               onClick={handleNew}
             >
               + New character
             </button>
-            <div className="coa-char-selector-foot">
+            <div className="at-char-selector-foot">
               Your current hero stays saved. Switch back any time.
             </div>
           </div>

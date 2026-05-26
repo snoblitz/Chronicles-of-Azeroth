@@ -95,7 +95,7 @@ export function AddonImport() {
 
   return (
     <section
-      className="coa-panel"
+      className="at-panel"
       style={{
         marginTop: '1rem',
         padding: '1rem 1.25rem',
@@ -115,7 +115,7 @@ export function AddonImport() {
     >
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center' }}>
         <div style={{ flex: '1 1 280px', minWidth: 0 }}>
-          <p className="coa-kicker">Import from WoW</p>
+          <p className="at-kicker">Import from WoW</p>
           <h3 style={{ margin: '0.1rem 0 0.35rem' }}>Drop your ChroniclesOfAzeroth.lua here</h3>
           <p className="muted" style={{ margin: 0, fontSize: '0.85rem' }}>
             Find it under{' '}
@@ -129,7 +129,7 @@ export function AddonImport() {
         </div>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           <button
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             onClick={() => inputRef.current?.click()}
             disabled={state.status === 'parsing'}
           >
@@ -183,7 +183,7 @@ export function AddonImport() {
 
       {state.status === 'error' && (
         <div
-          className="coa-callout-danger"
+          className="at-callout-danger"
           style={{ marginTop: '0.75rem', padding: '0.5rem 0.75rem', borderRadius: '0.5rem' }}
         >
           <strong>Import failed:</strong> {state.error}

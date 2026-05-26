@@ -65,15 +65,15 @@ export function InspireMePanel({
 
   if (phase.kind === 'idle') {
     return (
-      <div className="coa-inspire-panel">
+      <div className="at-inspire-panel">
         <button
           type="button"
-          className="coa-btn coa-btn-assist coa-inspire-trigger"
+          className="at-btn at-btn-assist at-inspire-trigger"
           onClick={() => fetchSuggestions(0)}
         >
           <span className="sparkle">✦</span> {triggerLabel}
         </button>
-        <div className="coa-inspire-meta">
+        <div className="at-inspire-meta">
           Three starting points based on the traits you picked. Use one, edit it, or ignore.
         </div>
       </div>
@@ -82,8 +82,8 @@ export function InspireMePanel({
 
   if (phase.kind === 'loading') {
     return (
-      <div className="coa-inspire-panel">
-        <button type="button" className="coa-btn coa-btn-assist coa-inspire-trigger" disabled>
+      <div className="at-inspire-panel">
+        <button type="button" className="at-btn at-btn-assist at-inspire-trigger" disabled>
           <span className="sparkle">✦</span> Conjuring three starting points…
         </button>
       </div>
@@ -92,13 +92,13 @@ export function InspireMePanel({
 
   if (phase.kind === 'error') {
     return (
-      <div className="coa-inspire-panel">
-        <div className="coa-callout coa-callout-danger">
+      <div className="at-inspire-panel">
+        <div className="at-callout at-callout-danger">
           <strong>Inspire Me failed.</strong> {phase.message}
         </div>
         <button
           type="button"
-          className="coa-btn coa-btn-secondary coa-inspire-trigger"
+          className="at-btn at-btn-secondary at-inspire-trigger"
           onClick={() => fetchSuggestions(0)}
         >
           Try again
@@ -108,25 +108,25 @@ export function InspireMePanel({
   }
 
   return (
-    <div className="coa-inspire-panel">
-      <div className="coa-inspire-cards">
+    <div className="at-inspire-panel">
+      <div className="at-inspire-cards">
         {phase.suggestions.map((s, i) => (
           <button
             key={`${phase.clickIndex}-${i}`}
             type="button"
-            className="coa-inspire-card"
+            className="at-inspire-card"
             onClick={() => onUse(s.text)}
             title="Use this suggestion (fills the answer field)"
           >
-            <span className="coa-inspire-card-title">{s.title}</span>
-            <span className="coa-inspire-card-text">{s.text}</span>
+            <span className="at-inspire-card-title">{s.title}</span>
+            <span className="at-inspire-card-text">{s.text}</span>
           </button>
         ))}
       </div>
-      <div className="coa-inspire-meta">
+      <div className="at-inspire-meta">
         <button
           type="button"
-          className="coa-btn coa-btn-sm coa-btn-secondary"
+          className="at-btn at-btn-sm at-btn-secondary"
           onClick={() => fetchSuggestions(phase.clickIndex + 1)}
         >
           ✦ Try 3 more

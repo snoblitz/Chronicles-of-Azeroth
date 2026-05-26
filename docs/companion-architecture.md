@@ -10,7 +10,7 @@ load-bearing reference for that coordination.
 
 ## 1. The product, in one sentence
 
-Chronicles of Azeroth turns your WoW play into a narrative you can read anywhere —
+Aftertale turns your WoW play into a narrative you can read anywhere —
 and the Companion makes that narrative appear automatically, the moment it exists,
 on every screen you own.
 
@@ -36,7 +36,7 @@ different *product*.
 
 ### 3.1 Free anonymous (Day 1)
 1. Installs WoW addon, plays, gets SV file with events.
-2. Visits chronicles.com → Scribe's Desk → drops SV file.
+2. Visits aftertale.gg → Scribe's Desk → drops SV file.
 3. Filters, hits "Enrich" (BYOK key entered locally), gets chapters.
 4. Downloads `ChroniclesOfAzerothRestore.lua` → drops in `WTF\SavedVariables\`.
 5. Next WoW login, addon merges chapters back into the in-game chronicle.
@@ -52,7 +52,7 @@ re-import. Workflow is otherwise identical to Free anonymous.
 ### 3.3 Companion (the magic moment)
 1. From the signed-in web app, clicks Upgrade → Stripe Checkout → success page
    prompts them to download the desktop Companion.
-2. Launches Companion → opens chronicles.com/pair → enters 6-digit code shown
+2. Launches Companion → opens aftertale.gg/pair → enters 6-digit code shown
    by the app. App is now bound to their account.
 3. Companion silently watches the WoW SV folder.
 4. Plays WoW. SV file changes on disk (logout or `/reload`).
@@ -107,7 +107,7 @@ addon is dumb, the Companion is smart.
 
 1. User installs Companion, launches it.
 2. Companion calls `POST /pair/start` → backend returns a 6-digit code + a polling token.
-3. Companion displays: *"Go to chronicles.com/pair and enter `493-217`"*.
+3. Companion displays: *"Go to aftertale.gg/pair and enter `493-217`"*.
 4. User visits the URL (already signed in to their account in the browser),
    types the code, clicks confirm.
 5. Backend marks the pairing record as `paired:<userId>`.

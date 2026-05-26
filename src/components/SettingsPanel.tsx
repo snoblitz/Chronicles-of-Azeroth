@@ -55,18 +55,18 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   const provider: Provider = 'openrouter';
 
   return (
-    <div className="coa-modal-backdrop" onClick={onClose} role="presentation">
+    <div className="at-modal-backdrop" onClick={onClose} role="presentation">
       <div
-        className="coa-modal"
+        className="at-modal"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="coa-settings-title"
+        aria-labelledby="at-settings-title"
       >
-        <header className="coa-modal-header">
-          <h2 id="coa-settings-title" style={{ margin: 0 }}>API key</h2>
+        <header className="at-modal-header">
+          <h2 id="at-settings-title" style={{ margin: 0 }}>API key</h2>
           <button
-            className="coa-modal-close"
+            className="at-modal-close"
             onClick={onClose}
             aria-label="Close settings"
             title="Close (Esc)"
@@ -81,8 +81,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           at deploy time.
         </p>
 
-        <section className="coa-settings-section">
-          <div className="coa-settings-section-head">
+        <section className="at-settings-section">
+          <div className="at-settings-section-head">
             <h3 style={{ margin: 0, fontFamily: 'var(--font-display)' }}>OpenRouter</h3>
             <StatusBadge status={status} />
           </div>
@@ -94,9 +94,9 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             </p>
           )}
 
-          <div className="coa-settings-row">
+          <div className="at-settings-row">
             <input
-              className="coa-input"
+              className="at-input"
               type={reveal ? 'text' : 'password'}
               placeholder={status.hasKey ? 'Paste a new key to replace…' : 'Paste your OpenRouter key…'}
               value={draft}
@@ -109,7 +109,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             />
             <button
               type="button"
-              className="coa-btn coa-btn-secondary coa-btn-sm"
+              className="at-btn at-btn-secondary at-btn-sm"
               onClick={() => setReveal((r) => !r)}
               title={reveal ? 'Hide key' : 'Show key'}
             >
@@ -117,7 +117,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             </button>
             <button
               type="button"
-              className="coa-btn coa-btn-primary coa-btn-sm"
+              className="at-btn at-btn-primary at-btn-sm"
               onClick={save}
               disabled={!draft.trim()}
             >
@@ -126,7 +126,7 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             {status.source === 'localStorage' && (
               <button
                 type="button"
-                className="coa-btn coa-btn-secondary coa-btn-sm"
+                className="at-btn at-btn-secondary at-btn-sm"
                 onClick={clear}
                 title="Forget the saved key"
               >
@@ -148,8 +148,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           </p>
         </section>
 
-        <section className="coa-settings-section" style={{ marginTop: '1rem' }}>
-          <div className="coa-settings-section-head">
+        <section className="at-settings-section" style={{ marginTop: '1rem' }}>
+          <div className="at-settings-section-head">
             <h3 style={{ margin: 0, fontFamily: 'var(--font-display)' }}>Advanced</h3>
           </div>
           <label
@@ -178,8 +178,8 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
           </label>
         </section>
 
-        <footer className="coa-modal-footer">
-          <button className="coa-btn coa-btn-secondary" onClick={onClose}>
+        <footer className="at-modal-footer">
+          <button className="at-btn at-btn-secondary" onClick={onClose}>
             Done
           </button>
         </footer>
@@ -193,10 +193,10 @@ export function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
 function StatusBadge({ status }: { status: KeyStatus }) {
   if (!status.hasKey) {
-    return <span className="coa-key-badge coa-key-badge-missing">No key</span>;
+    return <span className="at-key-badge at-key-badge-missing">No key</span>;
   }
   if (status.source === 'localStorage') {
-    return <span className="coa-key-badge coa-key-badge-local">Saved here</span>;
+    return <span className="at-key-badge at-key-badge-local">Saved here</span>;
   }
-  return <span className="coa-key-badge coa-key-badge-env">From build env</span>;
+  return <span className="at-key-badge at-key-badge-env">From build env</span>;
 }

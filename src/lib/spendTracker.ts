@@ -6,7 +6,7 @@
 import { v4 as uuid } from 'uuid';
 import type { TaskAverages, UsageRecord } from '../types';
 
-const STORAGE_KEY_PREFIX = 'coa.spend.';
+const STORAGE_KEY_PREFIX = 'at.spend.';
 export const SPEND_RETENTION_DAYS = 90;
 
 function dateKey(timestamp = Date.now()): string {
@@ -40,7 +40,7 @@ export function recordUsage(record: Omit<UsageRecord, 'id'>): UsageRecord {
   saveDay(key, day);
   // Notify in-tab subscribers (the native 'storage' event only fires for other tabs).
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('coa:usage-updated', { detail: full }));
+    window.dispatchEvent(new CustomEvent('at:usage-updated', { detail: full }));
   }
   return full;
 }

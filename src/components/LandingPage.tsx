@@ -242,7 +242,7 @@ export function LandingPage() {
                   <TierCard
                     tier={tier}
                     onUpgrade={() => {
-                      window.dispatchEvent(new CustomEvent('coa:upgrade-clicked', { detail: tier.id }));
+                      window.dispatchEvent(new CustomEvent('at:upgrade-clicked', { detail: tier.id }));
                       if (tier.id === 'free') gotoApp();
                     }}
                   />

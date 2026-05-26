@@ -3,7 +3,7 @@
 // carry forward into Phase 2's quest-scoped interactions.
 //
 // Storage key shape:
-//   coa.npc.v1.<characterKey>.<npcId>.<threadId>
+//   at.npc.v1.<characterKey>.<npcId>.<threadId>
 //
 //   characterKey = the bible's createdAt timestamp (stable, survives renames)
 //   npcId        = stable id from NPC_CATALOG (or addon-supplied npc id later)
@@ -16,7 +16,7 @@
 import type { ChatMessage, CharacterBible } from '../types';
 
 const SCHEMA_VERSION = 1;
-const KEY_PREFIX = 'coa.npc.v1';
+const KEY_PREFIX = 'at.npc.v1';
 
 export type ThreadTrigger = 'manual' | 'quest-detail' | 'gossip-show' | 'quest-turn-in';
 

@@ -37,7 +37,7 @@ collisions, ports are pinned:
 | Project              | Port  | Notes                                |
 | -------------------- | ----- | ------------------------------------ |
 | sand-miner           | 5173  | Default Vite port, can't move        |
-| Chronicles of Azeroth| 5180  | `strictPort: true` in vite.config.ts |
+| Aftertale| 5180  | `strictPort: true` in vite.config.ts |
 | Cozy Catch           | 8000  | Custom Node server                   |
 
 If 5180 ever conflicts, change it in `vite.config.ts` and update this table.
@@ -136,7 +136,7 @@ chronicles-of-azeroth/
 ```js
 // In browser console:
 Object.keys(localStorage)
-  .filter(k => k.startsWith('coa.spend.'))
+  .filter(k => k.startsWith('at.spend.'))
   .forEach(k => localStorage.removeItem(k));
 location.reload();
 ```

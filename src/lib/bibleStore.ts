@@ -3,21 +3,21 @@
 // Phase 1 will swap the backend to SQLite; the public API here should stay stable.
 //
 // Storage layout (multi-character roster, v2):
-//   coa.bible.roster.v1     -> { activeKey: string | null, keys: string[] }
-//   coa.bible.entry.<key>   -> BibleEnvelope (one per saved hero)
+//   at.bible.roster.v1     -> { activeKey: string | null, keys: string[] }
+//   at.bible.entry.<key>   -> BibleEnvelope (one per saved hero)
 //
 // Where <key> is the bible's createdAt timestamp as a string. This matches the
 // `characterKey` used by npcChatStore so NPC threads stay bound to the right hero.
 //
-// Migration: a legacy `coa.bible.current` key (the old single-bible slot) is
+// Migration: a legacy `at.bible.current` key (the old single-bible slot) is
 // detected on every load and migrated into the roster on the fly.
 // ============================================================================
 
 import type { BibleEnvelope, CharacterBible, HistoryEntry } from '../types';
 
-const LEGACY_KEY = 'coa.bible.current';
-const ROSTER_KEY = 'coa.bible.roster.v1';
-const ENTRY_PREFIX = 'coa.bible.entry.';
+const LEGACY_KEY = 'at.bible.current';
+const ROSTER_KEY = 'at.bible.roster.v1';
+const ENTRY_PREFIX = 'at.bible.entry.';
 const SCHEMA_VERSION = 1;
 
 const VALID_FACTIONS = ['Alliance', 'Horde'] as const;
@@ -225,7 +225,7 @@ function migrateLegacyIfPresent(): void {
 
 function fireBibleUpdated(bible: CharacterBible | null): void {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('coa:bible-updated', { detail: bible }));
+    window.dispatchEvent(new CustomEvent('at:bible-updated', { detail: bible }));
   }
 }
 
@@ -235,7 +235,7 @@ function fireBibleUpdated(bible: CharacterBible | null): void {
 // Runs at most once thanks to the localStorage flag.
 // ---------------------------------------------------------------------------
 
-const BACKFILL_FLAG = 'coa.migrations.fears-flaws-quote.v1';
+const BACKFILL_FLAG = 'at.migrations.fears-flaws-quote.v1';
 
 interface BibleBackfill {
   createdAt: number;
@@ -390,7 +390,7 @@ export function deleteBible(key: string): void {
   localStorage.removeItem(entryStorageKey(key));
   // Also sweep any NPC threads bound to this hero.
   try {
-    const npcPrefix = `coa.npc.v1.${key}.`;
+    const npcPrefix = `at.npc.v1.${key}.`;
     const toRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const k = localStorage.key(i);

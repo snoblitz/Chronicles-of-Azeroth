@@ -1,4 +1,4 @@
-# Chronicles of Azeroth
+# Aftertale
 
 > AI-powered narrative engine that turns World of Warcraft into a personalized
 > RPG novel where **you** are the protagonist.

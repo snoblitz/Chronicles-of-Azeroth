@@ -121,8 +121,8 @@ export function CharacterAutoImport({
 
   if (step.kind === 'ingest') {
     return (
-      <div className="coa-panel coa-trait-wizard">
-        <div className="coa-trait-wizard-header">
+      <div className="at-panel at-trait-wizard">
+        <div className="at-trait-wizard-header">
           <h2>Auto-import a character</h2>
           <p className="muted">
             Drop your <code>ChroniclesOfAzeroth.lua</code> SavedVariables file. We will read who
@@ -139,7 +139,7 @@ export function CharacterAutoImport({
         <details>
           <summary className="muted">…or paste the file contents</summary>
           <textarea
-            className="coa-input"
+            className="at-input"
             rows={6}
             placeholder="ChroniclesOfAzerothDB = { ... }"
             value={pasteValue}
@@ -148,7 +148,7 @@ export function CharacterAutoImport({
           />
           <button
             type="button"
-            className="coa-btn coa-btn-secondary"
+            className="at-btn at-btn-secondary"
             onClick={() => handleSource(pasteValue)}
             disabled={pasteValue.trim().length === 0}
             style={{ marginTop: '0.5rem' }}
@@ -158,15 +158,15 @@ export function CharacterAutoImport({
         </details>
 
         {parseError && (
-          <div className="coa-callout coa-callout-danger">
+          <div className="at-callout at-callout-danger">
             <strong>Couldn't ingest.</strong> {parseError}
           </div>
         )}
 
-        <div className="coa-trait-wizard-footer">
+        <div className="at-trait-wizard-footer">
           <span className="muted">Step 1 of 4 -- find your character.</span>
           {onCancel && (
-            <button type="button" className="coa-btn coa-btn-secondary" onClick={onCancel}>
+            <button type="button" className="at-btn at-btn-secondary" onClick={onCancel}>
               Cancel
             </button>
           )}
@@ -177,8 +177,8 @@ export function CharacterAutoImport({
 
   if (step.kind === 'pick') {
     return (
-      <div className="coa-panel coa-trait-wizard">
-        <div className="coa-trait-wizard-header">
+      <div className="at-panel at-trait-wizard">
+        <div className="at-trait-wizard-header">
           <h2>Pick a character to onboard</h2>
           <p className="muted">
             {step.characters.length} character{step.characters.length === 1 ? '' : 's'} found.
@@ -187,7 +187,7 @@ export function CharacterAutoImport({
         </div>
 
         {step.warnings.length > 0 && (
-          <div className="coa-callout">
+          <div className="at-callout">
             <strong>Notes:</strong>
             <ul style={{ margin: '0.3rem 0 0 1rem' }}>
               {step.warnings.map((w, i) => (
@@ -197,7 +197,7 @@ export function CharacterAutoImport({
           </div>
         )}
 
-        <div className="coa-trait-chip-row" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
+        <div className="at-trait-chip-row" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
           {step.characters.map((c) => {
             const badge = CLASSIFICATION_BADGES[c.classification];
             const loc = characterLocation(c);
@@ -205,12 +205,12 @@ export function CharacterAutoImport({
               <button
                 key={c.guid}
                 type="button"
-                className="coa-trait-chip"
+                className="at-trait-chip"
                 onClick={() => setStep({ kind: 'traits', character: c })}
                 style={{ minHeight: '110px' }}
               >
-                <span className="coa-trait-chip-label">{describeCharacter(c)}</span>
-                <span className="coa-trait-chip-desc">
+                <span className="at-trait-chip-label">{describeCharacter(c)}</span>
+                <span className="at-trait-chip-desc">
                   <span style={{ color: `var(--${badge.tone})`, fontWeight: 600 }}>
                     {badge.label}
                   </span>
@@ -218,7 +218,7 @@ export function CharacterAutoImport({
                   {badge.blurb}
                 </span>
                 {loc && (
-                  <span className="coa-trait-chip-desc" style={{ fontSize: '0.82rem' }}>
+                  <span className="at-trait-chip-desc" style={{ fontSize: '0.82rem' }}>
                     Last seen in {loc}
                   </span>
                 )}
@@ -227,11 +227,11 @@ export function CharacterAutoImport({
           })}
         </div>
 
-        <div className="coa-trait-wizard-footer">
+        <div className="at-trait-wizard-footer">
           <span className="muted">Step 2 of 4 -- choose.</span>
           <button
             type="button"
-            className="coa-btn coa-btn-secondary"
+            className="at-btn at-btn-secondary"
             onClick={() => setStep({ kind: 'ingest' })}
           >
             Back
@@ -275,7 +275,7 @@ function FileDrop({ onFile }: FileDropProps) {
   const [dragging, setDragging] = useState(false);
   return (
     <label
-      className={`coa-trait-bucket${dragging ? ' coa-trait-chip-selected' : ''}`}
+      className={`at-trait-bucket${dragging ? ' at-trait-chip-selected' : ''}`}
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -396,8 +396,8 @@ function SeedAnswerStep({
   const canFinish = draft.trim().length >= 10;
 
   return (
-    <div className="coa-panel coa-trait-wizard">
-      <div className="coa-trait-wizard-header">
+    <div className="at-panel at-trait-wizard">
+      <div className="at-trait-wizard-header">
         <h2>One question to seed the story</h2>
         <p className="muted">
           We'll use this and the personality you picked to start the chronicle. You can always
@@ -405,13 +405,13 @@ function SeedAnswerStep({
         </p>
       </div>
 
-      <div className="coa-trait-bucket">
-        <header className="coa-trait-bucket-header">
-          <h3 className="coa-trait-bucket-label">Question</h3>
-          <p className="muted coa-trait-bucket-desc">{question}</p>
+      <div className="at-trait-bucket">
+        <header className="at-trait-bucket-header">
+          <h3 className="at-trait-bucket-label">Question</h3>
+          <p className="muted at-trait-bucket-desc">{question}</p>
         </header>
         <textarea
-          className="coa-input"
+          className="at-input"
           rows={5}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -425,10 +425,10 @@ function SeedAnswerStep({
         />
       </div>
 
-      <div className="coa-trait-bucket">
-        <header className="coa-trait-bucket-header">
-          <h3 className="coa-trait-bucket-label">Optional: add intel from other addons</h3>
-          <p className="muted coa-trait-bucket-desc">
+      <div className="at-trait-bucket">
+        <header className="at-trait-bucket-header">
+          <h3 className="at-trait-bucket-label">Optional: add intel from other addons</h3>
+          <p className="muted at-trait-bucket-desc">
             Drop any other addon's <code>.lua</code> SavedVariables files
             (Altoholic, Details!/Skada, RaiderIO, BagSync, TSM, or anything else).
             We'll scan for mentions of <strong>{character.identity.name}</strong> and
@@ -436,7 +436,7 @@ function SeedAnswerStep({
           </p>
         </header>
         <label
-          className="coa-dropzone"
+          className="at-dropzone"
           style={{ cursor: 'pointer', display: 'block', padding: '0.75rem', textAlign: 'center' }}
         >
           <span>{scanning ? 'Scanning…' : '+ Add SavedVariables files'}</span>
@@ -473,20 +473,20 @@ function SeedAnswerStep({
         )}
       </div>
 
-      <div className="coa-trait-wizard-footer">
+      <div className="at-trait-wizard-footer">
         <span className="muted">Step 4 of 4 -- {canFinish ? 'ready when you are' : 'a few sentences will do'}.</span>
-        <div className="coa-trait-wizard-actions">
+        <div className="at-trait-wizard-actions">
           {onCancel && (
-            <button type="button" className="coa-btn coa-btn-secondary" onClick={onCancel}>
+            <button type="button" className="at-btn at-btn-secondary" onClick={onCancel}>
               Cancel
             </button>
           )}
-          <button type="button" className="coa-btn coa-btn-secondary" onClick={onBack}>
+          <button type="button" className="at-btn at-btn-secondary" onClick={onBack}>
             Back
           </button>
           <button
             type="button"
-            className="coa-btn coa-btn-primary"
+            className="at-btn at-btn-primary"
             disabled={!canFinish}
             onClick={() =>
               onComplete({
