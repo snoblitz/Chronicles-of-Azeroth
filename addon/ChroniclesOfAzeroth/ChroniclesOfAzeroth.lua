@@ -13,6 +13,11 @@ local ADDON_NAME, NS = ...
 local PREFIX = "COA"
 local CHAT_TAG = "|cFFFFD700[CoA]|r"
 
+-- Schema version for ChroniclesOfAzerothDB. Bump when shape changes in a
+-- way old saves can't be loaded by new code. migrate() runs once per load
+-- and walks db.schemaVersion forward to CURRENT_SCHEMA.
+local CURRENT_SCHEMA = 1
+
 ------------------------------------------------------------------------
 -- Compat shims
 ------------------------------------------------------------------------
@@ -80,6 +85,7 @@ end
 local function ensureDB()
   ChroniclesOfAzerothDB = ChroniclesOfAzerothDB or {}
   local db = ChroniclesOfAzerothDB
+  db.schemaVersion = db.schemaVersion or CURRENT_SCHEMA
   db.meta = db.meta or {}
   db.events = db.events or {}
   db.counts = db.counts or {}
@@ -108,6 +114,15 @@ local function ensureDB()
   -- falls back to procedural templates per entry.
   db.enriched = db.enriched or {}
   return db
+end
+
+-- Schema migration. Stub for now; called once on ADDON_LOADED. When the
+-- next schema lands, replace the no-op with `while db.schemaVersion <
+-- CURRENT_SCHEMA do ... end` and add a per-version migrator branch.
+local function migrate(db)
+  if db.schemaVersion == CURRENT_SCHEMA then return end
+  -- No migrations yet. Future migrators land here, one branch per bump.
+  db.schemaVersion = CURRENT_SCHEMA
 end
 
 ------------------------------------------------------------------------
@@ -608,6 +623,7 @@ frame:SetScript("OnEvent", function(self, event, ...)
     if loaded ~= ADDON_NAME then return end
 
     local db = ensureDB()
+    migrate(db)
     db.meta.version = getMeta("Version") or "?"
     db.meta.project = projectName()
     db.meta.build = select(4, GetBuildInfo()) or "?"
