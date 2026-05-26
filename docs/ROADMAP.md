@@ -152,3 +152,76 @@ like a chapter of a novel afterwards.
 - Voice acting via TTS with consistent per-NPC voices
 - Optional Discord posting of chapter summaries
 - Community lore graph (shared NPC knowledge, opt-in)
+
+## Known issues — round-trip rework (2026-05-25 stress test)
+
+> **Related investigation:** Gemini billing discrepancy (counter says $0.19, Google billed $0.27 on the same 567-call run) — see [`docs/gemini-billing-investigation.md`](./gemini-billing-investigation.md). Controlled probe captured 2026-05-26T03:52Z; awaiting Cloud Billing update (~24h) to resolve.
+
+
+End-to-end test with 580 captured events surfaced fundamental gaps in the
+companion → addon round-trip. Bible renders, chapters group, but the
+narrative read is broken. Needs rework before this pipeline is shippable.
+
+### 1. Blob format is too lossy
+**Problem:** `COA-CHRONICLE-V1` only carries `EntryID + paragraph`. The book's
+resolvers and chapter grouping need event metadata that's getting dropped at
+export time:
+- `enrichment.zoneText` → chapters all collapse to "Unknown Lands"
+- `enrichment.questTitle` → entries render as "Accepted: a quest" instead of "Accepted: The Defias Brotherhood"
+- `enrichment.npcName`, `enrichment.levelText`, etc. → likewise templated
+- `ZONE_CHANGED` args are empty in the blob (WoW event has no payload; addon queries `GetMinimapZoneText()` separately and stores on the event, not in args)
+
+**Path forward:** Either (a) extend the blob grammar with per-entry metadata
+columns, or (b) drop the blob format entirely for the bypass path and ship
+a structured `.lua` snippet from the web companion that contains full
+`db.events` + `db.enriched` + `db.bible`. Option (b) is cleaner and is what
+`inject-chronicle.ps1` had to reverse-engineer this round.
+
+### 2. `/coa sync` EditBox is unusably slow
+**Problem:** 471 KB blob freezes WoW for 30-90s on paste; may never settle.
+WoW's EditBox widget has O(n²) repaint cost at this size.
+
+**Workaround in place:** `inject-chronicle.ps1` writes directly to the SV
+file. Works but requires WoW closed + a manual PowerShell step.
+
+**Path forward:** Add a "Download .lua snippet" button to `CompanionExport`
+that produces the complete restoration file. User saves into `WTF\Account\
+<ACCOUNT>\SavedVariables\`, launches WoW, done. Skip the EditBox entirely
+as the supported path.
+
+### 3. `/coa clear` orphans enriched paragraphs
+**Problem:** Clearing wipes `db.events` but preserves `db.enriched`. Without
+events to iterate, the book is empty even though paragraphs are loaded.
+
+**Path forward:** Document the order-of-ops (clear *before* import, not after).
+Optional: make `/coa sync` synthesize events when import keys don't have
+matching `db.events` entries (companion-led restore vs. addon-led capture).
+
+### 4. Companion enriches noise events (~95% waste)
+**Problem:** Web companion currently enriches every imported event. Only
+6 event types are narrative (`IsNarrativeEvent`): QUEST_ACCEPTED,
+QUEST_TURNED_IN, PLAYER_LEVEL_UP, ZONE_CHANGED_NEW_AREA, PLAYER_DEAD,
+ACHIEVEMENT_EARNED. On the 580-event test: 522 of 567 enriched paragraphs
+were never displayed.
+
+**Path forward:** See "Per-event-type filter" below — default the narrative
+6 on, rest off. Drops cost ~95%.
+
+### 5. Web enrichment state is volatile
+**Problem:** `CompanionExport` stores enrichments in `useState`. A tab refresh
+mid-run loses everything; a 580-event run takes ~10 minutes.
+
+**Path forward:** Persist to `localStorage` keyed by `(charName, enrichmentId)`.
+Resume-on-refresh + re-export without re-running LLM.
+
+### 6. Lua bracket ambiguity in injected long-strings (resolved)
+**Problem:** `enriched[[==[KEY]==]] = ...` parsed as `enriched[ [[==[KEY]==] ] ]`
+— Lua tokenizes `[[` as a level-0 long-bracket opener. Caused
+`unexpected symbol near '='` LUA_WARNING.
+
+**Resolved in:** `inject-chronicle.ps1 v2` writes `enriched[ [==[KEY]==] ] = ...`
+with spaces. Locking this in any future Lua-snippet generator (web side too).
+
+## Backlog — small follow-ups
+
+- [ ] **Per-event-type filter in CompanionExport.** ChronicleReader's enrich panel currently runs across every imported addon event. Real SV files contain a long tail of low-signal events (UNIT_QUEST_LOG_CHANGED, PLAYER_REGEN_*, CHAT_MSG_LOOT/MONEY, TIME_PLAYED_MSG) that aren't story-worthy and burn LLM tokens. Add a small checkbox grid keyed by `wowEvent` — sensible defaults checked (QUEST_TURNED_IN, QUEST_ACCEPTED, PLAYER_LEVEL_UP, PLAYER_DEAD, ENCOUNTER_END, BOSS_KILL, ZONE_CHANGED_NEW_AREA), noisy ones unchecked. Persist selection in localStorage so it sticks across sessions. Estimated cost saving on a 580-event file: ~95% (drops to ~30 enriched events). Cheap to build, big lever.

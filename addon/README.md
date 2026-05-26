@@ -69,7 +69,7 @@ confirm the live build number.
    `<WoWRoot>\<flavor>\WTF\Account\<ACCOUNT>\SavedVariables\ChroniclesOfAzeroth.lua`
 6. Diff against the simulator's `WowEventName` union in
    `src/lib/addonEvents.ts` and note any mismatches in
-   `docs/EVENT-CONTRACT.md` (TODO -- write that doc after first capture).
+   `docs/EVENT-CONTRACT.md`.
 
 ## What we are validating
 
