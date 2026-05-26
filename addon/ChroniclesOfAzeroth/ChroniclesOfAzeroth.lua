@@ -216,6 +216,16 @@ end
 
 local combatLogCounter = 0
 
+-- UUID v4 generator. Non-cryptographic; collision-safe at our scale (single
+-- client, ~5k-event ring buffer). Seeded once on ADDON_LOADED below.
+local function uuid()
+  local template = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx"
+  return (template:gsub("[xy]", function(c)
+    local v = (c == "x") and math.random(0, 15) or math.random(8, 11)
+    return string.format("%x", v)
+  end))
+end
+
 ------------------------------------------------------------------------
 -- Phase 0.75-B -- per-event enrichment
 --
@@ -402,6 +412,7 @@ local function recordEvent(db, event, ...)
   end
 
   local rec = {
+    id = uuid(),
     t = GetTime(),
     ts = date("%Y-%m-%dT%H:%M:%S"),
     event = event,
@@ -635,6 +646,9 @@ frame:SetScript("OnEvent", function(self, event, ...)
 
     local db = ensureDB()
     migrate(db)
+    -- Seed RNG once for uuid(). time() + GetTime() gives sub-second jitter
+    -- so two near-simultaneous /reload cycles don't collide.
+    math.randomseed(time() + math.floor((GetTime() or 0) * 1000))
     db.meta.version = getMeta("Version") or "?"
     db.meta.project = projectName()
     db.meta.build = select(4, GetBuildInfo()) or "?"
