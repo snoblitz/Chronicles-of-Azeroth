@@ -27,6 +27,7 @@ import {
 } from '../lib/spendTracker';
 import { MODEL_CHOICES, useSelectedModelIdx } from '../lib/modelChoices';
 import { DEV_TOOLS_ENABLED } from '../lib/devTools';
+import { assetUrl } from '../lib/assetUrl';
 
 interface SpendBarProps {
   onOpenSettings?: () => void;
@@ -106,75 +107,90 @@ export function SpendBar({ onOpenSettings, hasAnyKey = true }: SpendBarProps = {
         onClick={canExpand ? () => setExpanded((v) => !v) : undefined}
         style={{ cursor: canExpand ? 'pointer' : 'default' }}
       >
-        <span className="at-tokenbar-kicker">Today</span>
-
-        <span
-          className="at-tokenbar-stat"
-          title="Total input tokens sent to OpenRouter today (matches your OpenRouter dashboard)."
+        <a
+          href="/"
+          className="at-tokenbar-brand"
+          aria-label="Aftertale — home"
+          onClick={(e) => e.stopPropagation()}
         >
-          <span className="at-tokenbar-label">In</span>
-          <span className="at-tokenbar-value">{formatTokens(totals.input)}</span>
-        </span>
+          <img
+            src={assetUrl('aftertale-logo.png')}
+            alt="Aftertale"
+            className="at-tokenbar-logo"
+          />
+        </a>
 
-        <span
-          className="at-tokenbar-stat"
-          title="Total output tokens returned by OpenRouter today (matches your OpenRouter dashboard)."
-        >
-          <span className="at-tokenbar-label">Out</span>
-          <span className="at-tokenbar-value">{formatTokens(totals.output)}</span>
-        </span>
+        <div className="at-tokenbar-center">
+          <span className="at-tokenbar-kicker">Today</span>
 
-        <span className="at-tokenbar-stat">
-          <span className="at-tokenbar-label">Calls</span>
-          <span className="at-tokenbar-value">{records.length}</span>
-        </span>
-
-        {lastCall && (
-          <span className="at-tokenbar-stat at-tokenbar-stat-secondary" title={`Last call: ${lastCall.task}`}>
-            <span className="at-tokenbar-label">Last</span>
-            <span className="at-tokenbar-value">
-              {lastCall.model} · {formatTokens(lastCall.inputTokens)} in / {formatTokens(lastCall.outputTokens)} out
-            </span>
-          </span>
-        )}
-
-        {DEV_TOOLS_ENABLED && (
           <span
-            className="at-tokenbar-stat at-tokenbar-stat-dev"
-            title="Dev-only cost estimate based on src/pricing.ts — never shown to users."
+            className="at-tokenbar-stat"
+            title="Total input tokens sent to OpenRouter today (matches your OpenRouter dashboard)."
           >
-            <span className="at-tokenbar-label">$ (dev)</span>
-            <span className="at-tokenbar-value" style={{ color: todayColor }}>
-              ${today.toFixed(4)}
+            <span className="at-tokenbar-label">In</span>
+            <span className="at-tokenbar-value">{formatTokens(totals.input)}</span>
+          </span>
+
+          <span
+            className="at-tokenbar-stat"
+            title="Total output tokens returned by OpenRouter today (matches your OpenRouter dashboard)."
+          >
+            <span className="at-tokenbar-label">Out</span>
+            <span className="at-tokenbar-value">{formatTokens(totals.output)}</span>
+          </span>
+
+          <span className="at-tokenbar-stat">
+            <span className="at-tokenbar-label">Calls</span>
+            <span className="at-tokenbar-value">{records.length}</span>
+          </span>
+
+          {lastCall && (
+            <span className="at-tokenbar-stat at-tokenbar-stat-secondary" title={`Last call: ${lastCall.task}`}>
+              <span className="at-tokenbar-label">Last</span>
+              <span className="at-tokenbar-value">
+                {lastCall.model} · {formatTokens(lastCall.inputTokens)} in / {formatTokens(lastCall.outputTokens)} out
+              </span>
             </span>
-          </span>
-        )}
+          )}
 
-        <span className="at-tokenbar-spacer" />
+          {DEV_TOOLS_ENABLED && (
+            <span
+              className="at-tokenbar-stat at-tokenbar-stat-dev"
+              title="Dev-only cost estimate based on src/pricing.ts — never shown to users."
+            >
+              <span className="at-tokenbar-label">$ (dev)</span>
+              <span className="at-tokenbar-value" style={{ color: todayColor }}>
+                ${today.toFixed(4)}
+              </span>
+            </span>
+          )}
+        </div>
 
-        {onOpenSettings && (
-          <button
-            type="button"
-            className={`at-btn at-btn-sm ${hasAnyKey ? 'at-btn-secondary' : 'at-btn-primary'}`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenSettings();
-            }}
-            title={
-              hasAnyKey
-                ? `Manage key & model — currently using ${activeModelLabel}`
-                : 'Set up an API key to start using the app'
-            }
-          >
-            {hasAnyKey ? `⚙ ${activeModelLabel}` : '⚙ Keys — set me'}
-          </button>
-        )}
+        <div className="at-tokenbar-right">
+          {onOpenSettings && (
+            <button
+              type="button"
+              className={`at-btn at-btn-sm ${hasAnyKey ? 'at-btn-secondary' : 'at-btn-primary'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenSettings();
+              }}
+              title={
+                hasAnyKey
+                  ? `Manage key & model — currently using ${activeModelLabel}`
+                  : 'Set up an API key to start using the app'
+              }
+            >
+              {hasAnyKey ? `⚙ ${activeModelLabel}` : '⚙ Keys — set me'}
+            </button>
+          )}
 
-        {canExpand && (
-          <span className="at-tokenbar-toggle" aria-hidden="true">
-            {expanded ? '▼' : '▶'}
-          </span>
-        )}
+          {canExpand && (
+            <span className="at-tokenbar-toggle" aria-hidden="true">
+              {expanded ? '▼' : '▶'}
+            </span>
+          )}
+        </div>
       </div>
 
       {!hasAnyKey ? (
