@@ -1,8 +1,29 @@
-import { StrictMode, useEffect, useState } from 'react';
+import { lazy, StrictMode, Suspense, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
 import { LandingPage } from './components/LandingPage';
 import './index.css';
+
+// The app tree (and everything it pulls in — Supabase, the providers, the
+// whole authoring UI) is lazy-loaded so the marketing landing page at "/"
+// stays a lean public front door. Landing visitors who never open the app
+// don't download any of it.
+const App = lazy(() => import('./App').then((m) => ({ default: m.App })));
+const AuthCallback = lazy(() =>
+  import('./components/AuthCallback').then((m) => ({ default: m.AuthCallback })),
+);
+
+function RouteFallback() {
+  return (
+    <div
+      style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: 'var(--font-display)', color: 'var(--fg-muted)',
+      }}
+    >
+      Loading…
+    </div>
+  );
+}
 
 // One-time localStorage migration: copy any legacy `coa.*` keys to `at.*` then
 // drop the originals. Safe to run on every boot — gated by `at.migrated`.
@@ -46,10 +67,23 @@ function Root() {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  // Magic-link return path. A real path (not a hash) so Supabase can redirect
+  // to it; public/_redirects serves index.html here on Cloudflare.
+  if (window.location.pathname === '/auth/callback') {
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <AuthCallback />
+      </Suspense>
+    );
+  }
   // #app (or any subroute under it) goes to the application. Everything else
   // shows the marketing landing page.
   if (hash.startsWith('#app')) {
-    return <App />;
+    return (
+      <Suspense fallback={<RouteFallback />}>
+        <App />
+      </Suspense>
+    );
   }
   return <LandingPage />;
 }

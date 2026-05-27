@@ -41,3 +41,15 @@ supabase gen types typescript --project-id <ref> > src/types/supabase.ts
 
 `src/lib/supabase.ts` consumes that `Database` type. `getSupabase()` returns
 `null` when env is unset, so the current public build is unaffected.
+
+## Auth + RLS smoke test
+
+`npm run auth:smoke` (`tools/auth-smoke.mjs`) signs in anonymously, then asserts
+the `characters` RLS policy: own-owned insert succeeds, foreign `owner_id` is
+rejected, own rows are readable, and inserts after sign-out are denied. Reads
+`VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` from env or `.env.local`.
+
+Project prereqs for auth to work:
+- **Anonymous sign-ins enabled** (Auth settings) — else `signInAnonymously()` fails.
+- **Redirect URLs allowlisted** (Auth → URL Configuration):
+  `http://localhost:5180/auth/callback` and `https://aftertale.gg/auth/callback`.

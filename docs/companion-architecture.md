@@ -49,6 +49,29 @@ After producing their first chapter, a soft prompt:
 Anonymous local data migrates to their account on sign-in. No data loss, no
 re-import. Workflow is otherwise identical to Free anonymous.
 
+**Implementation (auth):** the app signs every visitor in *anonymously* on
+first load (Supabase `signInAnonymously()`), so a device's data already has a
+stable `auth.users.id` from the start. "Save your chronicle" calls
+`updateUser({ email })` — a magic link that converts that *same* anonymous user
+into an email-backed account. The `id` never changes, so there is no migration
+step: the anonymous-session trick is what buys us the seamless upgrade.
+
+**Edge case — returning user on a fresh device.** If someone already has an
+account and signs in (email magic link) on a *new* device, that device may
+already hold its own anonymous session with some local-only data. Signing in
+discards that anonymous session in favor of the real account. Any data created
+under that fresh-device anonymous session that was never synced to the cloud is
+**lost** — this is acceptable in V1 (it's pre-account scratch data), and it's
+the price of not silently merging two identities. Once cloud sync ships
+(roadmap #3), the real account's cloud data is what appears after sign-in.
+
+**Auth is email-magic-link only in V1** — no passwords, no OAuth. The
+confirmation link returns to `/auth/callback`, which exchanges the PKCE code
+for a session and forwards to the roster. Because PKCE stores a verifier in the
+requesting browser, the link must be opened on the **same device** it was
+requested from; opening it elsewhere shows a friendly "request a fresh one"
+error rather than signing in.
+
 ### 3.3 Companion (the magic moment)
 1. From the signed-in web app, clicks Upgrade → Stripe Checkout → success page
    prompts them to download the desktop Companion.

@@ -1,0 +1,3 @@
+# Cloudflare Pages SPA fallback. Existing static assets are served first;
+# unknown paths (e.g. /auth/callback) fall through to the SPA shell.
+/*    /index.html    200

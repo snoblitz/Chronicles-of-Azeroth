@@ -33,7 +33,17 @@ export function isSupabaseConfigured(): boolean {
 export function getSupabase(): SupabaseClient<Database> | null {
   if (!isSupabaseConfigured()) return null;
   if (!client) {
-    client = createClient<Database>(url, anonKey);
+    client = createClient<Database>(url, anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        flowType: 'pkce',
+        // We exchange the code by hand in the /auth/callback route so the
+        // redirect lands somewhere we control, rather than auto-detecting it
+        // on every page load.
+        detectSessionInUrl: false,
+      },
+    });
   }
   return client;
 }

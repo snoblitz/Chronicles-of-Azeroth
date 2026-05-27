@@ -7,8 +7,10 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { AddonSimulator } from './components/AddonSimulator';
 import { ChronicleReader } from './components/ChronicleReader';
 import { ScribesDesk } from './components/ScribesDesk';
+import { AccountMenu } from './components/AccountMenu';
 import { getKeyStatus } from './lib/apiKeys';
 import { getShowScribesDesk } from './lib/featureFlags';
+import { ensureAnonymousSession } from './lib/auth';
 
 // The Addon Simulator is a developer-only tool: it fires synthetic addon
 // events into the bible/history layer to test narration without playing
@@ -53,6 +55,12 @@ export function App() {
     return () => window.removeEventListener('at:flags-updated', onFlags);
   }, []);
 
+  // Anonymous-by-default: ensure a session exists the moment the app loads, so
+  // this device's data has a stable owner_id (no-op when Supabase is unconfigured).
+  useEffect(() => {
+    void ensureAnonymousSession();
+  }, []);
+
   // First-run nudge: if no key, pop the settings panel automatically.
   useEffect(() => {
     if (!getKeyStatus('openrouter').hasKey) {
@@ -76,7 +84,13 @@ export function App() {
           width: '100%',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <div
+          style={{
+            display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
+            gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem',
+          }}
+        >
+          <AccountMenu />
           <CharacterSelector />
         </div>
         <header style={{ textAlign: 'center', marginBottom: '0.5rem' }}>

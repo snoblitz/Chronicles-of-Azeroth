@@ -33,6 +33,24 @@ older docs is superseded by that document.
 
 ### Added
 
+- **Auth — anonymous-by-default + "Save your chronicle"** *(2026-05-27)*.
+  Wires Supabase Auth into the app shell (no cloud data sync yet — that's the
+  next task). Every visitor is signed in anonymously on first app load
+  (`signInAnonymously()`), giving the device a stable `auth.users.id` cached at
+  `at.user_id`. A new top-right **account menu** (`AccountMenu`) shows the
+  state: anonymous → "Save your chronicle" CTA + a "Sign in" link; email-backed
+  → address + Sign out; loading → skeleton; unconfigured (no Supabase env, e.g.
+  the current public build) → renders nothing. "Save your chronicle"
+  (`SaveChronicleModal`) calls `updateUser({ email })` — a magic link that
+  converts the *same* anonymous user into an email-backed account with no data
+  migration (the id is unchanged). Returning users sign in via email magic link
+  only (no passwords/OAuth in V1). New `/auth/callback` route
+  (`AuthCallback` + `public/_redirects` SPA fallback) exchanges the PKCE code
+  for a session and forwards to the roster. Client switched to `flowType:
+  'pkce'` + manual code exchange. A client-side profile `upsert` backstops the
+  `handle_new_user` trigger for anonymous sessions. Copy follows the
+  preservation-not-gate framing and the "Hero's Truth" naming. See
+  `docs/companion-architecture.md` §3.2 for the auth model + edge cases.
 - **Supabase backend scaffold** *(2026-05-27)*. Initial schema migration
   (`supabase/migrations/20260527120000_initial_schema.sql`) for the multi-tier
   backend (companion-architecture.md §9): `profiles` (keyed on `auth.users.id`),
