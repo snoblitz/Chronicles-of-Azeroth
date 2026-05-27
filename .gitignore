@@ -45,3 +45,6 @@ tools/cost-probe-reports/
 
 # Private / internal — never push (monetization dashboards, draft pricing docs, etc.)
 private/
+
+# Session handoff context (gitignored — local-only Tony bootstrap doc)
+docs/SESSION-CONTEXT.md
