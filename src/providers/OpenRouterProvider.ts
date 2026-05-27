@@ -20,7 +20,7 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 // OpenRouter recommends sending these so requests show up nicely in the
 // account's activity feed and qualify for any app-discovery features.
-const ATTRIBUTION_REFERER = 'https://aftertale-app.github.io/Aftertale/';
+const ATTRIBUTION_REFERER = 'https://aftertale.gg/';
 const ATTRIBUTION_TITLE = 'Aftertale';
 
 interface OpenRouterChoice {

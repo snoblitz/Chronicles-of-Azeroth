@@ -233,7 +233,7 @@ older docs is superseded by that document.
 
 - Renamed from "Azeroth Chronicle" to **Aftertale**.
 - Repo: <https://github.com/Aftertale-App/Aftertale>.
-- Live demo: <https://aftertale-app.github.io/Aftertale/>.
+- Live demo: <https://aftertale.gg/>.
 
 ---
 

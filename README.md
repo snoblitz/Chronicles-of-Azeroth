@@ -12,7 +12,7 @@ backstory, beliefs, scars and all.
 
 ## 🌐 Live demo
 
-**👉 [aftertale-app.github.io/Aftertale](https://aftertale-app.github.io/Aftertale/)**
+**👉 [aftertale.gg](https://aftertale.gg/)**
 
 The Pages build ships **with no API keys baked in** — when you open it for
 the first time you'll be prompted to paste your own OpenRouter key. The key

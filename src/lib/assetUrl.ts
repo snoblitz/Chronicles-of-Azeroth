@@ -1,10 +1,11 @@
 // ============================================================================
 // Resolve a public-folder asset path to an absolute URL that respects the
-// configured Vite base path (root in dev, /<repo>/ on GitHub Pages).
+// configured Vite base path. On Cloudflare Pages at aftertale.gg the base is
+// `/`, so this is mostly a passthrough — kept for resilience if we ever
+// rehome to a subpath again.
 //
 // Usage:
-//   const src = assetUrl('npcs/magni.png')  ->  '/npcs/magni.png' in dev,
-//                                              '/Aftertale/npcs/magni.png' on Pages.
+//   const src = assetUrl('npcs/magni.png')  ->  '/npcs/magni.png'
 //
 // Accepts paths with or without a leading slash so existing strings like
 // '/npcs/magni-bronzebeard.png' continue to work.

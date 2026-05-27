@@ -45,7 +45,7 @@ If 5180 ever conflicts, change it in `vite.config.ts` and update this table.
 ## Environment variables
 
 All env vars are prefixed `VITE_` so they're exposed to the browser. For local
-dev, `.env.local` is convenient; for the public GitHub Pages build, no keys are
+dev, `.env.local` is convenient; for the public Cloudflare Pages build, no keys are
 baked in and users paste runtime keys into the in-app settings panel. Phase 1
 moves keys to the Electron main process and uses `keytar` for OS keychain
 storage.
@@ -111,7 +111,7 @@ Aftertale/
 ├── tsconfig.json             references both app + node configs
 ├── tsconfig.app.json         strict TS for src/
 ├── tsconfig.node.json        for vite.config.ts
-└── vite.config.ts            port pinned to 5180; base from COA_BASE
+└── vite.config.ts            port pinned to 5180; base from AT_BASE (default /)
 ```
 
 ## Common dev workflows
@@ -164,49 +164,47 @@ curl "https://generativelanguage.googleapis.com/v1beta/models?key=$key" `
 - **Gemini thinking tokens.** See [PROVIDERS.md](./PROVIDERS.md#gemini-thinking-mode-trap).
   Pinned to `gemini-2.5-flash`/`gemini-2.5-pro` to avoid mandatory thinking.
 
-## Deployment
+## Deployment (Cloudflare Pages)
 
-The app deploys to GitHub Pages via `.github/workflows/deploy.yml` on every
-push to `main`.
+Aftertale is hosted on **Cloudflare Pages**. Production lives at
+<https://aftertale.gg/>. The Pages project is connected directly to the
+GitHub repo (`Aftertale-App/Aftertale`) — every push to `main` triggers an
+auto-deploy. Every other branch / PR gets a preview URL at
+`<branch>.aftertale.pages.dev`.
 
-**Setup checklist (first time):**
+**No CI workflow lives in this repo.** Cloudflare's build runner reads
+`package.json`, runs `npm run build`, and ships `dist/`.
 
-1. Repository visibility must be **public** (Pages on a private repo
-   requires a paid plan).
-2. In repo Settings → Pages, set **Source = GitHub Actions**.
-3. Push to `main`. The workflow runs `build`, uploads `dist/` as a Pages
-   artifact, and deploys.
+**Build config in the Cloudflare Pages dashboard:**
 
-**How the build differs from local dev:**
-
-- Vite's `base` is read from `COA_BASE`. Local dev leaves it at `/`. CI sets
-  `COA_BASE=/Aftertale/` so all asset URLs in `index.html`
-  are correctly prefixed for the project-page subpath.
-- `dist/index.html` is copied to `dist/404.html` so Pages serves the SPA
-  shell for unknown paths (deep-link friendly).
+- Framework preset: Vite
+- Build command: `npm run build`
+- Build output directory: `dist`
+- Root directory: blank
+- Environment variables: none — base path defaults to `/` for the apex
+  domain. Override with `AT_BASE` only if rehosting at a subpath.
 
 **Asset URLs in code:**
 
 Anything you write as a hardcoded path like `/npcs/foo.png` will bypass
-`base` and 404 in production. Wrap public-folder paths in
-`assetUrl()` from `src/lib/assetUrl.ts`, which prepends
+`base` and could 404 if we ever rehost at a subpath. Wrap public-folder
+paths in `assetUrl()` from `src/lib/assetUrl.ts`, which prepends
 `import.meta.env.BASE_URL`.
 
 **API keys on the public bundle:**
 
-The deployed build ships with no API keys. Users paste their own Gemini
-or Anthropic key into the ⚙ Keys panel in the spend bar; values are kept
-in `localStorage` only. The `apiKeys.ts` helper falls back to
+The deployed build ships with no API keys. Users paste their own OpenRouter
+key into the ⚙ Keys panel in the spend bar; values are kept in
+`localStorage` only. The `apiKeys.ts` helper falls back to
 `import.meta.env.VITE_*` for local dev so a `.env.local` keeps working.
 
-**Build it like CI does (for testing):**
+**Build it like Cloudflare does (for testing):**
 
 ```powershell
-$env:COA_BASE = '/Aftertale/'
 npm run build
-# Preview at http://localhost:4173/Aftertale/
 npm run preview -- --port 4173
+# Preview at http://localhost:4173/
 ```
 
-**Live URL:** <https://aftertale-app.github.io/Aftertale/>
+**Live URL:** <https://aftertale.gg/>
 
