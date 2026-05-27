@@ -21,11 +21,20 @@ import {
   type NpcThread,
 } from '../lib/npcChatStore';
 import { NPC_CATALOG, type NpcEntry } from '../lib/npcCatalog';
+import { DEV_TOOLS_ENABLED } from '../lib/devTools';
 import type { CharacterBible, ChatMessage, LLMProvider } from '../types';
 
 type Step = 'picker' | 'chat';
 
 export function NpcChat() {
+  // Belt + suspenders: even if a future code path bypasses the tab guard
+  // in App.tsx, this component refuses to render outside dev builds. See
+  // src/lib/devTools.ts for why NPC chat is dev-gated.
+  if (!DEV_TOOLS_ENABLED) return null;
+  return <NpcChatInner />;
+}
+
+function NpcChatInner() {
   const [bible, setBible] = useState<CharacterBible | null>(() => loadBible());
   const [modelIdx, setModelIdx] = useState(DEFAULT_MODEL_INDEX);
   const [step, setStep] = useState<Step>('picker');

@@ -28,6 +28,7 @@ import {
   appendHistoryEntry,
   deleteHistoryEntry,
 } from '../lib/bibleStore';
+import { DEV_TOOLS_ENABLED } from '../lib/devTools';
 import type { CharacterBible, ChatMessage, HistoryEntry, LLMProvider } from '../types';
 import { PRESET_CHARACTERS, loadPresetCharacter } from '../lib/presetCharacters';
 
@@ -154,6 +155,10 @@ export function CharacterCreation() {
   }
 
   function handleGoToTavern() {
+    // Tavern is dev-only on public builds (see src/lib/devTools.ts).
+    // The CTA below is also hidden, but guard the dispatch too in case
+    // a stale tab/extension fires it.
+    if (!DEV_TOOLS_ENABLED) return;
     window.dispatchEvent(new CustomEvent('at:request-tab', { detail: 'tavern' }));
   }
 
@@ -686,7 +691,7 @@ export function CharacterCreation() {
           mode="existing"
           onEdit={handleEditBible}
           onRollAnother={handleStartNew}
-          onTalkToNpcs={handleGoToTavern}
+          onTalkToNpcs={DEV_TOOLS_ENABLED ? handleGoToTavern : undefined}
         />
       )}
 
@@ -781,7 +786,7 @@ export function CharacterCreation() {
             mode="just-saved"
             onEdit={handleEditBible}
             onRollAnother={handleStartOver}
-            onTalkToNpcs={handleGoToTavern}
+            onTalkToNpcs={DEV_TOOLS_ENABLED ? handleGoToTavern : undefined}
           />
         </div>
       )}
@@ -893,7 +898,9 @@ function CharacterSheet({
   mode: 'existing' | 'just-saved';
   onEdit: () => void;
   onRollAnother: () => void;
-  onTalkToNpcs: () => void;
+  // Optional: the Tavern is a dev-only surface, so the CTA is hidden
+  // (and the prop omitted) on production builds.
+  onTalkToNpcs?: () => void;
 }) {
   const initial = (bible.name.trim()[0] ?? '?').toUpperCase();
   const factionClass =
@@ -1026,9 +1033,11 @@ function CharacterSheet({
       <ChronicleSection bible={bible} />
 
       <footer className="at-sheet-actions">
-        <button className="at-btn at-btn-primary" onClick={onTalkToNpcs}>
-          ◆ Talk to NPCs
-        </button>
+        {DEV_TOOLS_ENABLED && onTalkToNpcs && (
+          <button className="at-btn at-btn-primary" onClick={onTalkToNpcs}>
+            ◆ Talk to NPCs
+          </button>
+        )}
         <button className="at-btn at-btn-secondary" onClick={onEdit}>
           Edit bible
         </button>

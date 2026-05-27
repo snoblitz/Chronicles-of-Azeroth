@@ -11,12 +11,13 @@ import { AccountMenu } from './components/AccountMenu';
 import { getKeyStatus } from './lib/apiKeys';
 import { getShowScribesDesk } from './lib/featureFlags';
 import { ensureAnonymousSession } from './lib/auth';
+import { DEV_TOOLS_ENABLED } from './lib/devTools';
 
-// The Addon Simulator is a developer-only tool: it fires synthetic addon
-// events into the bible/history layer to test narration without playing
-// WoW. Hidden from production builds; flip the build mode via Vite's
-// `import.meta.env.DEV` flag (true for `npm run dev`, false for `build`).
-const SHOW_DEV_TOOLS = import.meta.env.DEV;
+// Dev-only UI surfaces (Tavern + Addon Simulator) are gated by
+// DEV_TOOLS_ENABLED. See src/lib/devTools.ts for the rationale —
+// short version: NPC chat is a cost/abuse vector on the open internet,
+// and the Addon Simulator only makes sense alongside `npm run dev`.
+const SHOW_DEV_TOOLS = DEV_TOOLS_ENABLED;
 
 type Tab = 'character' | 'chronicle' | 'desk' | 'npc' | 'addon';
 
@@ -29,7 +30,7 @@ export function App() {
   useEffect(() => {
     function handler(e: Event) {
       const target = (e as CustomEvent<string>).detail;
-      if (target === 'tavern' || target === 'npc') setTab('npc');
+      if ((target === 'tavern' || target === 'npc') && SHOW_DEV_TOOLS) setTab('npc');
       else if (target === 'character') setTab('character');
       else if (target === 'chronicle') setTab('chronicle');
       else if (target === 'desk') setTab('desk');
@@ -129,14 +130,17 @@ export function App() {
               ◆ Scribe's Desk
             </button>
           )}
-          <button
-            role="tab"
-            aria-selected={tab === 'npc'}
-            className="at-tab"
-            onClick={() => setTab('npc')}
-          >
-            ◆ Tavern
-          </button>
+          {SHOW_DEV_TOOLS && (
+            <button
+              role="tab"
+              aria-selected={tab === 'npc'}
+              className="at-tab"
+              onClick={() => setTab('npc')}
+              title="Developer-only: live NPC chat (not exposed on public builds)"
+            >
+              ◆ Tavern (dev)
+            </button>
+          )}
           {SHOW_DEV_TOOLS && (
             <button
               role="tab"
@@ -154,7 +158,7 @@ export function App() {
           {tab === 'character' && <CharacterTab />}
           {tab === 'chronicle' && <ChronicleReader />}
           {tab === 'desk' && showDesk && <ScribesDesk />}
-          {tab === 'npc' && <NpcChat />}
+          {tab === 'npc' && SHOW_DEV_TOOLS && <NpcChat />}
           {tab === 'addon' && SHOW_DEV_TOOLS && <AddonSimulator />}
         </div>
       </main>
