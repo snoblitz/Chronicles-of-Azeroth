@@ -9,6 +9,7 @@ import {
   type ChronicleSession,
 } from '../lib/sessionHistory';
 import { Reveal } from './Reveal';
+import ManualEntryDialog from './ManualEntryDialog';
 import type { CharacterBible, HistoryEntry, LLMResponse } from '../types';
 
 const SESSION_WINDOW_MS = 9 * 60 * 60 * 1000;
@@ -33,6 +34,7 @@ export function ChronicleReader() {
   const [error, setError] = useState<string | null>(null);
   const [recap, setRecap] = useState<LLMResponse | null>(null);
   const [addonRecords, setAddonRecords] = useState<AddonEventRecord[]>(() => loadAddonEventRecords());
+  const [manualOpen, setManualOpen] = useState(false);
 
   useEffect(() => {
     const onUpdate = (e: Event) => {
@@ -169,6 +171,14 @@ export function ChronicleReader() {
         >
           Session trail
         </button>
+        <span className="at-chronicle-modebar-spacer" />
+        <button
+          className="at-btn at-btn-secondary"
+          onClick={() => setManualOpen(true)}
+          title="Add a chronicle entry by hand"
+        >
+          ✦ Add manual entry
+        </button>
       </div>
 
       {!hasStoryData ? (
@@ -189,7 +199,7 @@ export function ChronicleReader() {
                 Addon Sim
               </button>
             )}
-            <button className="at-btn at-btn-secondary" onClick={() => requestTab('character')}>
+            <button className="at-btn at-btn-secondary" onClick={() => setManualOpen(true)}>
               Add manual entry
             </button>
           </div>
@@ -286,6 +296,13 @@ export function ChronicleReader() {
             </section>
           )}
         </>
+      )}
+      {bible && (
+        <ManualEntryDialog
+          bible={bible}
+          open={manualOpen}
+          onClose={() => setManualOpen(false)}
+        />
       )}
     </section>
   );

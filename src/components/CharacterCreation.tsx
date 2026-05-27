@@ -28,6 +28,7 @@ import {
   deleteHistoryEntry,
 } from '../lib/bibleStore';
 import { DEV_TOOLS_ENABLED } from '../lib/devTools';
+import ManualEntryDialog from './ManualEntryDialog';
 import type { CharacterBible, ChatMessage, HistoryEntry, LLMProvider } from '../types';
 import { PRESET_CHARACTERS, loadPresetCharacter } from '../lib/presetCharacters';
 
@@ -1201,6 +1202,7 @@ function formatRelativeTime(ts: number): string {
 
 function ChronicleSection({ bible }: { bible: CharacterBible }) {
   const [draft, setDraft] = useState('');
+  const [richOpen, setRichOpen] = useState(false);
   const entries = bible.history ?? [];
   const sortedEntries = useMemo(
     () => [...entries].sort((a, b) => b.timestamp - a.timestamp),
@@ -1253,7 +1255,20 @@ function ChronicleSection({ bible }: { bible: CharacterBible }) {
         >
           ◆ Log entry
         </button>
+        <button
+          className="at-btn at-btn-secondary at-sheet-chronicle-rich"
+          onClick={() => setRichOpen(true)}
+          title="Open the rich composer — pills, tone, and Loremaster polish"
+        >
+          ✦ Rich composer
+        </button>
       </div>
+
+      <ManualEntryDialog
+        bible={bible}
+        open={richOpen}
+        onClose={() => setRichOpen(false)}
+      />
 
       {sortedEntries.length === 0 ? (
         <p className="at-sheet-chronicle-empty muted">

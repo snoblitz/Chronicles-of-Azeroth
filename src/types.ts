@@ -10,7 +10,8 @@ export type TaskType =
   | 'bible-gen'    // create or update the character bible
   | 'summary'       // scene / arc / chapter summarization
   | 'embedding'     // RAG retrieval embeddings
-  | 'inspire-me';   // onboarding wizard suggestion generator
+  | 'inspire-me'    // onboarding wizard suggestion generator
+  | 'loremaster-polish'; // polish a user-written chronicle entry
 
 export type ModelTier = 'free' | 'paid';
 

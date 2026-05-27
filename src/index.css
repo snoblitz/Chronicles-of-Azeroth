@@ -2938,3 +2938,203 @@ button.at-sheet-pill:focus-visible {
 }
 .at-desk-intro .at-kicker { margin: 0 0 0.5rem; }
 .at-desk-intro .at-section-sub { margin-left: auto; margin-right: auto; }
+
+/* ------------------------------------------------------------------ */
+/* Manual chronicle entry dialog                                       */
+/* ------------------------------------------------------------------ */
+
+.at-manual-modal {
+  max-width: 720px;
+}
+
+.at-manual-encourage {
+  margin: 0 0 1rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.92rem;
+  color: var(--fg-muted);
+  background: rgba(178, 132, 49, 0.05);
+  border-left: 2px solid rgba(178, 132, 49, 0.4);
+  border-radius: 3px;
+  line-height: 1.45;
+}
+
+.at-manual-encourage strong {
+  color: var(--at-accent, var(--gold-bright, #d6a85a));
+  font-weight: 600;
+}
+
+.at-manual-pills {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr 1fr;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 640px) {
+  .at-manual-pills {
+    grid-template-columns: 90px 1fr;
+  }
+}
+
+.at-manual-pill {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.at-manual-pill-label {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-muted);
+}
+
+.at-manual-pill-input {
+  background: var(--bg-inset, #1a140f);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.45rem 0.6rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.at-manual-pill-input:focus {
+  border-color: var(--at-accent, var(--gold-bright, #d6a85a));
+  box-shadow: 0 0 0 2px rgba(178, 132, 49, 0.18);
+}
+
+.at-manual-pill-input-num {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.at-manual-mood {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-bottom: 0.85rem;
+}
+
+.at-manual-mood-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.at-manual-mood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-inset, #1a140f);
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.at-manual-mood-chip:hover {
+  color: var(--fg);
+  border-color: var(--border-strong);
+}
+
+.at-manual-mood-chip-active {
+  color: var(--fg);
+  background: rgba(125, 90, 168, 0.18);
+  border-color: rgba(178, 132, 49, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(178, 132, 49, 0.18);
+}
+
+.at-manual-mood-glyph {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.at-manual-body {
+  margin-bottom: 0.65rem;
+}
+
+.at-manual-textarea {
+  width: 100%;
+  min-height: 200px;
+  resize: vertical;
+  font-family: var(--font-body, inherit);
+  font-size: 1rem;
+  line-height: 1.55;
+  padding: 0.85rem 1rem;
+}
+
+.at-manual-error {
+  margin: 0 0 0.65rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.88rem;
+  color: #f3b6a1;
+  background: rgba(180, 70, 40, 0.12);
+  border: 1px solid rgba(180, 70, 40, 0.35);
+  border-radius: 4px;
+}
+
+.at-manual-loremaster {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.at-manual-loremaster-hint {
+  font-size: 0.82rem;
+}
+
+.at-manual-undo {
+  font-size: 0.85rem;
+}
+
+.at-btn-loremaster {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(155, 110, 200, 0.95) 0%, rgba(110, 70, 160, 0.95) 100%);
+  color: #fdf6e4;
+  border: 1px solid rgba(220, 180, 100, 0.55);
+  box-shadow:
+    0 1px 0 rgba(255, 235, 200, 0.15) inset,
+    0 6px 18px -8px rgba(110, 70, 160, 0.55),
+    0 0 0 1px rgba(0, 0, 0, 0.25);
+  font-family: var(--font-display, inherit);
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+  transition: filter 120ms ease, transform 120ms ease, box-shadow 120ms ease;
+}
+
+.at-btn-loremaster:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow:
+    0 1px 0 rgba(255, 235, 200, 0.2) inset,
+    0 8px 22px -8px rgba(155, 110, 200, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+.at-btn-loremaster:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.at-btn-loremaster:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: saturate(0.7);
+}
+
+/* Sheet ChronicleSection — rich composer button sits next to "Log entry" */
+.at-sheet-chronicle-rich {
+  white-space: nowrap;
+}
+
+.at-chronicle-modebar-spacer {
+  flex: 1 1 auto;
+}
