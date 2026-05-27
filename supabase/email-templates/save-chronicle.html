@@ -1,0 +1,109 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="x-apple-disable-message-reformatting" />
+<meta name="color-scheme" content="dark light" />
+<meta name="supported-color-schemes" content="dark light" />
+<title>Save your chronicle</title>
+</head>
+<body style="margin:0;padding:0;background:#15110d;color:#ede7d8;font-family:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;-webkit-font-smoothing:antialiased;">
+
+<!-- Preheader (inbox preview, hidden in-message) -->
+<span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;mso-hide:all;">
+Confirm this email and your chronicle travels with you — characters, bibles, and chapters on every device.
+</span>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#15110d;">
+  <tr>
+    <td align="center" style="padding:40px 16px;">
+
+      <!-- Outer card -->
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;background:#1f1812;border:1px solid #2a2018;border-radius:8px;">
+
+        <!-- Header band -->
+        <tr>
+          <td align="center" style="padding:36px 32px 8px 32px;border-bottom:1px solid #2a2018;">
+            <div style="font-family:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;font-size:13px;letter-spacing:0.32em;text-transform:uppercase;color:#8b6240;">
+              Aftertale
+            </div>
+            <h1 style="margin:14px 0 28px 0;font-family:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;font-weight:400;font-size:30px;line-height:1.2;color:#f0c896;">
+              Save your chronicle
+            </h1>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:28px 32px 8px 32px;">
+            <p style="margin:0 0 18px 0;font-size:16px;line-height:1.6;color:#ede7d8;">
+              Welcome, scribe. You've asked us to anchor your chronicle to
+              <strong style="color:#f0c896;font-weight:600;">{{ .NewEmail }}</strong>.
+              Confirm below and your characters, bibles, and chapters will travel with you across every device.
+            </p>
+          </td>
+        </tr>
+
+        <!-- CTA -->
+        <tr>
+          <td align="center" style="padding:18px 32px 8px 32px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" bgcolor="#d4a373" style="border-radius:6px;">
+                  <a href="{{ .ConfirmationURL }}"
+                     style="display:inline-block;padding:14px 32px;font-family:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;font-size:16px;font-weight:600;letter-spacing:0.02em;color:#15110d;text-decoration:none;border-radius:6px;">
+                    Save my chronicle
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- Same-browser nudge -->
+        <tr>
+          <td style="padding:24px 32px 8px 32px;">
+            <p style="margin:0;font-size:14px;line-height:1.6;color:#a89c80;">
+              Open this link in the <strong style="color:#ede7d8;font-weight:600;">same browser</strong>
+              where you started writing. If your mail app launches a different browser, copy the
+              button's link and paste it where you want to sign in. The link expires in one hour.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Fallback URL -->
+        <tr>
+          <td style="padding:18px 32px 32px 32px;">
+            <p style="margin:0;font-size:12px;line-height:1.5;color:#6a5f4a;">
+              Trouble with the button? Paste this into your browser:<br/>
+              <a href="{{ .ConfirmationURL }}" style="color:#8b6240;text-decoration:underline;word-break:break-all;">{{ .ConfirmationURL }}</a>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+
+      <!-- Footer -->
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+        <tr>
+          <td align="center" style="padding:24px 16px 8px 16px;">
+            <p style="margin:0;font-size:12px;line-height:1.6;color:#6a5f4a;">
+              Didn't request this? You can safely ignore this email — nothing changes until you click the button.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding:8px 16px 24px 16px;">
+            <p style="margin:0;font-size:11px;line-height:1.6;color:#6a5f4a;">
+              <a href="{{ .SiteURL }}" style="color:#8b6240;text-decoration:none;">aftertale.gg</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+
+    </td>
+  </tr>
+</table>
+</body>
+</html>
