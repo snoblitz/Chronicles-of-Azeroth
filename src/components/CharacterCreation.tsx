@@ -654,21 +654,28 @@ export function CharacterCreation() {
   // ----------------------------------------------------------------
 
   return (
-    <section className="at-panel">
-      <h2>Character creation</h2>
-      <hr className="ornament" style={{ marginTop: '0.25rem', marginBottom: '1.25rem' }} />
+    <section className="at-panel at-creation">
+      <CreationIntro
+        step={step}
+        existingBible={existingBible}
+        draftBible={draftBible}
+        userTurnsSoFar={userTurnsSoFar}
+        maxTurns={MAX_TURNS}
+      />
 
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+      <div className="at-creation-toolbar">
         <ModelPicker
           value={modelIdx}
           onChange={setModelIdx}
           disabled={step === 'asking' || step === 'generating' || step === 'saving'}
           label="Loremaster model"
         />
-        <span style={{ color: 'var(--fg-faint)', fontSize: 12, fontFamily: 'var(--font-mono)', paddingBottom: 8 }}>
-          step: <code style={{ color: 'var(--fg-muted)' }}>{step}</code>
-          {step === 'interview' && ` · turn ${userTurnsSoFar} / ${MAX_TURNS}`}
-        </span>
+        {DEV_TOOLS_ENABLED && (
+          <span className="at-creation-step-debug">
+            step: <code>{step}</code>
+            {step === 'interview' && ` · turn ${userTurnsSoFar} / ${MAX_TURNS}`}
+          </span>
+        )}
       </div>
 
       {error && (
@@ -686,96 +693,108 @@ export function CharacterCreation() {
       )}
 
       {step === 'banner' && existingBible && (
-        <CharacterSheet
-          bible={existingBible}
-          mode="existing"
-          onEdit={handleEditBible}
-          onRollAnother={handleStartNew}
-          onTalkToNpcs={DEV_TOOLS_ENABLED ? handleGoToTavern : undefined}
-        />
+        <div className="at-step-body at-hero-anim">
+          <CharacterSheet
+            bible={existingBible}
+            mode="existing"
+            onEdit={handleEditBible}
+            onRollAnother={handleStartNew}
+            onTalkToNpcs={DEV_TOOLS_ENABLED ? handleGoToTavern : undefined}
+          />
+        </div>
       )}
 
       {step === 'welcome' && (
-        <WelcomeView
-          presets={PRESET_CHARACTERS}
-          onLoadPreset={handleLoadPreset}
-          onRollCustom={handleRollCustom}
-          onCancel={existingBible ? () => setStep('banner') : undefined}
-          cancelLabel={existingBible ? `← Back to ${existingBible.name}` : undefined}
-        />
+        <div className="at-step-body at-hero-anim">
+          <WelcomeView
+            presets={PRESET_CHARACTERS}
+            onLoadPreset={handleLoadPreset}
+            onRollCustom={handleRollCustom}
+            onCancel={existingBible ? () => setStep('banner') : undefined}
+            cancelLabel={existingBible ? `← Back to ${existingBible.name}` : undefined}
+          />
+        </div>
       )}
 
       {step === 'identity' && (
-        <IdentityForm
-          name={name} setName={setName}
-          faction={faction} setFaction={(f) => { setFaction(f); setRace(''); setClassName(''); setHomeland(''); }}
-          race={race} setRace={(r) => { setRace(r); setClassName(''); setHomeland(''); }}
-          className_={className} setClassName={setClassName}
-          homeland={homeland} setHomeland={setHomeland}
-          ageStr={ageStr} setAgeStr={setAgeStr}
-          availableRaces={availableRaces}
-          availableClasses={availableClasses}
-          homelandSuggestions={homelandSuggestions}
-          canBegin={identityValid}
-          onBegin={handleBeginInterview}
-          onSuggestName={handleSuggestName}
-          canSuggestName={canSuggestName}
-          generatingName={generatingName}
-        />
+        <div className="at-step-body at-hero-anim">
+          <IdentityForm
+            name={name} setName={setName}
+            faction={faction} setFaction={(f) => { setFaction(f); setRace(''); setClassName(''); setHomeland(''); }}
+            race={race} setRace={(r) => { setRace(r); setClassName(''); setHomeland(''); }}
+            className_={className} setClassName={setClassName}
+            homeland={homeland} setHomeland={setHomeland}
+            ageStr={ageStr} setAgeStr={setAgeStr}
+            availableRaces={availableRaces}
+            availableClasses={availableClasses}
+            homelandSuggestions={homelandSuggestions}
+            canBegin={identityValid}
+            onBegin={handleBeginInterview}
+            onSuggestName={handleSuggestName}
+            canSuggestName={canSuggestName}
+            generatingName={generatingName}
+          />
+        </div>
       )}
 
       {(step === 'interview' || step === 'asking') && (
-        <InterviewView
-          transcript={transcript}
-          answer={answer}
-          setAnswer={setAnswer}
-          onSubmit={handleSubmitAnswer}
-          onGenerate={() => generateBible(transcript)}
-          onRetryQuestion={handleRetryLastQuestion}
-          onSuggestAnswer={handleSuggestAnswer}
-          canSuggestAnswer={canSuggestAnswer}
-          generatingAnswer={generatingAnswer}
-          loading={step === 'asking'}
-          canGenerate={canGenerateNow}
-          atMax={atMaxTurns}
-          userTurnsSoFar={userTurnsSoFar}
-        />
+        <div className="at-step-body at-hero-anim">
+          <InterviewView
+            transcript={transcript}
+            answer={answer}
+            setAnswer={setAnswer}
+            onSubmit={handleSubmitAnswer}
+            onGenerate={() => generateBible(transcript)}
+            onRetryQuestion={handleRetryLastQuestion}
+            onSuggestAnswer={handleSuggestAnswer}
+            canSuggestAnswer={canSuggestAnswer}
+            generatingAnswer={generatingAnswer}
+            loading={step === 'asking'}
+            canGenerate={canGenerateNow}
+            atMax={atMaxTurns}
+            userTurnsSoFar={userTurnsSoFar}
+          />
+        </div>
       )}
 
       {step === 'generating' && (
-        <p className="muted" style={{ fontStyle: 'italic', fontFamily: 'var(--font-body)', fontSize: 16 }}>
+        <p className="at-creation-waiting at-hero-anim">
           The loremaster is composing your bible…
         </p>
       )}
 
       {step === 'parse-error' && (
-        <ParseErrorView
-          rawText={rawBibleText}
-          setRawText={setRawBibleText}
-          errors={parseErrors}
-          onTryAgain={handleManualParseAttempt}
-          onRetryLLM={() => generateBible(transcript)}
-        />
+        <div className="at-step-body at-hero-anim">
+          <ParseErrorView
+            rawText={rawBibleText}
+            setRawText={setRawBibleText}
+            errors={parseErrors}
+            onTryAgain={handleManualParseAttempt}
+            onRetryLLM={() => generateBible(transcript)}
+          />
+        </div>
       )}
 
       {step === 'review' && draftBible && (
-        <ReviewView
-          bible={draftBible}
-          onChange={setDraftBible}
-          onSave={handleSave}
-          onStartOver={isEditingExisting ? handleCancelEdit : handleStartOver}
-          isEditing={isEditingExisting}
-        />
+        <div className="at-step-body at-hero-anim">
+          <ReviewView
+            bible={draftBible}
+            onChange={setDraftBible}
+            onSave={handleSave}
+            onStartOver={isEditingExisting ? handleCancelEdit : handleStartOver}
+            isEditing={isEditingExisting}
+          />
+        </div>
       )}
 
       {step === 'saving' && (
-        <p className="muted" style={{ fontStyle: 'italic', fontFamily: 'var(--font-body)', fontSize: 16 }}>
+        <p className="at-creation-waiting at-hero-anim">
           Saving…
         </p>
       )}
 
       {step === 'saved' && draftBible && (
-        <div style={{ display: 'grid', gap: '1rem' }}>
+        <div className="at-step-body at-hero-anim" style={{ display: 'grid', gap: '1rem' }}>
           <div className="at-callout at-callout-success">
             <p style={{ margin: 0, color: 'var(--success)', fontSize: 16 }}>
               ✓ Saved. <strong style={{ color: 'var(--gold-bright)' }}>{draftBible.name}</strong> is ready to walk Azeroth.
@@ -813,13 +832,6 @@ function WelcomeView({
 }) {
   return (
     <section className="at-welcome">
-      <div className="at-welcome-header">
-        <h2 className="at-welcome-title">Begin your saga</h2>
-        <p className="at-welcome-sub">
-          Step into Azeroth with a pre-built hero, or roll your own from scratch.
-        </p>
-      </div>
-
       {presets.length > 0 && (
         <>
           <div className="at-welcome-presets">
@@ -1670,3 +1682,125 @@ function tryParseBible(text: string): ParseResult {
 // ============================================================================
 // (Inline style consts removed — use classes from src/index.css instead.)
 // ============================================================================
+
+
+// ============================================================================
+// CreationIntro — kicker + display headline at the top of each step.
+//
+// Centralizes the "rhythm" of the creation flow so the screen always opens
+// with the same visual cadence the landing page sets up. Character-aware
+// where it matters (banner / saved show the hero's name).
+// ============================================================================
+
+function CreationIntro({
+  step,
+  existingBible,
+  draftBible,
+  userTurnsSoFar,
+  maxTurns,
+}: {
+  step: Step;
+  existingBible: CharacterBible | null;
+  draftBible: CharacterBible | null;
+  userTurnsSoFar: number;
+  maxTurns: number;
+}) {
+  // Banner: showing the hero you already have. Lead with their name.
+  if (step === 'banner' && existingBible) {
+    return (
+      <StepIntro
+        kicker="✦ Your hero"
+        headline={`${existingBible.name}'s Aftertale`}
+      />
+    );
+  }
+  if (step === 'welcome') {
+    return (
+      <StepIntro
+        kicker="✦ Meet a hero"
+        headline="Begin your chronicle"
+        sub="Step into Azeroth with a pre-built hero, or roll your own from scratch."
+      />
+    );
+  }
+  if (step === 'identity') {
+    return (
+      <StepIntro
+        kicker="✦ Who are they?"
+        headline="Shape your hero"
+        sub="A few details to give the loremaster somewhere to begin."
+      />
+    );
+  }
+  if (step === 'interview' || step === 'asking') {
+    return (
+      <StepIntro
+        kicker="✦ Their voice"
+        headline="In their own words"
+        sub={`A five-to-seven question interview. The loremaster is asking — turn ${userTurnsSoFar} of ${maxTurns}.`}
+      />
+    );
+  }
+  if (step === 'generating') {
+    return (
+      <StepIntro
+        kicker="✦ The quill is moving"
+        headline="Composing the bible"
+      />
+    );
+  }
+  if (step === 'parse-error') {
+    return (
+      <StepIntro
+        kicker="✦ Something snagged"
+        headline="A little manual fix"
+        sub="The loremaster's draft didn't parse cleanly. You can edit it directly or ask for another try."
+      />
+    );
+  }
+  if (step === 'review') {
+    return (
+      <StepIntro
+        kicker="✦ Their book"
+        headline="Read it back to yourself"
+        sub="Adjust anything that doesn't feel like them. Nothing's saved until you say so."
+      />
+    );
+  }
+  if (step === 'saving') {
+    return (
+      <StepIntro
+        kicker="✦ The ink dries"
+        headline="Saving"
+      />
+    );
+  }
+  if (step === 'saved' && draftBible) {
+    return (
+      <StepIntro
+        kicker="✦ Your hero"
+        headline={`${draftBible.name} is ready`}
+      />
+    );
+  }
+  return null;
+}
+
+function StepIntro({
+  kicker,
+  headline,
+  sub,
+}: {
+  kicker: string;
+  headline: string;
+  sub?: string;
+}) {
+  return (
+    <header className="at-step-intro">
+      <p className="at-kicker at-kicker-center">{kicker}</p>
+      <h2 className="at-step-headline">{headline}</h2>
+      {sub && <p className="at-step-sub">{sub}</p>}
+      <hr className="ornament at-step-ornament" />
+    </header>
+  );
+}
