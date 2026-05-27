@@ -33,6 +33,22 @@ older docs is superseded by that document.
 
 ### Added
 
+- **Supabase backend scaffold** *(2026-05-27)*. Initial schema migration
+  (`supabase/migrations/20260527120000_initial_schema.sql`) for the multi-tier
+  backend (companion-architecture.md §9): `profiles` (keyed on `auth.users.id`),
+  `characters`, `bible`, `events`, `chapters`, `subscriptions`, `unlocks`,
+  `companion_devices`, `pair_codes`. Hybrid modeling — locked identity fields
+  are real columns, evolving shapes (bible/event/chapter bodies) are JSONB. RLS
+  enabled on every table: ownership flows from `auth.uid()` (directly or via the
+  `characters` FK chain); `subscriptions`/`unlocks` are client-read-only
+  (service-role writes); `pair_codes` allows anon read of unconsumed codes with
+  auth'd claim. Adds a profile-on-signup trigger and `updated_at` triggers.
+  Local dev seed (`supabase/seed.sql`) with one dev user + character + bible for
+  RLS smoke-testing. Browser client stub `src/lib/supabase.ts`
+  (`getSupabase()` returns `null` when env is unset — current public build
+  unaffected) behind `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY`; placeholder
+  `src/types/supabase.ts` to be regenerated via `supabase gen types`. Setup docs
+  in `docs/supabase.md`. No app wiring yet — pure foundation.
 - **Marketing landing page** at `aftertale.gg/` *(2026-05-27)*. Full
   `src/components/LandingPage.tsx` (~2200 lines incl. styles) ships at the
   root of the public site. Hero section ("Every hero deserves an

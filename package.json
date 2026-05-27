@@ -13,6 +13,7 @@
     "cost:probe": "node tools/cost-probe.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.106.2",
     "js-yaml": "^4.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
