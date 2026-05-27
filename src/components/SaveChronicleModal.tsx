@@ -101,8 +101,11 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
             <p style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontSize: 16 }}>
               📜 {copy.sent(sentTo)}
             </p>
-            <p className="muted" style={{ fontSize: 13 }}>
-              The link opens on this device. Didn’t get it? Check spam, or close and try again.
+            <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
+              <strong style={{ color: 'var(--fg)' }}>Open the link in this same browser</strong> — that’s
+              how we keep your session secure. On a phone, the link in your mail app may open in an
+              in-app browser; if you’re reading email here on your computer, click it here too.
+              Didn’t get it? Check spam, or close and try again.
             </p>
             <footer className="at-modal-footer">
               <button className="at-btn at-btn-secondary" onClick={onClose}>Done</button>

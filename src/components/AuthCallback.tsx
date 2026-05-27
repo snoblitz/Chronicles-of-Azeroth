@@ -34,8 +34,8 @@ export function AuthCallback() {
       {error ? (
         <>
           <h1 style={{ fontFamily: 'var(--font-display)' }}>That link didn’t work</h1>
-          <p className="muted" style={{ maxWidth: 460, fontFamily: 'var(--font-body)', fontSize: 16 }}>
-            {error} Open the link on the same device where you requested it, or request a fresh one.
+          <p style={{ maxWidth: 520, fontFamily: 'var(--font-body)', fontSize: 16, lineHeight: 1.55 }}>
+            {error}
           </p>
           <a href="/#app" className="at-btn at-btn-primary">Back to your chronicle</a>
         </>

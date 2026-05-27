@@ -135,8 +135,30 @@ export async function exchangeCode(): Promise<{ error: string | null }> {
   const code = params.get('code');
   if (!code) return { error: 'This link is missing its sign-in code. Request a fresh one.' };
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (!error) cacheUserId(data.session?.user?.id ?? null);
-  return { error: error?.message ?? null };
+  if (!error) {
+    cacheUserId(data.session?.user?.id ?? null);
+    return { error: null };
+  }
+  // Translate raw Supabase errors into human copy. The most common failure is
+  // PKCE-verifier-missing, which happens when the link is opened in a different
+  // browser/device than the one that requested it (especially Gmail's in-app
+  // browser on mobile, which has isolated storage).
+  const raw = error.message ?? '';
+  if (/pkce|code verifier|code_verifier/i.test(raw)) {
+    return {
+      error:
+        'This link needs to open in the same browser where you asked us to save your chronicle. ' +
+        'If your email opened it somewhere else (a phone app, a different browser), head back to your ' +
+        'chronicle and request a fresh link from the same browser you want to sign in on.',
+    };
+  }
+  if (/expired/i.test(raw)) {
+    return { error: 'This link has expired. Head back to your chronicle and request a fresh one.' };
+  }
+  if (/already.*used|used.*already/i.test(raw)) {
+    return { error: 'This link was already used. If you didn’t mean to, request a fresh one.' };
+  }
+  return { error: raw || 'Something went wrong signing you in. Request a fresh link and try again.' };
 }
 
 // ----------------------------------------------------------------------------
