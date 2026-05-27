@@ -16,11 +16,29 @@ function RouteFallback() {
   return (
     <div
       style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'var(--font-display)', color: 'var(--fg-muted)',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        padding: '0 1.5rem',
+        textAlign: 'center',
       }}
     >
-      Loading…
+      <p className="at-kicker" style={{ margin: 0 }}>✦ Aftertale</p>
+      <p
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(28px, 4vw, 40px)',
+          color: 'var(--gold-bright, #d4a373)',
+          letterSpacing: '0.01em',
+        }}
+      >
+        Turning the page…
+      </p>
+      <div aria-hidden="true" style={{ color: 'var(--gold, #b28431)', opacity: 0.7 }}>✦</div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { SpendBar } from './components/SpendBar';
 import { CharacterTab } from './components/CharacterTab';
 import { NpcChat } from './components/NpcChat';
@@ -12,6 +12,8 @@ import { getKeyStatus } from './lib/apiKeys';
 import { getShowScribesDesk } from './lib/featureFlags';
 import { ensureAnonymousSession } from './lib/auth';
 import { DEV_TOOLS_ENABLED } from './lib/devTools';
+import { loadBible } from './lib/bibleStore';
+import type { CharacterBible } from './types';
 
 // Dev-only UI surfaces (Tavern + Addon Simulator) are gated by
 // DEV_TOOLS_ENABLED. See src/lib/devTools.ts for the rationale —
@@ -21,11 +23,42 @@ const SHOW_DEV_TOOLS = DEV_TOOLS_ENABLED;
 
 type Tab = 'character' | 'chronicle' | 'desk' | 'npc' | 'addon';
 
+interface TabSpec {
+  id: Tab;
+  label: string;
+  title?: string;
+}
+
+function useActiveBible(): CharacterBible | null {
+  const [bible, setBible] = useState<CharacterBible | null>(() => loadBible());
+  useEffect(() => {
+    function refresh() {
+      setBible(loadBible());
+    }
+    window.addEventListener('at:bible-updated', refresh);
+    window.addEventListener('at:bible-roster-updated', refresh);
+    window.addEventListener('storage', refresh);
+    return () => {
+      window.removeEventListener('at:bible-updated', refresh);
+      window.removeEventListener('at:bible-roster-updated', refresh);
+      window.removeEventListener('storage', refresh);
+    };
+  }, []);
+  return bible;
+}
+
 export function App() {
   const [tab, setTab] = useState<Tab>('character');
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [keyTick, setKeyTick] = useState(0);
   const [showDesk, setShowDesk] = useState<boolean>(() => getShowScribesDesk());
+  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({
+    character: null, chronicle: null, desk: null, npc: null, addon: null,
+  });
+  const bible = useActiveBible();
+  const heroName = bible?.name?.trim() || '';
+  const heroClass = bible?.class?.trim() || '';
+  const heroRace = bible?.race?.trim() || '';
 
   useEffect(() => {
     function handler(e: Event) {
@@ -73,88 +106,104 @@ export function App() {
   void keyTick; // re-renders trigger via the bump above
   const anyKey = openrouterStatus.hasKey;
 
+  const tabSpecs = useMemo<TabSpec[]>(() => {
+    const specs: TabSpec[] = [
+      { id: 'character', label: 'Character' },
+      { id: 'chronicle', label: 'Chronicle' },
+    ];
+    if (showDesk) {
+      specs.push({
+        id: 'desk',
+        label: "Scribe's Desk",
+        title: 'Import SavedVariables, enrich events into prose, and download a restore snippet for WoW',
+      });
+    }
+    if (SHOW_DEV_TOOLS) {
+      specs.push({ id: 'npc', label: 'Tavern (dev)', title: 'Developer-only: live NPC chat (not exposed on public builds)' });
+      specs.push({ id: 'addon', label: 'Addon Sim (dev)', title: 'Developer-only: fires synthetic addon events' });
+    }
+    return specs;
+  }, [showDesk]);
+
+  const onTabKey = useCallback(
+    (e: KeyboardEvent<HTMLButtonElement>) => {
+      const order = tabSpecs.map((t) => t.id);
+      const idx = order.indexOf(tab);
+      if (idx < 0) return;
+      let nextIdx = idx;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') nextIdx = (idx + 1) % order.length;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') nextIdx = (idx - 1 + order.length) % order.length;
+      else if (e.key === 'Home') nextIdx = 0;
+      else if (e.key === 'End') nextIdx = order.length - 1;
+      else return;
+      e.preventDefault();
+      const nextId = order[nextIdx];
+      setTab(nextId);
+      // Move focus to the newly selected tab (roving tabindex).
+      requestAnimationFrame(() => tabRefs.current[nextId]?.focus());
+    },
+    [tab, tabSpecs],
+  );
+
+  // Subtitle / kicker copy that adapts to whether the user has a hero yet.
+  const kickerCopy = heroName ? '✦ Your chronicle' : '✦ Begin your tale';
+  const headlineCopy = heroName ? `${heroName}'s Aftertale` : 'Meet a hero';
+  const subtitleCopy = heroName
+    ? [heroRace, heroClass].filter(Boolean).join(' · ') || 'An AI-spun saga of your hero.'
+    : 'An AI-spun saga of your hero. Roll a character, then walk the world.';
+
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <SpendBar onOpenSettings={() => setSettingsOpen(true)} hasAnyKey={anyKey} />
-      <main
-        style={{
-          flex: 1,
-          padding: 'clamp(1.25rem, 6vw, 2.5rem) clamp(0.75rem, 5vw, 2rem) 4rem',
-          maxWidth: 980,
-          margin: '0 auto',
-          width: '100%',
-        }}
-      >
-        <div
-          style={{
-            display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-            gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1rem',
-          }}
-        >
+      <main className="at-app-shell">
+        <div className="at-app-meta at-hero-anim">
           <AccountMenu />
           <CharacterSelector />
         </div>
-        <header style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
-          <h1>Aftertale</h1>
-          <p className="muted" style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontStyle: 'italic', fontSize: 17 }}>
-            An AI-spun saga of your hero. Roll a character, then walk the world.
-          </p>
-          <hr className="ornament" />
+        <header className="at-app-header at-hero-anim" style={{ animationDelay: '60ms' }}>
+          <p className="at-kicker">{kickerCopy}</p>
+          <h1 className="at-app-headline">{headlineCopy}</h1>
+          <p className="at-app-subtitle">{subtitleCopy}</p>
+          <div className="at-app-ornament" aria-hidden="true">✦</div>
         </header>
 
-        <nav className="at-tabs" role="tablist">
-          <button
-            role="tab"
-            aria-selected={tab === 'character'}
-            className="at-tab"
-            onClick={() => setTab('character')}
-          >
-            ◆ Character
-          </button>
-          <button
-            role="tab"
-            aria-selected={tab === 'chronicle'}
-            className="at-tab"
-            onClick={() => setTab('chronicle')}
-          >
-            ◆ Chronicle
-          </button>
-          {showDesk && (
-            <button
-              role="tab"
-              aria-selected={tab === 'desk'}
-              className="at-tab"
-              onClick={() => setTab('desk')}
-              title="Import SavedVariables, enrich events into prose, and download a restore snippet for WoW"
-            >
-              ◆ Scribe's Desk
-            </button>
-          )}
-          {SHOW_DEV_TOOLS && (
-            <button
-              role="tab"
-              aria-selected={tab === 'npc'}
-              className="at-tab"
-              onClick={() => setTab('npc')}
-              title="Developer-only: live NPC chat (not exposed on public builds)"
-            >
-              ◆ Tavern (dev)
-            </button>
-          )}
-          {SHOW_DEV_TOOLS && (
-            <button
-              role="tab"
-              aria-selected={tab === 'addon'}
-              className="at-tab"
-              onClick={() => setTab('addon')}
-              title="Developer-only: fires synthetic addon events"
-            >
-              ◆ Addon Sim (dev)
-            </button>
-          )}
+        <nav
+          className="at-tabs at-hero-anim"
+          style={{ animationDelay: '120ms' }}
+          role="tablist"
+          aria-label="Aftertale sections"
+          onKeyDown={onTabKey}
+        >
+          {tabSpecs.map((spec) => {
+            const selected = tab === spec.id;
+            return (
+              <button
+                key={spec.id}
+                ref={(el) => { tabRefs.current[spec.id] = el; }}
+                id={`at-tab-${spec.id}`}
+                role="tab"
+                type="button"
+                aria-selected={selected}
+                aria-controls={`at-panel-${spec.id}`}
+                tabIndex={selected ? 0 : -1}
+                className="at-tab"
+                title={spec.title}
+                onClick={() => setTab(spec.id)}
+              >
+                {spec.label}
+              </button>
+            );
+          })}
         </nav>
 
-        <div style={{ marginTop: '2rem' }}>
+        <div
+          className="at-app-panel at-hero-anim"
+          style={{ animationDelay: '180ms' }}
+          role="tabpanel"
+          id={`at-panel-${tab}`}
+          aria-labelledby={`at-tab-${tab}`}
+          tabIndex={0}
+        >
           {tab === 'character' && <CharacterTab />}
           {tab === 'chronicle' && <ChronicleReader />}
           {tab === 'desk' && showDesk && <ScribesDesk />}
