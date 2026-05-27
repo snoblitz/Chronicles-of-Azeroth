@@ -208,5 +208,5 @@ npm run build
 npm run preview -- --port 4173
 ```
 
-**Live URL:** <https://snoblitz.github.io/Aftertale/>
+**Live URL:** <https://aftertale-app.github.io/Aftertale/>
 

@@ -232,8 +232,8 @@ older docs is superseded by that document.
 ### Project meta
 
 - Renamed from "Azeroth Chronicle" to **Aftertale**.
-- Repo: <https://github.com/snoblitz/Aftertale>.
-- Live demo: <https://snoblitz.github.io/Aftertale/>.
+- Repo: <https://github.com/Aftertale-App/Aftertale>.
+- Live demo: <https://aftertale-app.github.io/Aftertale/>.
 
 ---
 

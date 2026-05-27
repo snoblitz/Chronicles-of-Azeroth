@@ -108,7 +108,7 @@ local function ensureDB()
   if c.playSounds         == nil then c.playSounds         = true end
   if c.storyCardDuration  == nil then c.storyCardDuration  = 5.0 end
   if c.minimapAngle       == nil then c.minimapAngle       = 215  end
-  c.webAppUrl = c.webAppUrl or "https://snoblitz.github.io/Aftertale/"
+  c.webAppUrl = c.webAppUrl or "https://aftertale-app.github.io/Aftertale/"
   -- Phase 2: ring buffer cap. FIFO trim oldest events when the buffer
   -- overflows. Bounds SavedVariables file size on long sessions. Tune
   -- with /aftertale max <N>; minimum 100, no hard upper limit.
