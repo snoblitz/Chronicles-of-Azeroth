@@ -18,67 +18,18 @@
 import { TIERS, TierCard } from './ScribesDesk';
 import { useEffect, useRef, useState } from 'react';
 import { assetUrl } from '../lib/assetUrl';
+import { Reveal } from './Reveal';
 
 // ----------------------------------------------------------------------------
-// Reveal — wraps children in a div that animates in when scrolled into view.
-// Single IntersectionObserver per <Reveal />, triggers once. Honors
-// prefers-reduced-motion (just renders children with no animation).
+// Reveal moved to `./Reveal` so the App can import it without dragging
+// LandingPage code into the app chunk. See src/components/Reveal.tsx.
 // ----------------------------------------------------------------------------
 
 type RevealVariant = 'up' | 'in' | 'left' | 'right' | 'scale';
+// (kept here only for any local type references below; can be removed once
+// the file no longer references the type directly)
+void (null as RevealVariant | null);
 
-function Reveal({
-  children,
-  variant = 'up',
-  delay = 0,
-  className = '',
-  style,
-  threshold = 0.15,
-}: {
-  children: React.ReactNode;
-  variant?: RevealVariant;
-  delay?: number;
-  className?: string;
-  style?: React.CSSProperties;
-  threshold?: number;
-}) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-    if (typeof window === 'undefined') return;
-    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      setVisible(true);
-      return;
-    }
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setVisible(true);
-            io.disconnect();
-            break;
-          }
-        }
-      },
-      { threshold, rootMargin: '0px 0px -8% 0px' },
-    );
-    io.observe(node);
-    return () => io.disconnect();
-  }, [threshold]);
-
-  return (
-    <div
-      ref={ref}
-      className={`at-reveal at-reveal-${variant} ${visible ? 'at-reveal-in' : ''} ${className}`.trim()}
-      style={{ ...(style ?? {}), transitionDelay: delay ? `${delay}ms` : undefined }}
-    >
-      {children}
-    </div>
-  );
-}
 
 
 const NAV_LINKS = [
