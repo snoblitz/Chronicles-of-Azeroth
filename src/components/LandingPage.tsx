@@ -562,93 +562,6 @@ function ExhibitPage({ type }: { type: typeof EXHIBIT_PAGES[number] }) {
   );
 }
 
-function HeroSigil() {
-  return (
-    <svg viewBox="0 0 280 280" width="100%" height="100%" aria-hidden style={{ display: 'block' }}>
-      <defs>
-        <radialGradient id="sigilGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="rgba(255,180,90,0.55)" />
-          <stop offset="35%" stopColor="rgba(199,155,240,0.35)" />
-          <stop offset="100%" stopColor="rgba(199,155,240,0)" />
-        </radialGradient>
-        <radialGradient id="emberCore" cx="50%" cy="60%" r="50%">
-          <stop offset="0%" stopColor="#ffce6b" />
-          <stop offset="30%" stopColor="#f08840" />
-          <stop offset="60%" stopColor="#7a2c1a" />
-          <stop offset="100%" stopColor="#1a0a0a" />
-        </radialGradient>
-        <linearGradient id="hammerSteel" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#e8dfc8" />
-          <stop offset="100%" stopColor="#8a7d62" />
-        </linearGradient>
-      </defs>
-
-      {/* Outer glow */}
-      <circle cx="140" cy="140" r="138" fill="url(#sigilGlow)" />
-
-      {/* Ornate outer ring */}
-      <circle cx="140" cy="140" r="118" fill="none" stroke="#c79bf0" strokeWidth="1.5" opacity="0.6" />
-      <circle cx="140" cy="140" r="110" fill="none" stroke="#c79bf0" strokeWidth="0.8" opacity="0.4" />
-
-      {/* Sunburst rays — variable length */}
-      {Array.from({ length: 24 }).map((_, i) => {
-        const a = (i / 24) * Math.PI * 2;
-        const long = i % 2 === 0;
-        const r1 = 85;
-        const r2 = long ? 108 : 100;
-        const x1 = 140 + Math.cos(a) * r1;
-        const y1 = 140 + Math.sin(a) * r1;
-        const x2 = 140 + Math.cos(a) * r2;
-        const y2 = 140 + Math.sin(a) * r2;
-        return (
-          <line
-            key={i}
-            x1={x1} y1={y1} x2={x2} y2={y2}
-            stroke="#e8c98a"
-            strokeWidth={long ? 1.8 : 1}
-            opacity={long ? 0.95 : 0.6}
-            strokeLinecap="round"
-          />
-        );
-      })}
-
-      {/* Ember core (the forge) */}
-      <circle cx="140" cy="148" r="56" fill="url(#emberCore)" />
-      <circle cx="140" cy="148" r="56" fill="none" stroke="#3a1a14" strokeWidth="2" />
-
-      {/* Anvil + hammer composition */}
-      <g>
-        {/* Anvil base */}
-        <path
-          d="M 90 188 L 190 188 L 180 196 L 100 196 Z"
-          fill="#3a3026" stroke="#1a1410" strokeWidth="1"
-        />
-        {/* Anvil body */}
-        <path
-          d="M 100 168 L 180 168 L 175 188 L 105 188 Z"
-          fill="url(#hammerSteel)" stroke="#1a1410" strokeWidth="1"
-        />
-        {/* Anvil top (horn left, flat right) */}
-        <path
-          d="M 80 158 Q 90 156 105 162 L 175 162 L 178 168 L 100 168 L 95 165 Q 87 162 80 162 Z"
-          fill="#d4c79f" stroke="#1a1410" strokeWidth="1"
-        />
-
-        {/* Hammer (laid across, head right, handle left) */}
-        <g transform="rotate(-18 140 140)">
-          <rect x="60" y="135" width="80" height="6" rx="1" fill="#5a3a22" stroke="#2a1a0e" strokeWidth="0.5" />
-          <rect x="138" y="124" width="38" height="28" rx="3" fill="url(#hammerSteel)" stroke="#1a1410" strokeWidth="1.2" />
-          <rect x="148" y="128" width="6" height="20" fill="#3a3026" opacity="0.7" />
-        </g>
-
-        {/* Spark above anvil */}
-        <circle cx="146" cy="118" r="2" fill="#ffce6b" opacity="0.9" />
-        <circle cx="152" cy="112" r="1.2" fill="#ffce6b" opacity="0.7" />
-        <circle cx="138" cy="108" r="1" fill="#ffce6b" opacity="0.6" />
-      </g>
-    </svg>
-  );
-}
 
 function CornerFlourish({ corner }: { corner: 'tl' | 'tr' | 'bl' | 'br' }) {
   const rotation = { tl: 0, tr: 90, br: 180, bl: 270 }[corner];
@@ -716,16 +629,14 @@ function IdentityPanel() {
   return (
     <PanelFrame variant="forge">
       <div className="at-identity-layout">
-        {/* Left: hero portrait card */}
-        <div className="at-identity-card">
-          <div className="at-identity-card-inner">
-            <p className="at-card-stamp">Hero · Saga in progress</p>
-            <div className="at-identity-sigil-wrap">
-              <HeroSigil />
-            </div>
-            <div className="at-card-divider" />
-            <p className="at-card-attr">Forgesworn · Iron-bound · Mid-saga</p>
-          </div>
+        {/* Left: hero portrait card (AI-rendered Magnus art with embedded frame + stamps) */}
+        <div className="at-identity-card at-identity-card-portrait">
+          <img
+            src={assetUrl('magnus-card.jpg')}
+            alt="Magnus Brunn — Hero, Saga in progress. Forgesworn, Iron-bound, Mid-saga."
+            className="at-identity-portrait"
+            loading="lazy"
+          />
         </div>
 
         {/* Right: name + stats */}
@@ -2114,6 +2025,24 @@ const landingStyles = `
     background: linear-gradient(135deg, #c79bf0 0%, #6b4a8e 40%, #1a0e2e 100%);
     border-radius: 14px;
     box-shadow: 0 20px 60px rgba(107,74,142,0.5);
+  }
+  .at-identity-card-portrait {
+    padding: 0;
+    background: transparent;
+    max-width: 320px;
+    aspect-ratio: 1086 / 1448;
+    overflow: hidden;
+    border-radius: 18px;
+    box-shadow:
+      0 20px 60px rgba(107,74,142,0.45),
+      0 0 0 1px rgba(199, 155, 240, 0.18);
+  }
+  .at-identity-portrait {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 18px;
   }
   .at-identity-card-inner {
     position: relative;
