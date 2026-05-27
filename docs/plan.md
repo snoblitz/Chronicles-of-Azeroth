@@ -41,7 +41,7 @@ The system has many files but only **three contracts** must stay in sync. Everyt
   │    DB.events[*]        │                         │                         │
   └────────────────────────┘                         └─────────────────────────┘
               ▲                                                   │
-              │                at-CHRONICLE-V1 blob              │
+              │                AFTERTALE-CHRONICLE-V1 blob       │
               └───────────────────────────────────────────────────┘
                   (clipboard or .txt, pasted into /aftertale sync)
 ```
@@ -52,7 +52,7 @@ The system has many files but only **three contracts** must stay in sync. Everyt
 |---|---|---|---|
 | C1 | **SV table shape** — `events[i] = { t, ts, event, args, enrichment, id }` plus top-level `schemaVersion`, `counts`, `bible`, `enriched`, `characters`, etc. | `addon/Aftertale/Aftertale.lua` (recordEvent, snapshot, buildEnrichment) | `src/lib/luaSavedVariables.ts` (parser) + `src/lib/savedVariablesIngest.ts` (mapper) |
 | C2 | **EntryID format** — `${event}:${ts}:${tostring(args[1]) or ""}` | `addon/Aftertale/Lore/Templates.lua` (`T.EntryID`) | `src/lib/chronicleExport.ts` (`entryId`) |
-| C3 | **COA-CHRONICLE-V1 blob grammar** — header line, optional `BIBLE\|...`, `<entryId>\|<paragraph>` rows with `\\n` / `\\t` / `\\\|` escapes OR `b64:` prefix, terminated by `END`. | `addon/Aftertale/UI/SyncDialog.lua` (parseBlob, lines 73–192) | `src/lib/chronicleExport.ts` (`buildChronicleBlob`, `encodeValue`) |
+| C3 | **AFTERTALE-CHRONICLE-V1 blob grammar** — header line, optional `BIBLE\|...`, `<entryId>\|<paragraph>` rows with `\\n` / `\\t` / `\\\|` escapes OR `b64:` prefix, terminated by `END`. *(Retained as fallback; primary path is now the structured `AftertaleRestore.lua` snippet — see top of §0.)* | `addon/Aftertale/UI/SyncDialog.lua` (parseBlob, lines 73–192) | `src/lib/chronicleExport.ts` (`buildChronicleBlob`, `encodeValue`) |
 
 ### Companion-writeback SV (future-proofing for Electron)
 
@@ -79,7 +79,7 @@ The addon also reads `AftertaleCompanion = { schemaVersion, ingestedEventIds, ge
 
 ### Blizzard Addon Policy (unchanged since 2009, reposted Nov 2018)
 
-| Rule | Text | CoA impact |
+| Rule | Text | Aftertale impact |
 |---|---|---|
 | 1 | Addons must be free. No premium versions, no charging for **services related to the addon** | Phrase "services related to the addon" is the dangerous one. The Zygor workaround (distribute paid *content files* not paid *code*) survives by community/Blizzard tolerance, not legal clarity. |
 | 2 | Code must NOT be obfuscated, must be public | The Lua addon must be open source. No license-key checks inside it. |
@@ -93,7 +93,7 @@ The addon also reads `AftertaleCompanion = { schemaVersion, ingestedEventIds, ge
 
 If we *ever* use Blizzard's REST API (Armory data, character lookups, etc.), **premium tiers are explicitly prohibited.** No exceptions, no workarounds, no community-tolerated gray zone.
 
-**Therefore: CoA must never call Blizzard's Developer API in any flow that supports the paid tier.** All character data comes from in-game SavedVariables (via the addon → companion bridge), or from user-typed input. Never from the Armory API.
+**Therefore: Aftertale must never call Blizzard's Developer API in any flow that supports the paid tier.** All character data comes from in-game SavedVariables (via the addon → companion bridge), or from user-typed input. Never from the Armory API.
 
 ### Battle.net EULA (Mar 2024)
 
@@ -106,7 +106,7 @@ If we *ever* use Blizzard's REST API (Armory data, character lookups, etc.), **p
 > "Can I write novels, screenplays, theatrical productions or other adaptations based on your games?" → **"No."**
 > "Can I make and sell my own products… based on a Blizzard universe?" → **"No."**
 
-This is the document that puts the *current* CoA branding in extreme risk. Tabled — §10.
+This is the document that put the *original* "Chronicles of Azeroth" branding in extreme risk and motivated the rebrand to Aftertale. Resolved — see §10 below.
 
 ---
 
@@ -180,9 +180,22 @@ If/when we pivot to the generic-engine positioning (§10 decision pending), the 
 
 ---
 
-## §10. The tabled decision — IP positioning
+## §10. IP positioning — RESOLVED (Option 1 taken 2026-05-26)
 
-**Status: tabled, documented, come back to. Do not resolve unilaterally in code review.**
+> **Resolution:** The pivot in Option 1 was taken. The product was renamed
+> from "Chronicles of Azeroth" to **Aftertale**, the domain moved to
+> [aftertale.gg](https://aftertale.gg/), and the positioning is now
+> "game-agnostic AI narrative engine" with WoW as the first (and currently
+> only) supported game. Magnus Brunn is an original character. Magni and
+> Muradin remain in the dwarven NPC catalog as nominative-fair-use
+> references with a Blizzard trademark disclaimer in the README and site
+> footer. The hard rules in §1 still govern the addon and any paid surface.
+>
+> The original strategic discussion is preserved below for historical
+> reference and so future contributors understand *why* the constraints in
+> this plan exist.
+
+---
 
 ### The finding
 
@@ -193,21 +206,21 @@ Most damning, the Legal FAQ verbatim:
 
 An AI-generated chronicle featuring Magni Bronzebeard set in Azeroth is a literary adaptation. The Legal FAQ says no. The Video Policy carves out an exception for YouTube/Twitch partner-program monetization of free-to-access video — that exception does not apply to a paid software product.
 
-### Current product state risk
+### Current product state risk *(as-written under "Chronicles of Azeroth" branding; resolved by rebrand)*
 
-| Element | Risk contribution |
-|---|---|
-| Name "Aftertale" | Trademark on "Azeroth" |
-| Domain `aftertale.gg` | Same trademark + public URL |
-| Shipped prompts for Magni Bronzebeard, Muradin | Copyright on characters |
-| Planned premium tier | Commercial exploitation, the Legal FAQ "No" |
-| Repo openly markets as WoW companion | Induced infringement risk via marketing |
+| Element | Risk contribution | Status |
+|---|---|---|
+| Name "Chronicles of Azeroth" | Trademark on "Azeroth" | ✅ Resolved — renamed to "Aftertale" |
+| Original domain `chroniclesofazeroth.com` | Same trademark + public URL | ✅ Resolved — moved to `aftertale.gg` |
+| Shipped prompts for Magni Bronzebeard, Muradin | Copyright on characters | ⚠️ Mitigated — nominative-fair-use reference with explicit Blizzard disclaimer in README + site footer |
+| Planned premium tier | Commercial exploitation, the Legal FAQ "No" | ✅ Resolved — engine is now generic ("game-agnostic narrative engine"); WoW is one supported game, not the product |
+| Repo openly markets as WoW companion | Induced infringement risk via marketing | ✅ Resolved — marketing on aftertale.gg leads with the engine; supported-games pill row lists WoW honestly with disclaimer |
 
-**Risk level: 🔴 EXTREME** as currently designed for a paid product.
+**Original risk level: 🔴 EXTREME.** Post-rebrand risk level: 🟢 LOW for the engine, ⚠️ MODEST and bounded for the NPC catalog (mitigated via fair-use framing + disclaimer).
 
 ### Options on the table
 
-1. **Rename + pivot to generic engine** (Mantella playbook) — the recommended path. CoA becomes "Lore Forge" or similar, ships no Blizzard content, users supply their own world. Premium pays for engine. ✅ Enables monetization.
+1. **Rename + pivot to generic engine** (Mantella playbook) — the recommended path. The product becomes a generic narrative engine, ships no Blizzard content, users supply their own world. Premium pays for engine. ✅ **Taken** — renamed to "Aftertale" 2026-05-26. Enables monetization.
 2. **Keep name, stay free-forever, no paid tier** — preserves the current branding but kills the monetization plan. Mantella-shaped: free, open, donation-funded only. Pure Patreon support, no SaaS.
 3. **Reach out to Blizzard's licensing team first** — formally inquire about a license. They've licensed novels and art books. They do NOT license individuals. Likely outcome: polite no. But it produces clarity.
 4. **Keep building as-is, accept the risk, plan exit** — most dangerous. C&D arrives sometime after we have customers and a paid tier, leaving us with unrefundable subs and a dead business.

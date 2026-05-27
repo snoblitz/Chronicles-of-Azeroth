@@ -38,8 +38,8 @@ the author's express written permission.
 
 ## Author note
 
-All other code, art, and content in this addon is original to Chronicles of
-Azeroth and authored by Jeff Knecht.
+All other code, art, and content in this addon is original to Aftertale
+and authored by Jeff Knecht.
 
 Huge thanks to Peterodox for the gorgeous craft and the generous permission.
 Go install YUI-Dialogue — it's the gold standard for immersive dialogue.

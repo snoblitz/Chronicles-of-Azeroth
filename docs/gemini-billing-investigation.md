@@ -1,5 +1,20 @@
 # Gemini billing discrepancy — investigation log
 
+> **Status (2026-05-26): RESOLVED via rearchitecture.** Direct
+> `GeminiProvider` / `AnthropicProvider` SDKs were removed and the LLM
+> layer collapsed to **OpenRouter-only**. The discrepancy investigated below
+> was specific to the now-removed `@google/genai` SDK and is no longer
+> reachable through any code path Aftertale runs. The notes are preserved as
+> institutional knowledge — if a future provider integration exhibits a
+> similar counter ↔ bill gap, the experimental method below (controlled
+> cost-probe + per-call usage diff) is the playbook.
+>
+> See [`PROVIDERS.md`](./PROVIDERS.md) for the current LLM layer and
+> [`companion-architecture.md`](./companion-architecture.md) §8a for the
+> strategic rationale.
+
+---
+
 > **Context:** this log feeds the round-trip rework tracking in [`ROADMAP.md`](./ROADMAP.md#known-issues--round-trip-rework-2026-05-25-stress-test). Cost numbers come from the same 567-call enrichment run that surfaced the lossy-blob issues there.
 
 ## The gap
@@ -11,7 +26,7 @@
 
 ## What's NOT the cause (ruled out)
 
-1. **Thinking tokens.** `GeminiProvider.ts:43` sets `thinkingConfig.thinkingBudget = 0`. Lines 61-65 also count `thoughtsTokenCount` toward output (with explicit comment about Google billing it). The probe confirms `thoughtsTokenCount` is literally absent from `usageMetadata` when the budget is 0.
+1. **Thinking tokens.** `GeminiProvider.ts:43` *(file removed 2026-05-26 — see "Resolution" below)* set `thinkingConfig.thinkingBudget = 0`. Lines 61-65 also counted `thoughtsTokenCount` toward output (with explicit comment about Google billing it). The probe confirms `thoughtsTokenCount` is literally absent from `usageMetadata` when the budget is 0.
 2. **Wrong pricing constants.** Re-verified against https://ai.google.dev/gemini-api/docs/pricing.
 3. **Cached-input drift.** `cachedContentTokenCount` is 0 in the probe response.
 4. **Hidden SKU tier.** Probe shows `serviceTier: "standard"` — not enterprise, not preview.

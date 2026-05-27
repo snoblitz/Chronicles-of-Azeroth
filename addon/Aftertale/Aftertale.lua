@@ -10,7 +10,7 @@
 
 local ADDON_NAME, NS = ...
 
-local PREFIX = "COA"
+local PREFIX = "AT"
 local CHAT_TAG = "|cFFFFD700[Aftertale]|r"
 
 -- Schema version for AftertaleDB. Bump when shape changes in a
@@ -516,7 +516,7 @@ end
 -- GUID). For v1 those will look like a new character; merge UX is
 -- deferred to the app side.
 --
--- Classification fires once per character per Chronicles-installation,
+-- Classification fires once per character per Aftertale-installation,
 -- the first time we see a GUID. Three lanes:
 --   * brand-new      timePlayed <  60s, level == 1   -> birth voice
 --   * boosted        timePlayed <  60s, level  > 1   -> arrival-w/o-memory voice
@@ -527,12 +527,12 @@ end
 -- We snapshot identity + location synchronously on PLAYER_ENTERING_WORLD,
 -- park a pending record, and finalize when TIME_PLAYED_MSG fires.
 --
--- "firstSeen" means first-seen-by-Chronicles, not character birth. A
+-- "firstSeen" means first-seen-by-Aftertale, not character birth. A
 -- level-60 main installed-into-mid-life will have firstSeen pointing at
 -- whatever zone they happened to be standing in when the addon loaded.
 ------------------------------------------------------------------------
 
-local CHRONICLES_TAG = "|cff00ff00[Chronicles]|r"
+local AFTERTALE_TAG = "|cffd4a373[Aftertale]|r"
 
 local pendingCharacterGuid = nil
 
@@ -592,8 +592,8 @@ local function announceNewCharacter(record)
   elseif record.identity.sex == 2 then pronoun = "his"
   else pronoun = "their" end
   print(string.format(
-    "%s New character detected: %s (%s %s, lvl %d, %s) -- %s. Open the Chronicles app to begin %s story.",
-    CHRONICLES_TAG,
+    "%s New character detected: %s (%s %s, lvl %d, %s) -- %s. Open the Aftertale app to begin %s story.",
+    AFTERTALE_TAG,
     record.identity.name,
     record.identity.race or "?",
     record.identity.class or "?",
@@ -906,7 +906,7 @@ local function cmdHelp()
   print("  /aftertale version           -- show addon + client version info")
   print("  /aftertale chapters          -- list companion-generated chapters for this character")
   print("  /aftertale stats             -- captured/chronicled/pending counts for this character")
-  print("  /aftertale characters        -- list characters Chronicles has seen")
+  print("  /aftertale characters        -- list characters Aftertale has seen")
   print("  /aftertale character reset <guid>  -- force re-onboarding for a character")
   print("  /aftertale enrichment [on|off]  -- toggle per-event enrichment (zone/quest title/NPC/loot)")
   print("  /aftertale log               -- diagnostics logger (see /aftertale log for sub-commands)")

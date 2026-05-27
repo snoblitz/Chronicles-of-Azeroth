@@ -15,26 +15,23 @@ Goal: validate that **LLM + character bible + memory** feels real before
 investing in Electron and addon work.
 
 - [x] Vite + React 19 + TypeScript scaffold
-- [x] Provider abstraction (`LLMProvider` interface)
-- [x] `GeminiProvider` using `@google/genai` 2.6.0 (thinking actually disabled)
-- [x] `AnthropicProvider` using `@anthropic-ai/sdk`
-- [x] Pricing table + cost calculator
+- [x] Provider abstraction (`LLMProvider` interface) — collapsed to OpenRouter-only 2026-05-26
+- [x] `OpenRouterProvider` — OpenAI-compatible fetch path, no SDK (~2.6 KB shipped)
+- [x] Pricing table + cost calculator (OpenRouter per-model rates)
 - [x] Spend tracker (localStorage, day-keyed, 90-day retention)
 - [x] Always-visible spend bar with averages-by-task table
 - [x] CSV export of usage records
 - [x] Smoke test UI (retired after Addon Simulator became the primary dev harness)
-- [x] Real Gemini model IDs discovered + wired (`gemini-2.5-flash` etc.)
-- [x] Gemini thinking-tokens accounted for in cost
 - [x] Reusable `ModelPicker` component shared by character creation and NPC chat
 - [x] **Character creation interview** → `CharacterBible` in localStorage
 - [x] **Multi-character storage** (`at.bible.roster.v1` + per-character entries) with a CharacterSelector dropdown in the header
-- [x] **Full character sheet** with portrait, faction-tinted glow, voice, backstory, beliefs, motivations, fears, flaws, core quote, level + zone pills, chronicle log
-- [x] **Inline bible editor** (Edit on the sheet → ReviewView with edit fields for name, homeland, level, zone, fears, flaws, quote)
+- [x] **Full character sheet** with portrait, faction-tinted glow, voice, backstory, beliefs, motivations, fears, flaws, Hero's Truth banner, level + zone pills, chronicle log
+- [x] **Inline bible editor** (Edit on the sheet → ReviewView with edit fields for name, homeland, level, zone, fears, flaws, Hero's Truth)
 - [x] **NPC chat screen** with portrait header, Magni Bronzebeard portrait shipped, hero-assist drafts, transcript persistence per `(character × NPC)`
 - [x] **Chronicle log** — quick-add entries, snapshot level + zone at write time, NPC prompt injects the last 5 deeds so NPCs can react to recent history
 - [x] **Chronicle reader** — first-class story tab with latest-session/full-saga views, "so what" insight cards, chapter timeline, and model-generated campfire recaps
 - [x] **API key entry UI** (Settings panel) so the deployed Pages bundle works without baked-in secrets
-- [x] **GitHub Pages deploy workflow** (`.github/workflows/deploy.yml`)
+- [x] **Cloudflare Pages deploy** at [aftertale.gg](https://aftertale.gg/) — auto-builds on push to `main`; preview URLs per branch
 - [x] **Addon Simulator** tab with Classic quest-chain fixtures, WoW API-shaped events, local event log, and ingest-to-chronicle memory
 - [x] **Manual event entry** — effectively shipped via the Addon Simulator's ingest path (manual "I just killed Hogger"-style entries flow through the same WoW-shaped event bus into chronicle/NPC memory)
 
@@ -49,13 +46,19 @@ Phase 0 is done when:
    (~80 Flash calls / ~$0.10 burned during the May 24 sim session — the
    averages-by-task table is populated with real data, not synthetic). ✅
 
-### Phase 0.5 — Public POC on GitHub Pages  *(shipped)*
+### Phase 0.5 — Public POC on Cloudflare Pages  *(shipped)*
 
-The Phase 0 bundle is deployed to GitHub Pages so Jeff can poke at the UI
-from mobile during the day. The build has no secrets baked in — users
-paste their own Gemini / Anthropic key into the in-app Settings panel and
-it stays in their browser's localStorage only. See
-[docs/DEVELOPMENT.md](./DEVELOPMENT.md#deployment) for the deploy flow.
+The Phase 0 bundle is deployed to Cloudflare Pages at
+[aftertale.gg](https://aftertale.gg/) so Jeff can poke at the UI from mobile
+during the day. The build has no secrets baked in — users paste their own
+OpenRouter key into the in-app ⚙ Keys panel and it stays in their browser's
+localStorage only. See [docs/DEVELOPMENT.md](./DEVELOPMENT.md#deployment-cloudflare-pages)
+for the deploy flow.
+
+The marketing landing page (also at `aftertale.gg`) ships from
+`src/components/LandingPage.tsx` — five-page Magnus hero exhibit, onboarding
+walkthrough ("From signup to first chapter"), supported-games pill row,
+pricing tiers, and FAQ.
 
 ## Phase 0.75 — Event spike  *(in progress)*
 
@@ -67,7 +70,7 @@ Phase 2 (Lua addon) before either commits to an architecture.
 - [x] Pure event-capture addon at `addon/Aftertale/` (no AI, no
   UI) — listens for every event in `WowEventName`, plus adjacent events
   worth grafting in, and dumps payloads to `SavedVariables`
-- [x] Multi-flavor TOC (Retail 120005, Mists 50503, TBC 20505, Vanilla 11508)
+- [x] Multi-flavor TOC (Retail 120005, MoP Classic 50503, Cata Classic 40402, Wrath Classic 30405, TBC/Anniversary 20505, Vanilla 11508) — **six clients supported**
 - [x] `scripts/install-addon.ps1` — junctions the addon source into every
   detected WoW client so edits are one-and-done
 - [x] `SendAddonMessageLogged` mirror so we also validate the chat-log

@@ -54,7 +54,7 @@ confirm the live build number.
 | `/aftertale sample N`                 | Set combat-log sample rate (1-in-N, default 50)          |
 | `/aftertale missing`                  | List events `RegisterEvent` refused on this game flavor  |
 | `/aftertale version`                  | Addon + client version info                              |
-| `/aftertale characters`               | List characters Chronicles has detected (Phase 0.75-C)   |
+| `/aftertale characters`               | List characters Aftertale has detected (Phase 0.75-C)    |
 | `/aftertale character reset <guid>`   | Force re-onboarding for a character (dev tool)           |
 
 ## Capture workflow
@@ -89,7 +89,7 @@ The addon registers all of those plus a few extras
 `CHAT_MSG_ADDON`) so we learn about adjacent events worth grafting in.
 
 It also mirrors every (non-combat-log) capture through
-`C_ChatInfo.SendAddonMessageLogged("COA", ...)` so we can validate that the
+`C_ChatInfo.SendAddonMessageLogged("AT", ...)` so we can validate that the
 chat-log transport actually carries our payloads -- the same transport
 Phase 1's chat-log tailing and Phase 2's addon bridge will rely on.
 
@@ -117,11 +117,11 @@ When a new character is detected, the addon prints a one-time chat-frame
 ping:
 
 ```
-[Chronicles] New character detected: Garygidney (Dwarf Rogue, lvl 1,
-Coldridge Valley) -- brand-new. Open the Chronicles app to begin her story.
+[Aftertale] New character detected: Garygidney (Dwarf Rogue, lvl 1,
+Coldridge Valley) -- brand-new. Open the Aftertale app to begin her story.
 ```
 
-The structured record is what the Chronicles app reads on next launch to
+The structured record is what the Aftertale app reads on next launch to
 pre-fill the onboarding wizard. Use `/aftertale characters` to inspect the
 registry, `/aftertale character reset <guid>` to force re-onboarding for a
 character (dev tool).

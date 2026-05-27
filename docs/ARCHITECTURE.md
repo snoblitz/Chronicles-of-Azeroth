@@ -62,7 +62,7 @@ src/
 ├── components/
 │   ├── SpendBar.tsx          Always-visible cost header (collapsible) + ⚙ Keys
 │   ├── SettingsPanel.tsx     In-app API key entry modal (localStorage-backed)
-│   ├── ModelPicker.tsx       Shared Gemini/Claude model dropdown
+│   ├── ModelPicker.tsx       Shared OpenRouter model dropdown
 │   ├── CharacterSelector.tsx Active-hero dropdown in the header
 │   ├── CharacterCreation.tsx Welcome → identity → interview → review → sheet
 │   ├── NpcChat.tsx           NPC tavern + per-(hero × NPC) transcripts

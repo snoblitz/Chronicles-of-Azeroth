@@ -12,6 +12,12 @@ Phase 1 ships.
 > (Free/BYOK + Companion + Chronicler + Loremaster). Entries below represent
 > work landed in `main` and ready to be part of that launch — not features
 > currently delivered to anyone.
+>
+> **Exception:** The marketing landing page at [aftertale.gg](https://aftertale.gg/)
+> is publicly deployed (auto-built by Cloudflare Pages on push to `main`).
+> The in-app POC was already public via the prior GitHub Pages deploy, so
+> shipping a polished front door alongside it does not change which features
+> are reachable to users — only how the surface is described.
 
 Phase 0 (Browser POC) exit criteria all met as of May 25, 2026: character
 interview produces distinct bibles, 5-turn NPC conversations stay in-voice
@@ -25,8 +31,83 @@ daemon, pairing flow, OpenRouter LLM layer, and Supabase backend is
 prior "Phase 1 = standalone Electron app, Phase 2 = WoW addon" framing in
 older docs is superseded by that document.
 
+### Added
+
+- **Marketing landing page** at `aftertale.gg/` *(2026-05-27)*. Full
+  `src/components/LandingPage.tsx` (~2200 lines incl. styles) ships at the
+  root of the public site. Hero section ("Every hero deserves an
+  Aftertale."), five-page Magnus Brunn exhibit (Hero / Truth / Voice /
+  Backstory / Chapter) with horizontal scroll-snap + dot nav + keyboard
+  control, "From signup to first chapter" onboarding section with
+  five activation cards + anxiety-killer reassurance line, supported-games
+  compact pill strip (Retail / Classic / Hardcore / SoD / Cataclysm /
+  Mists, each color-coded), magic-moment phone mockup section, how-it-works
+  steady-state loop, features grid, pricing tiers (reused from in-app
+  ScribesDesk), expandable FAQ, footer with Blizzard trademark disclaimer.
+  Reveal-on-scroll animations honoring `prefers-reduced-motion`.
+- **Aftertale wordmark logo** *(2026-05-27)*. AI-generated gold wordmark
+  with the book + compass + stars sigil. Processed (alpha-keyed off
+  light background, auto-cropped to content bbox) and saved as
+  `public/aftertale-logo.png`. Used in landing-page header (44px) and
+  footer (36px, slightly dimmed).
+- **Magnus Brunn portrait** *(2026-05-27)*. AI-rendered full hero card with
+  embedded purple frame, "HERO · SAGA IN PROGRESS" eyebrow, Magnus holding
+  Calder's hammer (sun-sigil engraved), Forgelight halo behind him, and
+  "FORGESWORN · IRON-BOUND · MID-SAGA" footer stamp. Saved as
+  `public/magnus-card.jpg` (900×1200, q86 progressive, ~205 KB). Replaces
+  the procedural `<HeroSigil>` SVG on the IdentityPanel.
+- **Favicon set** *(2026-05-27)*. Sigil extracted from the high-res
+  wordmark, generated at 16 / 32 / 48 / 180 / 192 / 512 px plus
+  multi-resolution `favicon.ico`. Wired into `index.html` with
+  `theme-color: #1a0e2e` and a `description` meta tag.
+- **"The Hero's Truth" surface naming** *(2026-05-27)*. The `coreQuote`
+  bible field is now labeled "The Hero's Truth" across the marketing page,
+  in-app character sheet (new section header), editor field, AI bible
+  preview, and LLM prompt context ("Hero's truth: …"). Underlying
+  `coreQuote` data field unchanged to avoid storage migration risk.
+
 ### Changed
 
+- **Renamed Chronicles of Azeroth → Aftertale** *(2026-05-26 → 2026-05-27)*.
+  Full rebrand in four phases:
+  - **Phase 1 — marketing copy:** README, all docs, in-app `<h1>`s, page
+    titles, pitch decks, prologue copy.
+  - **Phase 2 — code identifiers:** `coa.*` localStorage keys → `at.*`
+    with a one-time migration helper that runs from `main.tsx` on app
+    boot (preserves user data). `coa:` custom events → `at:`. CSS classes
+    `.coa-*` → `.at-*` (323+ instances across `index.css`).
+  - **Phase 3 — WoW addon:** folder `addon/ChroniclesOfAzeroth/` →
+    `addon/Aftertale/`, six `.toc` files renamed, Lua globals
+    (`AftertaleDB` / `AftertaleCompanion` / `AftertaleRestore`), slash
+    command `/aftertale` (alias `/at`), chat-frame tag `[Chronicles]` →
+    `[Aftertale]`, addon-message wire prefix `"COA"` → `"AT"`.
+  - **Phase 4 — package metadata:** `package.json` name → `aftertale`,
+    lockfile regenerated.
+- **GitHub org transfer** *(2026-05-26)*. Repo moved from
+  `snoblitz/Aftertale` to `Aftertale-App/Aftertale` (dedicated org for
+  the product). Updated remote URL + all in-code references.
+- **Cloudflare Pages migration** *(2026-05-26)*. Replaced GitHub Pages with
+  Cloudflare Pages. Domain `aftertale.gg` purchased at GoDaddy and DNS
+  migrated to Cloudflare (`hope.ns` + `jaxson.ns` nameservers). Pages
+  project connected to GitHub repo — push to `main` auto-deploys; branches
+  get `<branch>.aftertale.pages.dev` preview URLs. Custom domains
+  `aftertale.gg` + `www.aftertale.gg` both attached. Deleted
+  `.github/workflows/deploy.yml`. Env var `COA_BASE` → `AT_BASE`, defaults
+  to `/` for apex hosting. Updated OpenRouter `HTTP-Referer` header,
+  addon `webAppUrl`, all doc links.
+- **Hero copy refinement** *(2026-05-27)*. Landing-page H1 "Become the
+  legend you played." → **"Every hero deserves an Aftertale."** Subhead
+  updated to lean fully into the personalized-novel framing.
+- **Magnus's identity polished** *(2026-05-27)*. Page-1 "From" / "Carries"
+  / "Vow" / "Chapter" stats rewritten with more evocative prose. Page-2
+  "The Hero's Truth" panel gains a gold-bordered gloss block with an
+  italic coda. Page-3 voice transcript replaced the stoic "Stone's not
+  afraid. Stone holds." with a more revealing "Course I was. / That's
+  the part people keep giving prettier names." exchange. Page-4 backstory
+  beats rewritten with sharper specifics ("clean boots", "stands in the
+  gap"). Page-5 chapter expanded ~140 words; new structure paces the
+  battle, the Forgelight rising, and the closing "No, not alone." exchange
+  with the reeve.
 - **Scribe's Desk page** *(2026-05-26)*. Split `ChronicleReader.tsx` into
   pure-reader + new `/Scribe's Desk` tab. The desk owns the manual workflow:
   Import SV → Filter events → Enrich → Download `.lua` restore snippet — laid

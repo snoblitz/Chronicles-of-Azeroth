@@ -44,7 +44,7 @@ local function logWarn(msg)
   end
 end
 
-local CHRONICLES_TAG = "|cff00ff00[Chronicles]|r"
+local AFTERTALE_TAG = "|cffd4a373[Aftertale]|r"
 
 local SUPPORTED_SCHEMA = 1
 
@@ -112,7 +112,7 @@ function Restore:Apply()
   if schema ~= SUPPORTED_SCHEMA then
     logWarn(("Skipped restore payload: unsupported schemaVersion %s (expected %d)."):format(
       tostring(payload.schemaVersion), SUPPORTED_SCHEMA))
-    print(CHRONICLES_TAG .. " Restore skipped -- unsupported schema version.")
+    print(AFTERTALE_TAG .. " Restore skipped -- unsupported schema version.")
     _G.AftertaleRestore = nil
     return
   end
@@ -134,7 +134,7 @@ function Restore:Apply()
       local current = name .. "-" .. realm
       if current ~= target then
         logWarn(("Restore payload was generated for %s but current character is %s. Applying anyway."):format(target, current))
-        print(CHRONICLES_TAG .. " Warning: restore payload was generated for " ..
+        print(AFTERTALE_TAG .. " Warning: restore payload was generated for " ..
           target .. " (you are " .. current .. "). Applying anyway -- /aftertale stats to verify.")
       end
     end
@@ -146,7 +146,7 @@ function Restore:Apply()
 
   local stamp = payload.generatedAt or "(unknown)"
   print(("%s Restore applied (snippet generated %s): +%d events, %d paragraphs%s.")
-    :format(CHRONICLES_TAG, stamp, addedEvents, writtenEnriched,
+    :format(AFTERTALE_TAG, stamp, addedEvents, writtenEnriched,
             setBible and ", bible set" or ""))
   logInfo(("Restore applied: +%d events, %d enriched, bible=%s, generatedAt=%s")
     :format(addedEvents, writtenEnriched, tostring(setBible), stamp))

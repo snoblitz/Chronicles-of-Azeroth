@@ -4,17 +4,17 @@
 
 - **Node.js ≥ 20** (CI uses 20; local dev tested on 23.11)
 - **npm ≥ 10**
-- A Gemini API key from https://aistudio.google.com/apikey
-- *(Optional)* An Anthropic API key from https://console.anthropic.com
+- An OpenRouter API key from <https://openrouter.ai/keys>
 
 ## Setup
 
 ```powershell
-git clone <repo-url>
+git clone https://github.com/Aftertale-App/Aftertale.git
 cd Aftertale
 npm install
 Copy-Item .env.example .env.local
-# Edit .env.local and paste your API keys
+# Optional: paste your OpenRouter key into .env.local, or skip and use the
+# in-app ⚙ Keys panel to enter it at runtime.
 npm run dev
 ```
 
@@ -37,7 +37,7 @@ collisions, ports are pinned:
 | Project              | Port  | Notes                                |
 | -------------------- | ----- | ------------------------------------ |
 | sand-miner           | 5173  | Default Vite port, can't move        |
-| Aftertale| 5180  | `strictPort: true` in vite.config.ts |
+| Aftertale            | 5180  | `strictPort: true` in vite.config.ts |
 | Cozy Catch           | 8000  | Custom Node server                   |
 
 If 5180 ever conflicts, change it in `vite.config.ts` and update this table.
@@ -45,15 +45,15 @@ If 5180 ever conflicts, change it in `vite.config.ts` and update this table.
 ## Environment variables
 
 All env vars are prefixed `VITE_` so they're exposed to the browser. For local
-dev, `.env.local` is convenient; for the public Cloudflare Pages build, no keys are
-baked in and users paste runtime keys into the in-app settings panel. Phase 1
-moves keys to the Electron main process and uses `keytar` for OS keychain
-storage.
+dev, `.env.local` is convenient; for the public Cloudflare Pages build, no
+keys are baked in and users paste runtime keys into the in-app ⚙ Keys panel.
+Companion (paid tier) moves keys to the Electron main process and uses
+`keytar` for OS keychain storage.
 
-| Variable                  | Required | Default       | Used by               |
-| ------------------------- | -------- | ------------- | --------------------- |
-| `VITE_GEMINI_API_KEY`     | No       | —             | `GeminiProvider`      |
-| `VITE_ANTHROPIC_API_KEY`  | No       | (empty)       | `AnthropicProvider`   |
+| Variable                    | Required | Default | Used by                |
+| --------------------------- | -------- | ------- | ---------------------- |
+| `VITE_OPENROUTER_API_KEY`   | No       | —       | `OpenRouterProvider`   |
+| `AT_BASE`                   | No       | `/`     | `vite.config.ts` (build-time base path; only set if rehosting at a subpath) |
 
 `.env.local` is gitignored. `.env.example` is the template — keep it in sync
 when adding new vars.
@@ -65,48 +65,59 @@ when adding new vars.
 
 ```
 Aftertale/
-├── .github/workflows/        deploy.yml → Pages on push to main
 ├── docs/                     ← you are here
 ├── public/
+│   ├── aftertale-logo.png    Gold wordmark used in header/footer
+│   ├── magnus-card.jpg       AI-rendered Magnus portrait
+│   ├── favicon*.png + .ico   Sigil favicon set
 │   └── npcs/                 NPC portrait PNGs (wrap paths in assetUrl())
+├── addon/
+│   └── Aftertale/            Lua addon (six WoW client TOCs)
 ├── src/
-│   ├── App.tsx               Tab shell: Character / Chronicle / NPC / Addon
-│   ├── main.tsx              React entry
-│   ├── index.css             Leather-bound spellbook design system
-│   ├── types.ts              Shared types (carry forward to Phase 1+)
-│   ├── pricing.ts            Single source of truth for model prices
+│   ├── App.tsx               Tab shell: Character / Chronicle / NPC / Scribe's Desk / Addon Sim
+│   ├── main.tsx              React 19 entry; runs one-time coa.* → at.* localStorage migration
+│   ├── index.css             Leather-bound spellbook design system (~3500 lines)
+│   ├── types.ts              Shared types (carry forward to Companion tier)
+│   ├── pricing.ts            Single source of truth for OpenRouter model prices
 │   ├── vite-env.d.ts         `vite/client` types so `tsc -b` is happy
 │   ├── components/
+│   │   ├── LandingPage.tsx       Marketing front door (aftertale.gg root)
 │   │   ├── SpendBar.tsx          Always-visible cost header + ⚙ Keys
 │   │   ├── SettingsPanel.tsx     In-app API key entry modal
 │   │   ├── ModelPicker.tsx       Shared model dropdown
 │   │   ├── CharacterSelector.tsx Active-hero dropdown in the header
 │   │   ├── CharacterCreation.tsx Welcome → identity → interview → review → sheet
+│   │   ├── CharacterTab.tsx      Wraps CharacterCreation for the app shell
 │   │   ├── NpcChat.tsx           NPC tavern + per-(hero × NPC) transcripts
 │   │   ├── ChronicleReader.tsx   Story-reader + recap surface
+│   │   ├── ScribesDesk.tsx       Manual Import → Filter → Enrich → Export workflow
+│   │   ├── EventFilterPanel.tsx  Extracted from ScribesDesk
 │   │   └── AddonSimulator.tsx    WoW-addon event harness
 │   ├── lib/
 │   │   ├── apiKeys.ts            localStorage-first key lookup
 │   │   ├── assetUrl.ts           Resolves /public/* against BASE_URL
 │   │   ├── bibleStore.ts         Multi-character roster + envelopes
-│   │   ├── presetCharacters.ts   Built-in bibles (Magnus)
+│   │   ├── presetCharacters.ts   Built-in bibles (Magnus Brunn)
 │   │   ├── wowData.ts            Race/class/faction cascade
-│   │   ├── modelChoices.ts       Shared model registry
+│   │   ├── modelChoices.ts       Shared model registry (OpenRouter-routed)
 │   │   ├── npcCatalog.ts         Curated dwarven NPCs
 │   │   ├── npcChatStore.ts       Per-(hero × NPC) transcript persistence
 │   │   ├── addonEvents.ts        Normalized event contract
 │   │   ├── addonEventStore.ts    Raw event log
 │   │   ├── addonIngest.ts        event → bible / chronicle mutator
+│   │   ├── chronicleExport.ts    AFTERTALE-CHRONICLE-V1 blob grammar
 │   │   ├── classicQuestFixtures.ts Quest-chain fixtures (~650 lines)
 │   │   ├── sessionHistory.ts     Groups events into play sessions
+│   │   ├── featureFlags.ts       Power-user toggles (Scribe's Desk visibility, etc.)
+│   │   ├── eventEnrichment.ts    Builds the LLM prompt context per event batch
+│   │   ├── prologueGenerator.ts  Optional AI-drafted hero bible
 │   │   └── spendTracker.ts       Usage log + averages + CSV export
 │   └── providers/
-│       ├── GeminiProvider.ts
-│       └── AnthropicProvider.ts
+│       └── OpenRouterProvider.ts OpenAI-compatible fetch path, no SDK
 ├── .env.example
 ├── .env.local                gitignored, holds real keys (optional)
 ├── .gitignore
-├── index.html
+├── index.html                favicon set, theme-color, description meta
 ├── package.json
 ├── tsconfig.json             references both app + node configs
 ├── tsconfig.app.json         strict TS for src/
@@ -141,18 +152,19 @@ Object.keys(localStorage)
 location.reload();
 ```
 
-### Verifying available Gemini models
+### Iterating on the WoW addon
 
-The pricing page on ai.google.dev does NOT match the actual API model IDs.
-Always verify with a REST call:
+The addon source lives under `addon/Aftertale/`. From the repo root in an
+elevated PowerShell:
 
 ```powershell
-$key = (Get-Content .env.local | Select-String 'VITE_GEMINI_API_KEY=').Line.Split('=')[1]
-curl "https://generativelanguage.googleapis.com/v1beta/models?key=$key" `
-  | ConvertFrom-Json `
-  | Select-Object -ExpandProperty models `
-  | Select-Object name, supportedGenerationMethods
+pwsh scripts/install-addon.ps1
 ```
+
+This junctions the source folder into every detected WoW client's
+`Interface\AddOns\Aftertale`, so edits here + `/reload` in-game picks up
+changes. See [`addon/README.md`](../addon/README.md) for the full capture
+workflow and slash-command reference.
 
 ## Known issues / gotchas
 
@@ -161,8 +173,8 @@ curl "https://generativelanguage.googleapis.com/v1beta/models?key=$key" `
 - **HMR can cache stale module exports.** If you see "does not provide an
   export named X" after renaming an export, hard refresh (Ctrl+Shift+R) and
   restart the dev server.
-- **Gemini thinking tokens.** See [PROVIDERS.md](./PROVIDERS.md#gemini-thinking-mode-trap).
-  Pinned to `gemini-2.5-flash`/`gemini-2.5-pro` to avoid mandatory thinking.
+- **Gemini thinking tokens** (legacy note, still true via OpenRouter routing).
+  See [PROVIDERS.md](./PROVIDERS.md#gemini-thinking-mode-trap).
 
 ## Deployment (Cloudflare Pages)
 
@@ -184,6 +196,10 @@ auto-deploy. Every other branch / PR gets a preview URL at
 - Environment variables: none — base path defaults to `/` for the apex
   domain. Override with `AT_BASE` only if rehosting at a subpath.
 
+**Custom domain:** Apex (`aftertale.gg`) + `www.aftertale.gg` are both
+attached as Pages custom domains. DNS is managed in Cloudflare itself
+(nameservers: `hope.ns.cloudflare.com`, `jaxson.ns.cloudflare.com`).
+
 **Asset URLs in code:**
 
 Anything you write as a hardcoded path like `/npcs/foo.png` will bypass
@@ -196,7 +212,8 @@ paths in `assetUrl()` from `src/lib/assetUrl.ts`, which prepends
 The deployed build ships with no API keys. Users paste their own OpenRouter
 key into the ⚙ Keys panel in the spend bar; values are kept in
 `localStorage` only. The `apiKeys.ts` helper falls back to
-`import.meta.env.VITE_*` for local dev so a `.env.local` keeps working.
+`import.meta.env.VITE_OPENROUTER_API_KEY` for local dev so a `.env.local`
+keeps working.
 
 **Build it like Cloudflare does (for testing):**
 
@@ -207,4 +224,3 @@ npm run preview -- --port 4173
 ```
 
 **Live URL:** <https://aftertale.gg/>
-
