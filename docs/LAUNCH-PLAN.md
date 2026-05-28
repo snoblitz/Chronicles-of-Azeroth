@@ -176,6 +176,11 @@ iteration based on what we hear.
 
 ### Build work required to start Phase A
 
+> **Tactical checklist:** [`docs/PHASE-A-PUNCHLIST.md`](./PHASE-A-PUNCHLIST.md)
+> is the active tracking doc for everything below plus the
+> reframe/subtraction work on what's already in prod. Check items off
+> there; this section is the strategic summary.
+
 In rough order (each item small, none committing to new infrastructure):
 
 1. **Cloud sync** — mirror `at.bible.entry.*` and the chronicle/chapter
