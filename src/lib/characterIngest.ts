@@ -100,7 +100,10 @@ export function ingestCharactersFromParsed(parsed: Record<string, LuaValue>): In
   // Level is taken as the MAX observed (level only goes up; logout snapshots
   // can carry stale UnitLevel=1 from teardown state). Zone is taken from the
   // latest event by timestamp that actually has a non-empty zoneText.
-  const eventSnapshots = collectEventSnapshots(db.events);
+  // We bucket by BOTH guid and charName so events whose char GUID doesn't
+  // line up with the registry key (e.g. older addon builds, manual SV edits)
+  // can still hydrate the picker via a name-based fallback.
+  const { byGuid: eventSnapshots, byName: eventSnapshotsByName } = collectEventSnapshots(db.events);
 
   for (const [guid, raw] of Object.entries(characters)) {
     const rec = asObject(raw);
@@ -116,7 +119,10 @@ export function ingestCharactersFromParsed(parsed: Record<string, LuaValue>): In
     }
     const coordsObj = asObject(firstSeen.coords);
     const lastSeenObj = asObject(rec.lastSeen);
-    const derived = eventSnapshots.get(guid);
+    const identityName = asString(identity.name, '');
+    const derived =
+      eventSnapshots.get(guid) ??
+      (identityName ? eventSnapshotsByName.get(identityName.toLowerCase()) : undefined);
 
     // Prefer the addon-written lastSeen when present, otherwise synthesize
     // from event-log scan. Merge field-by-field so we never DOWNGRADE level
@@ -195,11 +201,13 @@ interface EventSnapshot {
   subzoneText?: string;
 }
 
-function collectEventSnapshots(rawEvents: LuaValue | undefined): Map<string, EventSnapshot> {
-  const snapshots = new Map<string, EventSnapshot>();
-  if (!rawEvents || typeof rawEvents !== 'object') return snapshots;
-  // events is a Lua array; our parser yields either an array or an object
-  // with numeric keys. Iterate values either way.
+function collectEventSnapshots(rawEvents: LuaValue | undefined): {
+  byGuid: Map<string, EventSnapshot>;
+  byName: Map<string, EventSnapshot>;
+} {
+  const byGuid = new Map<string, EventSnapshot>();
+  const byName = new Map<string, EventSnapshot>();
+  if (!rawEvents || typeof rawEvents !== 'object') return { byGuid, byName };
   const list: LuaValue[] = Array.isArray(rawEvents)
     ? (rawEvents as LuaValue[])
     : Object.values(rawEvents as Record<string, LuaValue>);
@@ -207,36 +215,44 @@ function collectEventSnapshots(rawEvents: LuaValue | undefined): Map<string, Eve
     const ev = asObject(item);
     if (!ev) continue;
     const guid = asString(ev.char);
-    if (!guid) continue;
+    const charName = asString(ev.charName).toLowerCase();
+    if (!guid && !charName) continue;
     const enrichment = asObject(ev.enrichment);
     const lvl = enrichment ? asNumber(enrichment.level, 0) : 0;
     const iso = asString(ev.ts);
     const ts = isoToUnix(iso);
     const zoneText = enrichment ? asString(enrichment.zoneText) : '';
     const subzoneText = enrichment ? asString(enrichment.subzoneText) : '';
-    const prior = snapshots.get(guid);
-    if (!prior) {
-      snapshots.set(guid, {
-        level: lvl,
-        timestamp: ts,
-        iso: iso || undefined,
-        zoneText: zoneText || undefined,
-        subzoneText: subzoneText || undefined,
-      });
-      continue;
-    }
-    if (lvl > prior.level) prior.level = lvl;
-    if (ts > prior.timestamp) {
-      prior.timestamp = ts;
-      prior.iso = iso || prior.iso;
-    }
-    // Always update zone from the latest event that actually has one.
-    if (zoneText && ts >= prior.timestamp - 1) {
-      prior.zoneText = zoneText;
-      prior.subzoneText = subzoneText || undefined;
-    }
+    const apply = (bucket: Map<string, EventSnapshot>, key: string) => {
+      if (!key) return;
+      const prior = bucket.get(key);
+      if (!prior) {
+        bucket.set(key, {
+          level: lvl,
+          timestamp: ts,
+          iso: iso || undefined,
+          zoneText: zoneText || undefined,
+          subzoneText: subzoneText || undefined,
+        });
+        return;
+      }
+      if (lvl > prior.level) prior.level = lvl;
+      if (ts > prior.timestamp) {
+        prior.timestamp = ts;
+        prior.iso = iso || prior.iso;
+        if (zoneText) {
+          prior.zoneText = zoneText;
+          prior.subzoneText = subzoneText || undefined;
+        }
+      } else if (zoneText && !prior.zoneText) {
+        prior.zoneText = zoneText;
+        prior.subzoneText = subzoneText || undefined;
+      }
+    };
+    apply(byGuid, guid);
+    apply(byName, charName);
   }
-  return snapshots;
+  return { byGuid, byName };
 }
 
 function isoToUnix(iso: string): number {
