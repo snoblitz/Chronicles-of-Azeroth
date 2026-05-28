@@ -1870,6 +1870,30 @@ button.at-sheet-pill:focus-visible {
   box-shadow: var(--sh-glow-gold);
 }
 
+.at-chronicle-arc-map .at-arc-pill.at-arc-ghost {
+  border-style: dashed;
+  border-color: rgba(178, 132, 49, 0.45);
+  background: transparent;
+  color: var(--fg-muted);
+  opacity: 0.78;
+  font-style: italic;
+}
+
+.at-chronicle-arc-map .at-arc-pill.at-arc-ghost:hover {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+  background: rgba(178, 132, 49, 0.08);
+  opacity: 1;
+  font-style: normal;
+}
+
+.at-chronicle-arc-map .at-arc-divider {
+  color: rgba(178, 132, 49, 0.45);
+  font-family: var(--font-mono);
+  padding: 0 0.15rem;
+  user-select: none;
+}
+
 .at-chronicle-modebar {
   display: flex;
   gap: 0.5rem;
@@ -2140,16 +2164,38 @@ button.at-sheet-pill:focus-visible {
 }
 
 .at-chronicle-arc-map {
+  position: sticky;
+  bottom: 0.75rem;
+  z-index: 5;
   border: 1px solid var(--border);
   border-radius: var(--r-md);
-  background: rgba(17, 13, 9, 0.35);
+  background: rgba(17, 13, 9, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   padding: 0.85rem;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
 }
 
 .at-chronicle-arc-map div {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
+  align-items: center;
+}
+
+.at-chronicle-arc-map .at-arc-levelup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 0.15rem 0.4rem;
+  border-radius: 6px;
+  background: rgba(178, 132, 49, 0.08);
+  border: 1px dashed rgba(178, 132, 49, 0.45);
 }
 
 .at-session-list {

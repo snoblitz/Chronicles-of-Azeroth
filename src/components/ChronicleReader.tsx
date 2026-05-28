@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { MODEL_CHOICES, useSelectedModelIdx } from '../lib/modelChoices';
 import { loadBible, clearAddonHistoryEntries, removeAddonHistoryEntriesByEventIds, deleteHistoryEntry, appendSessionRecapHistoryEntry, removeSessionRecapHistoryEntry } from '../lib/bibleStore';
 import { DEV_TOOLS_ENABLED } from '../lib/devTools';
@@ -39,6 +39,8 @@ interface Chapter {
   zones: string[];
   start: number;
   end: number;
+  startLevel?: number;
+  endLevel?: number;
 }
 
 export function ChronicleReader() {
@@ -92,6 +94,23 @@ export function ChronicleReader() {
     () => (bible ? buildChronicleSessions(scopedAddonRecords, bible.name) : []),
     [bible, scopedAddonRecords],
   );
+  // Ghost pills (Phase 3): sessions the addon observed that haven't been
+  // committed as a Chronicle chapter yet. The recap commit path writes a
+  // HistoryEntry with the stable id `recap_<sessionId>`, so anything missing
+  // that marker is fair game for a "write me up" CTA. Sorted oldest-first to
+  // match committed-chapter order in the Arc Map.
+  const ghostSessions = useMemo(() => {
+    if (sessions.length === 0) return [];
+    const committed = new Set<string>();
+    for (const e of entries) {
+      if (typeof e.id === 'string' && e.id.startsWith('recap_')) {
+        committed.add(e.id.slice('recap_'.length));
+      }
+    }
+    return sessions
+      .filter((s) => !committed.has(s.id))
+      .sort((a, b) => a.startedAt - b.startedAt);
+  }, [sessions, entries]);
   const latestEntries = useMemo(() => latestSessionEntries(entries), [entries]);
   const visibleEntries = mode === 'full' ? entries : latestEntries;
   const visibleChapters = useMemo(() => buildChapters(visibleEntries), [visibleEntries]);
@@ -139,6 +158,16 @@ export function ChronicleReader() {
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     setActiveChapterId(chapterId);
+  }
+
+  function jumpToGhostSession(sessionId: string) {
+    setMode('sessions');
+    // Defer to give SessionTrail a chance to mount before we ask it to scroll.
+    requestAnimationFrame(() => {
+      window.dispatchEvent(
+        new CustomEvent('at:scroll-to-session', { detail: sessionId }),
+      );
+    });
   }
 
   function requestTab(tab: string) {
@@ -316,24 +345,64 @@ export function ChronicleReader() {
             </section>
           )}
 
-          {mode !== 'sessions' && visibleChapters.length > 0 && (
+          {mode !== 'sessions' && (visibleChapters.length > 0 || ghostSessions.length > 0) && (
             <section className="at-chronicle-arc-map">
               <p className="at-kicker">Arc map</p>
               <div>
                 {visibleChapters.map((chapter, i) => {
                   const isActive = activeChapterId === chapter.id;
+                  const prev = visibleChapters[i - 1];
+                  const levelGained =
+                    prev && typeof prev.endLevel === 'number' && typeof chapter.startLevel === 'number'
+                      ? chapter.startLevel - prev.endLevel
+                      : 0;
                   return (
-                    <button
-                      key={chapter.id}
-                      type="button"
-                      className={`at-arc-pill${isActive ? ' is-active' : ''}`}
-                      aria-current={isActive ? 'true' : undefined}
-                      onClick={() => scrollToChapter(chapter.id)}
-                    >
-                      {i + 1}. {chapter.title}
-                    </button>
+                    <Fragment key={chapter.id}>
+                      {levelGained > 0 && (
+                        <span
+                          className="at-arc-levelup"
+                          title={`Leveled ${prev?.endLevel} → ${chapter.startLevel} between chapters`}
+                          aria-hidden="true"
+                        >
+                          ⬆ Lvl {chapter.startLevel}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        className={`at-arc-pill${isActive ? ' is-active' : ''}`}
+                        aria-current={isActive ? 'true' : undefined}
+                        onClick={() => scrollToChapter(chapter.id)}
+                      >
+                        {i + 1}. {chapter.title}
+                      </button>
+                    </Fragment>
                   );
                 })}
+                {ghostSessions.length > 0 && (
+                  <>
+                    {visibleChapters.length > 0 && (
+                      <span className="at-arc-divider" aria-hidden="true">·</span>
+                    )}
+                    {ghostSessions.map((session) => {
+                      const zone = session.endZone ?? session.startZone ?? 'The road';
+                      const lvl =
+                        typeof session.endLevel === 'number'
+                          ? ` · Lvl ${session.endLevel}`
+                          : '';
+                      return (
+                        <button
+                          key={`ghost_${session.id}`}
+                          type="button"
+                          className="at-arc-pill at-arc-ghost"
+                          onClick={() => jumpToGhostSession(session.id)}
+                          title="Un-penned session — jump to Session Trail to recap it"
+                        >
+                          ✎ {zone}{lvl}
+                        </button>
+                      );
+                    })}
+                  </>
+                )}
               </div>
             </section>
           )}
@@ -370,11 +439,17 @@ function buildChapters(entries: HistoryEntry[]): Chapter[] {
         zones: [zone],
         start: entry.timestamp,
         end: entry.timestamp,
+        startLevel: typeof entry.level === 'number' ? entry.level : undefined,
+        endLevel: typeof entry.level === 'number' ? entry.level : undefined,
       });
       continue;
     }
     last.entries.push(entry);
     last.end = entry.timestamp;
+    if (typeof entry.level === 'number') {
+      if (typeof last.startLevel !== 'number') last.startLevel = entry.level;
+      last.endLevel = entry.level;
+    }
     // Promote a richer title if this entry has one and the chapter is still
     // using its zone fallback.
     if (entry.title?.trim() && last.title === zone) {
@@ -683,6 +758,25 @@ function SessionTrail({
       setSelectedSessionId((firstEnriched ?? sessions[0]).id);
     }
   }, [sessions, selectedSessionId, enrichments]);
+
+  // Listen for Arc Map ghost-pill clicks: select the requested session and
+  // scroll its card into view. Defers scroll to next frame so the <details>
+  // open state lands before scrollIntoView.
+  useEffect(() => {
+    const onScrollRequest = (event: Event) => {
+      const targetId = (event as CustomEvent<string>).detail;
+      if (!targetId || !sessions.some((s) => s.id === targetId)) return;
+      setSelectedSessionId(targetId);
+      requestAnimationFrame(() => {
+        document.getElementById(`at-session-${targetId}`)?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      });
+    };
+    window.addEventListener('at:scroll-to-session', onScrollRequest);
+    return () => window.removeEventListener('at:scroll-to-session', onScrollRequest);
+  }, [sessions]);
 
   function jumpToEnrichedSession() {
     const target = sessions.find((s) => s.records.some((r) => enrichments[entryId(r.event)]));
