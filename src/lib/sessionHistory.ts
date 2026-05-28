@@ -121,9 +121,15 @@ function buildSession(bucket: SessionBucket, index: number, heroName: string): C
   const endEvent = [...records].reverse().find((r) => r.event.kind === 'session_end')?.event ?? last;
   const levelEvents = records
     .map((r) => r.event.playerLevel)
-    .filter((level): level is number => typeof level === 'number');
-  const startLevel = startEvent.playerLevel ?? levelEvents[0];
-  const endLevel = endEvent.playerLevel ?? levelEvents[levelEvents.length - 1];
+    .filter((level): level is number => typeof level === 'number' && level > 0);
+  // Prefer the observed chronological min/max over snapshot fields on the
+  // boundary events. PLAYER_LOGOUT in particular can capture a stale or
+  // teardown-state UnitLevel (we've seen level=1 at logout from a level-5
+  // character), which would otherwise collapse endLevel back to 1 and hide
+  // the "+N levels" delta on the session card.
+  const sortedLevels = [...levelEvents].sort((a, b) => a - b);
+  const startLevel = sortedLevels[0] ?? startEvent.playerLevel;
+  const endLevel = sortedLevels[sortedLevels.length - 1] ?? endEvent.playerLevel;
   const zonesVisited = unique(
     records
       .flatMap((r) => [r.event.zone, r.event.subZone])

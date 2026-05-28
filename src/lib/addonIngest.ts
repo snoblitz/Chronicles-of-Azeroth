@@ -193,8 +193,19 @@ export function commitImport(plan: ImportPlan, opts: CommitOptions): CommitResul
   // imported for the active bible.
   const biblePatch: NonNullable<CommitResult['biblePatch']> = {};
   if (latest && (imported > 0 || refreshed > 0)) {
-    if (typeof latest.playerLevel === 'number' && latest.playerLevel !== opts.bible.level) {
-      biblePatch.level = latest.playerLevel;
+    // Use the max observed level across accepted events, not the snapshot on
+    // the latest event by timestamp -- PLAYER_LOGOUT in particular can carry
+    // a teardown-stale UnitLevel that would drag the bible level backwards.
+    const acceptedLevels = plan.rawEvents
+      .filter((event) => {
+        const guid = event.char?.trim();
+        return guid ? accepted.has(guid) : opts.includeLegacy;
+      })
+      .map((event) => event.playerLevel)
+      .filter((level): level is number => typeof level === 'number' && level > 0);
+    const maxLevel = acceptedLevels.length > 0 ? Math.max(...acceptedLevels) : undefined;
+    if (typeof maxLevel === 'number' && maxLevel !== opts.bible.level) {
+      biblePatch.level = maxLevel;
     }
     if (latest.zone && latest.zone !== opts.bible.currentZone) {
       biblePatch.currentZone = latest.zone;
