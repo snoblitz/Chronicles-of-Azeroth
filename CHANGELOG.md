@@ -7,6 +7,17 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Changed — Launch strategy: phased ladder, not coordinated launch *(2026-05-28)*
+
+- **New doc: [`docs/LAUNCH-PLAN.md`](docs/LAUNCH-PLAN.md).** Replaces the
+  original *"nothing ships until all five tiers are coordinated"* framing
+  with a sequenced ladder (Friends & Strangers → Public free → Quill & Coin
+  → Companion → Chronicler/Loremaster). Each phase has a load-bearing
+  question, entry/exit gates, and an explicit kill criterion. The
+  architecture in `companion-architecture.md` is unchanged — only the
+  delivery sequencing is. `ROADMAP.md`'s strategic-constraint banner now
+  points at the launch plan as the source of truth for *when* things ship.
+
 ### Added — Inkwell + Chronicle pipeline *(2026-05-27 evening)*
 
 - **The Inkwell — authoring hub rebuild.** Renamed and relocated the

@@ -1,13 +1,18 @@
 # Roadmap
 
-> **Strategic constraint (2026-05-26):** Nothing ships to users until all
-> tiers (Free / Free+account / Companion / Chronicler / Loremaster) are
-> coordinated and right. No standalone slice launches. Items below labeled
-> "✅ Built (pre-launch)" exist in `main` but are not deployed to anyone.
+> **Launch sequencing (2026-05-28):** Launch order is now governed by
+> [`docs/LAUNCH-PLAN.md`](./LAUNCH-PLAN.md), which sequences each tier into
+> a phased ladder (Friends & Strangers → Public free → Quill & Coin →
+> Companion → Chronicler/Loremaster). This **supersedes** the original
+> *"nothing ships until all five tiers are coordinated"* framing — the
+> architecture is unchanged, but each phase now stands on its own
+> load-bearing question, gates, and kill criteria.
 >
 > **Canonical architecture:** [`docs/companion-architecture.md`](./companion-architecture.md).
 > The Phase 1 (standalone Electron) and Phase 2 (WoW addon) framing in this
 > doc's history is superseded by the multi-tier picture in that file.
+> Items below labeled *"✅ Built (pre-launch)"* exist in `main` but are
+> not yet deployed to users; the launch plan determines when they go live.
 
 ## Phase 0 — Browser POC  *(complete)*
 
