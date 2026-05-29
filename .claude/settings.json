@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:api.supabase.com)",
+      "WebFetch(domain:supabase.co)",
+      "WebFetch(domain:zukzghfbldvzbigqdirx.supabase.co)",
+      "Bash(curl:*.supabase.co*)",
+      "Bash(curl:*.supabase.com*)",
+      "Bash(curl:*api.supabase.com*)",
+      "Bash(npx supabase:*)",
+      "Bash(supabase:*)"
+    ]
+  }
+}
