@@ -126,7 +126,7 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
     if (busy) return;
     const c = (overrideCode ?? code).trim();
     if (c.length !== OTP_LENGTH || /\D/.test(c)) {
-      setError(`Enter the ${OTP_LENGTH}-digit code from your email.`);
+      setError(`Enter the ${OTP_LENGTH}-character code from your email.`);
       return;
     }
     setBusy(true);
@@ -163,7 +163,7 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
         {step === 'verify' ? (
           <>
             <p className="at-auth-blurb">
-              Enter the {OTP_LENGTH}-digit code we sent to <strong>{email.trim()}</strong>.
+              Enter the {OTP_LENGTH}-character code we sent to <strong>{email.trim()}</strong>.
             </p>
 
             <div className="at-auth-body">
