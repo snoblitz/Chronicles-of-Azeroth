@@ -33,6 +33,7 @@ import { getSupabase } from './supabase';
 import type { Database, Json } from '../types/supabase';
 import type { CharacterBible } from '../types';
 import { listBibles, getBibleByKey, putBibleFromCloud, setActiveBible } from './bibleStore';
+import { getStoredApiKey, setApiKey, getKeySyncEnabled, setKeySyncEnabled } from './apiKeys';
 import {
   loadEnrichments,
   saveEnrichments,
@@ -573,6 +574,10 @@ async function hydrate(uid: string): Promise<void> {
       }
     }
 
+    // Bring a synced BYOK key down to this device (or push this device's up).
+    // Best-effort: a key hiccup shouldn't flip the whole sync to error.
+    await reconcileKey(supabase, uid);
+
     writeOwner(uid);
     hydratedUid = uid;
     setStatus(hadError ? 'error' : 'synced', hadError ? 'Some changes didn’t save.' : undefined);
@@ -658,6 +663,70 @@ async function pushAll(): Promise<void> {
     syncing = false;
     drainPending();
   }
+}
+
+// ---------------------------------------------------------------------------
+// opt-in OpenRouter key sync (companion-architecture.md §6)
+//
+// The key is the user's own spendable credential. By default it stays in the
+// browser; if the user ticks "sync this key to my devices" we mirror it to
+// profiles.openrouter_key (RLS owner-scoped) so a new machine doesn't force a
+// re-paste. Inert while anonymous or when Supabase is unconfigured.
+// ---------------------------------------------------------------------------
+
+async function fetchCloudKey(supabase: Client, uid: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('openrouter_key')
+    .eq('id', uid)
+    .maybeSingle();
+  if (error) {
+    console.warn('[cloudSync] fetch key failed:', error.message);
+    return null;
+  }
+  return (data?.openrouter_key ?? null) || null;
+}
+
+async function writeCloudKey(supabase: Client, uid: string, key: string | null): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .upsert({ id: uid, openrouter_key: key }, { onConflict: 'id' });
+  if (error) console.warn('[cloudSync] write key failed:', error.message);
+}
+
+/** Reconcile the BYOK key during hydrate. Pull a synced key down to a device
+ *  that has none; push this device's key up if it opted in and differs. */
+async function reconcileKey(supabase: Client, uid: string): Promise<void> {
+  try {
+    const cloudKey = await fetchCloudKey(supabase, uid);
+    const localKey = getStoredApiKey('openrouter');
+    if (cloudKey && !localKey) {
+      // A synced key exists for this account; this device has none — adopt it,
+      // and remember the sync preference here too.
+      setApiKey('openrouter', cloudKey);
+      setKeySyncEnabled('openrouter', true);
+    } else if (getKeySyncEnabled('openrouter') && localKey && localKey !== cloudKey) {
+      await writeCloudKey(supabase, uid, localKey);
+    }
+  } catch (err) {
+    console.warn('[cloudSync] key reconcile threw:', err);
+  }
+}
+
+/**
+ * Push or clear the cloud copy of the key from the current local opt-in state.
+ * Called from Settings when the user saves a key or toggles the sync checkbox.
+ * No-op while anonymous or unconfigured.
+ */
+export async function syncOpenRouterKey(): Promise<void> {
+  const supabase = getSupabase();
+  if (!supabase) return;
+  const { data } = await supabase.auth.getSession();
+  const user = data.session?.user ?? null;
+  if (!user || user.is_anonymous) return;
+  const enabled = getKeySyncEnabled('openrouter');
+  const localKey = getStoredApiKey('openrouter');
+  await writeCloudKey(supabase, user.id, enabled ? (localKey || null) : null);
 }
 
 // ---------------------------------------------------------------------------

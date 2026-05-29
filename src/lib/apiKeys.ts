@@ -40,6 +40,19 @@ export function getApiKey(provider: Provider): string {
   return envKey(provider);
 }
 
+/**
+ * The key as actually stored in this browser's localStorage, ignoring the
+ * build-time env fallback. Cloud sync uses this so a `.env.local` dev key is
+ * never uploaded — only a key the user pasted in themselves.
+ */
+export function getStoredApiKey(provider: Provider): string {
+  try {
+    return window.localStorage.getItem(storageKey(provider))?.trim() ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export function setApiKey(provider: Provider, value: string): void {
   const trimmed = value.trim();
   if (!trimmed) {
@@ -84,4 +97,31 @@ function maskKey(key: string): string {
   if (!key) return '—';
   if (key.length <= 8) return '••••';
   return `••••${key.slice(-4)}`;
+}
+
+// ---------------------------------------------------------------------------
+// Opt-in cloud sync of the key (off by default).
+//
+// This module only tracks the *preference* locally; the actual upload/download
+// lives in cloudSync.ts (which owns the Supabase client). Keeping it here means
+// apiKeys.ts stays dependency-free. See companion-architecture.md §6.
+// ---------------------------------------------------------------------------
+
+const SYNC_FLAG_PREFIX = 'at.apikey.sync.';
+
+export function getKeySyncEnabled(provider: Provider): boolean {
+  try {
+    return window.localStorage.getItem(SYNC_FLAG_PREFIX + provider) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setKeySyncEnabled(provider: Provider, enabled: boolean): void {
+  try {
+    if (enabled) window.localStorage.setItem(SYNC_FLAG_PREFIX + provider, '1');
+    else window.localStorage.removeItem(SYNC_FLAG_PREFIX + provider);
+  } catch {
+    // non-fatal
+  }
 }

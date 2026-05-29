@@ -4,8 +4,12 @@ import {
   clearApiKey,
   getKeyStatus,
   setApiKey,
+  getKeySyncEnabled,
+  setKeySyncEnabled,
   type KeyStatus,
 } from '../lib/apiKeys';
+import { isSupabaseConfigured } from '../lib/supabase';
+import { syncOpenRouterKey } from '../lib/cloudSync';
 import { getShowScribesDesk, setShowScribesDesk } from '../lib/featureFlags';
 import { ModelPicker } from './ModelPicker';
 import { useSelectedModelIdx } from '../lib/modelChoices';
@@ -210,6 +214,8 @@ function ApiKeysSection() {
   const [status, setStatus] = useState<KeyStatus>(() => getKeyStatus('openrouter'));
   const [draft, setDraft] = useState('');
   const [reveal, setReveal] = useState(false);
+  const [syncKey, setSyncKey] = useState<boolean>(() => getKeySyncEnabled('openrouter'));
+  const canSync = isSupabaseConfigured();
 
   function save() {
     const value = draft.trim();
@@ -217,12 +223,23 @@ function ApiKeysSection() {
     setApiKey('openrouter', value);
     setStatus(getKeyStatus('openrouter'));
     setDraft('');
+    // If the user has opted into syncing, push the freshly-saved key up.
+    if (canSync && getKeySyncEnabled('openrouter')) void syncOpenRouterKey();
   }
 
   function clear() {
     if (!window.confirm('Remove the saved OpenRouter key from this browser?')) return;
     clearApiKey('openrouter');
     setStatus(getKeyStatus('openrouter'));
+    // Clearing locally also clears the cloud copy if we were syncing.
+    if (canSync && getKeySyncEnabled('openrouter')) void syncOpenRouterKey();
+  }
+
+  function toggleSync(next: boolean) {
+    setSyncKey(next);
+    setKeySyncEnabled('openrouter', next);
+    // Push the key up (next=true) or clear the cloud copy (next=false).
+    void syncOpenRouterKey();
   }
 
   return (
@@ -288,6 +305,28 @@ function ApiKeysSection() {
         </a>
         .
       </p>
+
+      {canSync && (
+        <div style={{ marginTop: '1rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border)' }}>
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.55rem', cursor: 'pointer', fontSize: 14 }}>
+            <input
+              type="checkbox"
+              checked={syncKey}
+              onChange={(e) => toggleSync(e.target.checked)}
+              style={{ marginTop: 3 }}
+            />
+            <span>
+              Sync this key to my other devices
+              <span className="muted" style={{ display: 'block', fontSize: 12, marginTop: 2, lineHeight: 1.5 }}>
+                Stored on your account so a new browser or machine works without re-pasting.
+                It’s your key — if you ever suspect it’s exposed, rotate it at{' '}
+                <a href="https://openrouter.ai/keys" target="_blank" rel="noreferrer noopener">openrouter.ai/keys</a>.
+                {' '}Off by default; only synced while this is checked.
+              </span>
+            </span>
+          </label>
+        </div>
+      )}
     </SectionShell>
   );
 }

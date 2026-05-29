@@ -233,6 +233,7 @@ export type Database = {
           display_name: string | null
           id: string
           migrated_at: string | null
+          openrouter_key: string | null
           tier: string
           updated_at: string
         }
@@ -241,6 +242,7 @@ export type Database = {
           display_name?: string | null
           id: string
           migrated_at?: string | null
+          openrouter_key?: string | null
           tier?: string
           updated_at?: string
         }
@@ -249,6 +251,7 @@ export type Database = {
           display_name?: string | null
           id?: string
           migrated_at?: string | null
+          openrouter_key?: string | null
           tier?: string
           updated_at?: string
         }

@@ -7,6 +7,21 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Added — Opt-in OpenRouter key sync *(2026-05-29)*
+
+- **"Sync this key to my devices"** checkbox in Settings → API Keys (off by
+  default). When on, the OpenRouter key mirrors to `profiles.openrouter_key`
+  (RLS owner-scoped) so signing in on a new box doesn't force a re-paste; when
+  off, the key stays browser-local exactly as before. On sign-in, a synced key
+  is pulled down to a device that has none. Stored plaintext (BYOK is used
+  client-side; no usable server-side encryption under OTP auth) — the opt-in
+  copy tells the user the risk is financial-only and revocable at
+  openrouter.ai. New migration `20260529060000_add_profiles_openrouter_key.sql`,
+  `getStoredApiKey` / `getKeySyncEnabled` / `setKeySyncEnabled` in `apiKeys.ts`,
+  `syncOpenRouterKey()` + hydrate-time `reconcileKey()` in `cloudSync.ts`.
+  Inert while anonymous or when Supabase is unconfigured. Amends
+  `companion-architecture.md` §6.
+
 ### Fixed — Cross-device sync: hero not appearing after sign-in *(2026-05-29)*
 
 Signing in on a second device showed the "✓ Backed up" pill but the

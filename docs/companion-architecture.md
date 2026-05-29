@@ -148,7 +148,7 @@ Disney+, and gh CLI use.
 | Raw events | localStorage | localStorage only | cloud (source of truth) |
 | Enriched chapters | localStorage | localStorage + cloud backup | cloud (source of truth) |
 | Bible | localStorage | localStorage + cloud backup | cloud, editable from any device |
-| API key (BYOK) | localStorage only | localStorage only | n/a (managed) |
+| API key (BYOK) | localStorage only | localStorage; **opt-in** cloud sync | n/a (managed) |
 
 **Free + account cloud backup (E1, Phase A):** a signed-in account gets its
 **bible + enriched chapters + session recaps** mirrored to Supabase as a
@@ -158,6 +158,17 @@ narrative is backed up. Conflict resolution is **last-write-wins per character**
 on a client-side timestamp (max save time across bible / enrichments / recaps),
 so a stale device can't silently clobber newer work, and the empty cloud of a
 brand-new account never wins over local data on the anon→account upgrade.
+
+**BYOK key sync (opt-in, default off):** the OpenRouter key is the user's own
+spendable credential, so by default it never leaves the browser. A
+**"sync this key to my devices"** checkbox in Settings → API Keys mirrors it to
+`profiles.openrouter_key` (RLS owner-scoped) so a new machine doesn't force a
+re-paste. Stored plaintext — BYOK is used client-side, so there's no usable
+server-side encryption path under OTP auth (that arrives with the Companion
+managed-key path, which removes BYOK entirely). Blast radius if the DB is
+breached is **financial-only and instantly revocable** at openrouter.ai;
+the opt-in copy says exactly that. Original default (localStorage-only) is
+preserved for anyone who leaves the box unchecked.
 
 **Rule:** the user can always export their entire chronicle as JSON +
 `AftertaleRestore.lua`. No lock-in. Cancellation doesn't delete data.
