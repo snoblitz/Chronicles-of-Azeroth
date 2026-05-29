@@ -245,6 +245,15 @@ function fireBibleUpdated(bible: CharacterBible | null): void {
   }
 }
 
+// Fired whenever the roster index changes (add / remove / re-activate). The app
+// shell listens for this to refresh the active hero, and cloud sync uses it as
+// a reliable push trigger even when the mutated hero isn't the active one.
+function fireRosterUpdated(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('at:bible-roster-updated'));
+  }
+}
+
 // ---------------------------------------------------------------------------
 // one-time backfill: add fears/flaws/coreQuote to seed characters created
 // before those fields existed. Identified by createdAt (stable per bible).
@@ -373,6 +382,7 @@ export function saveBible(bible: CharacterBible): BibleEnvelope {
   if (!roster.keys.includes(key)) roster.keys.push(key);
   roster.activeKey = key;
   writeRoster(roster);
+  fireRosterUpdated();
   fireBibleUpdated(bible);
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -392,6 +402,7 @@ export function clearBible(): void {
   if (roster.activeKey === null) return;
   roster.activeKey = null;
   writeRoster(roster);
+  fireRosterUpdated();
   fireBibleUpdated(null);
 }
 
@@ -428,6 +439,7 @@ export function setActiveBible(key: string): CharacterBible | null {
   if (!roster.keys.includes(key)) roster.keys.push(key);
   roster.activeKey = key;
   writeRoster(roster);
+  fireRosterUpdated();
   fireBibleUpdated(bible);
   return bible;
 }
@@ -454,6 +466,7 @@ export function deleteBible(key: string): void {
   } catch (err) {
     console.warn('[bibleStore] failed to sweep NPC threads for', key, err);
   }
+  fireRosterUpdated();
   if (wasActive) fireBibleUpdated(null);
 }
 
@@ -472,6 +485,33 @@ export function loadPresetCharacter(preset: CharacterBible): CharacterBible {
   }
   saveBible(preset);
   return preset;
+}
+
+// ---------------------------------------------------------------------------
+// public API — cloud-sync support (read/write by explicit key, no active change)
+// ---------------------------------------------------------------------------
+
+/** Read a bible by its roster key without touching the active pointer. */
+export function getBibleByKey(key: string): CharacterBible | null {
+  migrateLegacyIfPresent();
+  return readEntry(key);
+}
+
+/**
+ * Write a bible received from cloud sync into local storage. Ensures it's in
+ * the roster but never changes which hero is active. Fires a roster-updated
+ * event (and bible-updated only when this is the active hero) so the UI
+ * refreshes. Hydration code wraps calls in a push-suppression guard, so the
+ * resulting events do not re-trigger an upload.
+ */
+export function putBibleFromCloud(bible: CharacterBible): void {
+  const key = bibleKey(bible);
+  writeEntry(bible);
+  ensureBibleInRoster(bible);
+  fireRosterUpdated();
+  if (readRoster().activeKey === key) {
+    fireBibleUpdated(bible);
+  }
 }
 
 // ---------------------------------------------------------------------------

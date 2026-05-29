@@ -86,3 +86,13 @@ export function clearSessionRecaps(characterKey: string): void {
     // ignore
   }
 }
+
+/**
+ * Bulk-overwrite a character's entire recap map. Used by cloud sync to hydrate
+ * recaps pulled from the server. Cloud hydration wraps this in a push guard so
+ * the resulting event doesn't bounce straight back as an upload.
+ */
+export function replaceSessionRecaps(characterKey: string, map: SessionRecapMap): void {
+  if (!characterKey) return;
+  saveAll(characterKey, map);
+}

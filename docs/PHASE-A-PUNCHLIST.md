@@ -21,14 +21,21 @@ to be edited, not preserved — it gets archived once Phase A is live.
 
 The actual build work. Bounded; ~5–6 working days end-to-end.
 
-- [ ] **E1. Cloud sync of bibles + chapters** for signed-in users.
-  - Scope: localStorage → cloud on change, cloud → localStorage on
+- [x] **E1. Cloud sync of bibles + chapters** for signed-in users. ✅ *(impl: `src/lib/cloudSync.ts`, wired in `App.tsx`)*
+  - Scope: localStorage → cloud (debounced) on change, cloud → localStorage on
     sign-in. No realtime. Last-write-wins per character.
+  - Storage: per-character bundle `{ bible, enrichments, sessionRecaps }` in the
+    `bible.data` jsonb column (one row/character). `chapters` table left empty
+    until Companion models it (trivial server-side backfill later).
   - **Events stay localStorage-only** in Phase A. Schema's still evolving
     and the volume is heavy; don't open that can until Companion.
-  - Conflict story: cloud version wins on hydrate when a second device
-    has a different anonymous bible. Document in
-    `companion-architecture.md` §6.
+  - Conflict story (as built): per-character LWW on a **client** timestamp
+    (`data.sync.modifiedAt` = max save time across bible/enrichments/recaps).
+    anon→account **upgrade** (same uid, empty cloud) pushes local up — the empty
+    cloud never wins. **Fresh sign-in** to an account that already has cloud data
+    is cloud-authoritative; the device's un-owned local heroes are abandoned to
+    do-not-sync (kept locally, never pushed) rather than polluting the account.
+    Documented in `companion-architecture.md` §6.
   - Effort: **2–3 days**.
 - [ ] **E2. Privacy + Terms routes** at `/privacy` and `/terms`.
   - Wire into the SPA fallback the way `/auth/callback` is. Real React
@@ -194,9 +201,12 @@ shouldn't sound like a Stripe-style signup.
   surface.
 - [ ] **EX2. Don't add CurseForge / Wago links anywhere yet.** The
   addon isn't published there. Direct GitHub Release link only.
-- [ ] **EX3. `docs/companion-architecture.md` §6 update.**
-  - Document the cloud sync conflict story (cloud wins on hydrate
-    on second-device sign-in).
+- [x] **EX3. `docs/companion-architecture.md` §6 update.** ✅
+  - Resolved the moat contradiction: narrowed "Cloud sync" moat to
+    *automatic, cross-device live* sync; bible/chapter **backup** is a
+    Free+account feature. Documented the per-character LWW conflict story
+    (upgrade pushes up; fresh-device sign-in is cloud-authoritative). Corrected
+    the table — raw events are localStorage-only at Free+account.
 
 ### 2.4 Tone / framing pass
 

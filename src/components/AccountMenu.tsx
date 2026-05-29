@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAuth, signOut } from '../lib/auth';
+import { getSyncStatus, retrySync, SYNC_STATUS_EVENT, type SyncStatus } from '../lib/cloudSync';
 import { SaveChronicleModal, type AuthModalMode } from './SaveChronicleModal';
 import type { SettingsSectionId } from './SettingsPanel';
 
@@ -7,10 +8,62 @@ interface AccountMenuProps {
   onOpenSettings?: (section?: SettingsSectionId) => void;
 }
 
+// Subscribe to the cloud-sync engine's observable status.
+function useSyncStatus(): SyncStatus {
+  const [status, setStatus] = useState<SyncStatus>(() => getSyncStatus());
+  useEffect(() => {
+    const onStatus = (e: Event) => setStatus((e as CustomEvent<SyncStatus>).detail);
+    window.addEventListener(SYNC_STATUS_EVENT, onStatus);
+    setStatus(getSyncStatus()); // re-sync in case it changed before we mounted
+    return () => window.removeEventListener(SYNC_STATUS_EVENT, onStatus);
+  }, []);
+  return status;
+}
+
+// Small inline pill showing the live cloud-sync state next to the account button.
+function SyncPill({ status }: { status: SyncStatus }) {
+  if (status.state === 'idle') return null;
+
+  const base = {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    fontSize: 12, lineHeight: 1, padding: '4px 8px', borderRadius: 'var(--r-md)',
+    border: '1px solid transparent', whiteSpace: 'nowrap' as const,
+  };
+
+  if (status.state === 'syncing') {
+    return (
+      <span style={{ ...base, color: 'var(--fg-muted)', borderColor: 'rgba(255,240,200,0.12)' }} title="Backing up to the cloud…">
+        ⟳ Syncing…
+      </span>
+    );
+  }
+  if (status.state === 'synced') {
+    return (
+      <span style={{ ...base, color: '#7fd18b', borderColor: 'rgba(127,209,139,0.25)' }} title="Your chronicle is safely backed up.">
+        ✓ Backed up
+      </span>
+    );
+  }
+  // error
+  return (
+    <span
+      style={{ ...base, color: '#e8a87c', borderColor: 'rgba(232,168,124,0.3)', cursor: 'pointer' }}
+      title={status.error ? `${status.error} Click to retry.` : 'Sync failed. Click to retry.'}
+      role="button"
+      tabIndex={0}
+      onClick={() => void retrySync()}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') void retrySync(); }}
+    >
+      ⚠ Sync failed — retry
+    </span>
+  );
+}
+
 // Top-right account control for the app shell. Anonymous-by-default: account
 // creation is framed as preserving the chronicle, never as a gate.
 export function AccountMenu({ onOpenSettings }: AccountMenuProps = {}) {
   const { status, email } = useAuth();
+  const syncStatus = useSyncStatus();
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<AuthModalMode>('save');
   const [menuOpen, setMenuOpen] = useState(false);
@@ -70,6 +123,7 @@ export function AccountMenu({ onOpenSettings }: AccountMenuProps = {}) {
 
       {status === 'authed' && (
         <>
+          <SyncPill status={syncStatus} />
           <button
             type="button"
             className="at-btn at-btn-secondary at-btn-sm"

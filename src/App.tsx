@@ -9,6 +9,7 @@ import { ScribesDesk } from './components/ScribesDesk';
 import { getKeyStatus } from './lib/apiKeys';
 import { getShowScribesDesk } from './lib/featureFlags';
 import { ensureAnonymousSession } from './lib/auth';
+import { initCloudSync } from './lib/cloudSync';
 import { DEV_TOOLS_ENABLED } from './lib/devTools';
 import { loadBible } from './lib/bibleStore';
 import type { CharacterBible } from './types';
@@ -100,6 +101,9 @@ export function App() {
   // this device's data has a stable owner_id (no-op when Supabase is unconfigured).
   useEffect(() => {
     void ensureAnonymousSession();
+    // Mirror this account's heroes to the cloud once signed in (no-op while
+    // anonymous or when Supabase is unconfigured).
+    initCloudSync();
   }, []);
 
   // First-run nudge: if no key, pop the settings panel automatically to API Keys.

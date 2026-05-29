@@ -145,10 +145,19 @@ Disney+, and gh CLI use.
 
 | Data | Free (anon) | Free + account | Companion |
 |---|---|---|---|
-| Raw events | localStorage | localStorage + cloud mirror | cloud (source of truth) |
-| Enriched chapters | localStorage | localStorage + cloud mirror | cloud (source of truth) |
-| Bible | localStorage | localStorage + cloud mirror | cloud, editable from any device |
+| Raw events | localStorage | localStorage only | cloud (source of truth) |
+| Enriched chapters | localStorage | localStorage + cloud backup | cloud (source of truth) |
+| Bible | localStorage | localStorage + cloud backup | cloud, editable from any device |
 | API key (BYOK) | localStorage only | localStorage only | n/a (managed) |
+
+**Free + account cloud backup (E1, Phase A):** a signed-in account gets its
+**bible + enriched chapters + session recaps** mirrored to Supabase as a
+backup/restore safety net (localStorage stays the working copy). **Raw events
+are not synced** at this tier — they stay device-local; only the derived
+narrative is backed up. Conflict resolution is **last-write-wins per character**
+on a client-side timestamp (max save time across bible / enrichments / recaps),
+so a stale device can't silently clobber newer work, and the empty cloud of a
+brand-new account never wins over local data on the anon→account upgrade.
 
 **Rule:** the user can always export their entire chronicle as JSON +
 `AftertaleRestore.lua`. No lock-in. Cancellation doesn't delete data.
@@ -177,7 +186,10 @@ and engineered as a natural step toward a subscription upsell.
 are the subscription's defensible moat):
 - Gameplay monitoring / automated capture
 - Push notifications / mobile delivery
-- Cloud sync
+- Automatic, cross-device **live** sync (raw events + managed enrichment,
+  source-of-truth in cloud, editable from any device). *(Note: a Free+account
+  user still gets bible/chapter **backup** sync — see §6. The moat is the
+  automatic, event-level, multi-device experience, not backup itself.)*
 - Ongoing saga memory across chapters
 - Public hero page
 - Audio narration

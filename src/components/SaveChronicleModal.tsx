@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { saveChronicle, signIn } from '../lib/auth';
+import { saveChronicle, signIn, verifyCode } from '../lib/auth';
 
 export type AuthModalMode = 'save' | 'signin';
 
@@ -11,23 +11,22 @@ interface Props {
   onSwitchMode: (mode: AuthModalMode) => void;
 }
 
+const RESEND_COOLDOWN_S = 30;
+
 const COPY = {
   save: {
     title: 'Save your chronicle',
     blurb:
-      "Your hero lives in this browser — and only this browser. Tie them to an email and your chronicle survives a cleared cache, a new phone, even a different machine. Until then, this browser is the only key. No password to remember.",
-    cta: 'Send me the link',
-    sent: (email: string) =>
-      `Check ${email} for a link to save your chronicle. Click it and you're set — same hero, now safe.`,
+      "Your hero lives in this browser — and only this browser. Tie them to an email and your chronicle survives a cleared cache, a new phone, even a different machine. No password to remember.",
+    cta: 'Send me a code',
     switchPrompt: 'Already have an account?',
     switchLabel: 'Sign in instead',
   },
   signin: {
     title: 'Welcome back',
     blurb:
-      "Enter the email tied to your chronicle and we'll send a one-tap sign-in link. No password needed.",
-    cta: 'Send sign-in link',
-    sent: (email: string) => `Check ${email} for your sign-in link.`,
+      "Enter the email tied to your chronicle and we'll send a 6-digit code. No password needed.",
+    cta: 'Send me a code',
     switchPrompt: 'New here?',
     switchLabel: 'Save your chronicle',
   },
@@ -38,18 +37,39 @@ function isValidEmail(value: string): boolean {
 }
 
 export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props) {
+  const [step, setStep] = useState<'request' | 'verify'>('request');
   const [email, setEmail] = useState('');
+  const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [conflict, setConflict] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function resetAll() {
+    setStep('request');
+    setEmail('');
+    setCode('');
+    setBusy(false);
+    setError(null);
+    setConflict(false);
+    setCooldown(0);
+    if (cooldownTimer.current) {
+      clearInterval(cooldownTimer.current);
+      cooldownTimer.current = null;
+    }
+  }
 
   useEffect(() => {
     if (!open) return;
-    setEmail('');
-    setBusy(false);
-    setError(null);
-    setSentTo(null);
+    resetAll();
   }, [open, mode]);
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimer.current) clearInterval(cooldownTimer.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +84,21 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
 
   const copy = COPY[mode];
 
-  async function submit() {
+  function startCooldown() {
+    setCooldown(RESEND_COOLDOWN_S);
+    if (cooldownTimer.current) clearInterval(cooldownTimer.current);
+    cooldownTimer.current = setInterval(() => {
+      setCooldown((s) => {
+        if (s <= 1 && cooldownTimer.current) {
+          clearInterval(cooldownTimer.current);
+          cooldownTimer.current = null;
+        }
+        return Math.max(0, s - 1);
+      });
+    }, 1000);
+  }
+
+  async function requestCode(isResend = false) {
     const value = email.trim();
     if (!isValidEmail(value)) {
       setError('That doesn’t look like an email address.');
@@ -72,13 +106,37 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
     }
     setBusy(true);
     setError(null);
-    const { error } = mode === 'save' ? await saveChronicle(value) : await signIn(value);
+    setConflict(false);
+    const { error, conflict: isConflict } = mode === 'save'
+      ? await saveChronicle(value)
+      : await signIn(value);
+    setBusy(false);
+    if (error) {
+      setError(error);
+      setConflict(Boolean(isConflict));
+      return;
+    }
+    setCode('');
+    setStep('verify');
+    if (isResend) startCooldown();
+  }
+
+  async function submitCode() {
+    const c = code.trim();
+    if (!/^\d{6}$/.test(c)) {
+      setError('Enter the 6-digit code from your email.');
+      return;
+    }
+    setBusy(true);
+    setError(null);
+    const { error } = await verifyCode(email.trim(), c, mode);
     setBusy(false);
     if (error) {
       setError(error);
       return;
     }
-    setSentTo(value);
+    // Auth state flips via onAuthStateChange → useAuth → cloud sync hydrates.
+    onClose();
   }
 
   return createPortal(
@@ -97,20 +155,68 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
           </button>
         </header>
 
-        {sentTo ? (
+        {step === 'verify' ? (
           <>
             <p style={{ marginTop: 0, fontFamily: 'var(--font-body)', fontSize: 16 }}>
-              📜 {copy.sent(sentTo)}
+              📜 Enter the 6-digit code we sent to <strong style={{ color: 'var(--fg)' }}>{email.trim()}</strong>.
             </p>
-            <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>
-              <strong style={{ color: 'var(--fg)' }}>Open the link in this same browser</strong> — that’s
-              how we keep your session secure. On a phone, the link in your mail app may open in an
-              in-app browser; if you’re reading email here on your computer, click it here too.
-              Didn’t get it? Check spam, or close and try again.
+
+            <div className="at-settings-row">
+              <input
+                className="at-input"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                placeholder="123456"
+                value={code}
+                autoFocus
+                maxLength={6}
+                spellCheck={false}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !busy) submitCode();
+                }}
+              />
+              <button
+                type="button"
+                className="at-btn at-btn-primary"
+                onClick={submitCode}
+                disabled={busy || code.trim().length !== 6}
+              >
+                {busy ? 'Verifying…' : 'Verify'}
+              </button>
+            </div>
+
+            {error && (
+              <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0.6rem 0 0' }}>{error}</p>
+            )}
+
+            <p className="muted" style={{ margin: '0.85rem 0 0', fontSize: 13, lineHeight: 1.5 }}>
+              Codes expire shortly and can only be used once. Didn’t get it? Check spam, then{' '}
+              <button
+                type="button"
+                disabled={busy || cooldown > 0}
+                onClick={() => requestCode(true)}
+                style={{
+                  background: 'none', border: 'none', padding: 0, font: 'inherit',
+                  color: cooldown > 0 ? 'var(--fg-muted)' : 'var(--gold-bright)',
+                  textDecoration: 'underline', cursor: cooldown > 0 ? 'default' : 'pointer',
+                }}
+              >
+                {cooldown > 0 ? `resend in ${cooldown}s` : 'resend the code'}
+              </button>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => { resetAll(); }}
+                style={{
+                  background: 'none', border: 'none', padding: 0, font: 'inherit',
+                  color: 'var(--gold-bright)', textDecoration: 'underline', cursor: 'pointer',
+                }}
+              >
+                use a different email
+              </button>
             </p>
-            <footer className="at-modal-footer">
-              <button className="at-btn at-btn-secondary" onClick={onClose}>Done</button>
-            </footer>
           </>
         ) : (
           <>
@@ -128,13 +234,13 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
                 spellCheck={false}
                 onChange={(e) => setEmail(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !busy) submit();
+                  if (e.key === 'Enter' && !busy) requestCode();
                 }}
               />
               <button
                 type="button"
                 className="at-btn at-btn-primary"
-                onClick={submit}
+                onClick={() => requestCode()}
                 disabled={busy || !email.trim()}
               >
                 {busy ? 'Sending…' : copy.cta}
@@ -142,7 +248,24 @@ export function SaveChronicleModal({ open, mode, onClose, onSwitchMode }: Props)
             </div>
 
             {error && (
-              <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0.6rem 0 0' }}>{error}</p>
+              <p style={{ color: 'var(--danger)', fontSize: 13, margin: '0.6rem 0 0' }}>
+                {error}
+                {conflict && mode === 'save' && (
+                  <>
+                    {' '}
+                    <button
+                      type="button"
+                      onClick={() => onSwitchMode('signin')}
+                      style={{
+                        background: 'none', border: 'none', padding: 0, font: 'inherit',
+                        color: 'var(--gold-bright)', textDecoration: 'underline', cursor: 'pointer',
+                      }}
+                    >
+                      Sign in instead?
+                    </button>
+                  </>
+                )}
+              </p>
             )}
 
             <p className="muted" style={{ margin: '0.85rem 0 0', fontSize: 13 }}>
