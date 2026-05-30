@@ -949,6 +949,7 @@ SLASH_Aftertale2 = "/at"
 
 local function cmdHelp()
   print(CHAT_TAG .. " commands:")
+  print("  /aftertale hub               -- open the main Aftertale window (overview + tabs)")
   print("  /aftertale book              -- open the Chronicle (your in-game adventure album)")
   print("  /aftertale sync              -- import enriched paragraphs from the web companion")
   print("  /aftertale config            -- open the settings panel (UX toggles)")
@@ -1304,6 +1305,9 @@ SlashCmdList.Aftertale = function(msg)
   elseif cmd == "character" then cmdCharacterReset(arg)
   elseif cmd == "enrichment" then cmdEnrichment(arg)
   elseif cmd == "log" or cmd == "logs" then cmdLog(arg)
+  elseif cmd == "hub" or cmd == "open" or cmd == "window" then
+    if NS and NS.OpenHub then NS.OpenHub()
+    else print(CHAT_TAG .. " hub UI not loaded yet -- /reload and retry.") end
   elseif cmd == "config" or cmd == "settings" or cmd == "options" then
     if NS and NS.OpenSettings then NS.OpenSettings()
     else print(CHAT_TAG .. " settings UI not loaded yet -- /reload and retry.") end

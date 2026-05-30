@@ -16,6 +16,7 @@ Lore\Templates.lua
 Lore\Scribe.lua
 UI\Style.lua
 UI\MinimapPopover.lua
+UI\Hub.lua
 UI\StoryCard.lua
 UI\MinimapButton.lua
 UI\SessionRecap.lua

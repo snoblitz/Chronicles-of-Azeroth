@@ -7,6 +7,34 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Added — Hub window: the addon's main surface *(2026-05-30)*
+
+A new full-window UI behind `/at hub` (and `/at open`). One 9-slice gold-on-violet
+framed dialog with a five-tab strip: **Overview · Moments · Milestones · Watch ·
+Settings**. The Overview tab is fully wired in this pass; the rest render a
+placeholder until their modules land.
+
+The **Overview** tab is the dashboard the mockup calls for:
+
+- **Story at a Glance** — a 3×2 grid of stat tiles reading live from `db.events`:
+  Moments Captured, Time Recorded, Zones Visited, Quests Completed, Achievements
+  Earned, Dungeons Completed.
+- **Recent Moments** — the latest five narrative events (quest accept/turn-in,
+  zone entered, level-up, achievement, encounter end) with `Today, 7:42 PM` /
+  `Yesterday, …` / `May 27, 6:33 PM` timestamps.
+- **Footer** — "Recording since *March 12, 2026*" on the left; **View All Moments**
+  (jumps to the Moments tab) and **Open Chronicle** (copy-paste popup with the
+  aftertale.gg URL) on the right.
+
+Icons are Unicode glyphs (✦ ○ ✧ ❖ ⚜ ♜) in v1 — same vibe as the bullets already on
+the popover. Real illustrated icons land in a follow-up asset pass.
+
+Plumbing: the Hub registers itself in `UISpecialFrames` so ESC closes it, listens
+to the same narrative-event signal bus the popover uses for live refresh, and is
+movable by drag. The minimap-button behavior is **unchanged** in this pass — left
+click still opens the popover; the Hub is reachable via slash command. Wiring the
+popover to open the Hub on body-click + gear-click happens in the next commit.
+
 ### Changed — settings panel adopts the brand 9-slice *(2026-05-29)*
 
 The config panel wore Peterodox's YUI parchment (GenericFrame.png + Divider.png
