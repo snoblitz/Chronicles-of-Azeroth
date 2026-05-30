@@ -7,6 +7,24 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Fixed — real frame asset replaces the spec-sheet mockup *(2026-05-29)*
+
+The PNG at both frame paths was the **annotation/spec-sheet** export
+(1122×1402, with title text, an "IMAGE FILE" caption, a slice diagram, and a
+coordinate-labeled breakdown) — not a clean asset. Because the 9-slice math
+sampled texcoords across the *whole* image, the addon and the web were
+literally rendering chunks of label text and the diagram as the "frame."
+
+- Replaced both `public/frame/aftertale-9slice-frame.png` and
+  `addon/Aftertale/Art/frame/aftertale-9slice-frame.png` with the clean
+  1024×1024 square frame (gold star sigils, violet rails, dark center for the
+  panel fill). File weight dropped 1.03 MB → 499 KB in the process.
+- Re-measured the corner slice with `tools/measure-frame-slice.py`: the star
+  sigils run out to ~71px, so the old `64`-slice **clipped them**. Bumped the
+  slice to `80`:
+  - `src/index.css` → `border-image-slice: 80 fill;`
+  - `addon/Aftertale/UI/Style.lua` → `SC = 0.0781`, `LC = 0.9219` (80/1024).
+
 ### Changed — AftertaleFrame goes live on web + in-game *(2026-05-29)*
 
 With the PNG in the repo, both surfaces pick up the brand frame:

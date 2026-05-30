@@ -159,9 +159,12 @@ local FRAME_ART = "Art\\frame\\aftertale-9slice-frame.png"
 -- (or .tga) is in the repo. Until then the framed panel falls back to flat.
 S.FRAME_PNG_READY = true
 
--- Normalized texcoords: slice is 64/1024 = 0.0625, inner band is 960/1024 = 0.9375
-local SC = 0.0625
-local LC = 0.9375
+-- Normalized texcoords: slice is 80/1024 = 0.0781, inner band is 944/1024 = 0.9219.
+-- 80px (not the old 64) because the corner star sigils run out to ~71px from the
+-- corner on the clean asset; a 64px slice clipped them. Measured via
+-- tools/measure-frame-slice.py against the shipped 1024x1024 PNG.
+local SC = 0.0781
+local LC = 0.9219
 local SLICE = {
   tl     = { 0,  SC, 0,  SC },
   top    = { SC, LC, 0,  SC },
