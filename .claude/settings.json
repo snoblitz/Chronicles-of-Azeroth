@@ -11,5 +11,18 @@
       "Bash(npx supabase:*)",
       "Bash(supabase:*)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./tools/check-lua-compat.sh"
+          }
+        ]
+      }
+    ]
   }
 }

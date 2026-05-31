@@ -112,6 +112,17 @@ Jeff has noted that agents ask him to do too much. Defaults:
   `C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\Aftertale`
   via an `mklink /J` junction, so edits are picked up after a `/reload`
   in-game.
+- **WoW addon runs Lua 5.1.** Never use Lua 5.2+ syntax — most importantly,
+  no `\xNN` hex escapes in string literals. WoW silently drops the
+  backslash and renders the rest as literal text (`"\xE2\x9C\xA6"` becomes
+  `"xE2x9CxA6"` in-game). Use decimal escapes (`"\226\156\166"`) or
+  `string.char()` instead. A `PostToolUse` hook at
+  `tools/check-lua-compat.sh` enforces this on every Edit/Write — if it
+  fires, convert the offending escape, don't bypass it.
+- **`/ship` is the standard end-of-edit ritual.** Runs the build, updates
+  CHANGELOG.md if user-facing, commits to `main` with a clean message,
+  pushes. Defined in `.claude/commands/ship.md`. Use it instead of
+  reconstructing the build → commit → push sequence by hand every time.
 - **Network allowlist for agent sandboxes:** `.claude/settings.json`
   already allowlists `*.supabase.co` and `api.supabase.com` for WebFetch
   and curl. If you hit `host_not_allowed` for another host, add it there

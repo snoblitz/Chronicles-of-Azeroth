@@ -7,6 +7,24 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Added — Lua 5.1 compat hook + `/ship` slash command *(2026-05-31)*
+
+Two quick-win additions from the `/insights` audit, both targeting bugs
+and friction we kept paying for.
+
+- **`tools/check-lua-compat.sh`** runs as a `PostToolUse` hook on every
+  Edit/Write/MultiEdit. Greps the addon tree for `\xNN` hex escapes (Lua
+  5.2 syntax; WoW eats the backslash and ships them as literal text like
+  `"xE2x9CxA6"` — the most repeated bug in our sessions) and exits 2
+  with a clear conversion guide if any are found.
+- **`.claude/commands/ship.md`** codifies the end-of-edit ritual into one
+  command: build → review diff → CHANGELOG → stage by path → commit via
+  HEREDOC → push with rebase-on-conflict and exponential-backoff retry.
+  Refuses force pushes, branch pushes, hook bypasses, and commits
+  containing secrets.
+- `CLAUDE.md` now documents the Lua 5.1 constraint and points future
+  agents at `/ship` instead of letting them reconstruct the workflow.
+
 ### Added — chrome art batch: CTA, inner cell, separators, icons *(2026-05-31)*
 
 Second art drop keyed through the same magenta pipeline:
