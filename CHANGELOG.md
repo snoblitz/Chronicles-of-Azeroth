@@ -7,6 +7,23 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Added — chrome art batch: CTA, inner cell, separators, icons *(2026-05-31)*
+
+Second art drop keyed through the same magenta pipeline:
+
+- **`cta-chronicle-idle/hover`** — split from the side-by-side `cta_buttons`
+  sheet (left/violet = idle, right/gold = hover), each with baked
+  "OPEN CHRONICLE" text. Drove a new `split_cols` helper (mirror of
+  `split_rows`).
+- **`inner-cell`** — deep-plum rounded panel with a faint violet edge, for the
+  Hub stat tiles.
+- **`sep-horizontal` / `sep-vertical`** — thin gold separator lines. These
+  needed a dedicated `kill_pink` pass: the gold line is only a few px thick, so
+  the antialiased gold↔magenta boundary and the faded tips left salmon residue.
+  Gate on the blue/green ratio (gold ≈0.45, magenta-despill ≈0.9) and drop any
+  non-gold pixel.
+- **`question` / `close`** icons keyed into `Art/icons/`.
+
 ### Added — brand frame art set + whole-texture Hub frame *(2026-05-31)*
 
 The artist delivered a restrained gold-on-deep-plum frame family (magenta

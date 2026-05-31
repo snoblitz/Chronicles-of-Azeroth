@@ -121,6 +121,21 @@ def key_magenta(img: Image.Image) -> Image.Image:
     return Image.fromarray(out, "RGBA")
 
 
+def kill_pink(img: Image.Image) -> Image.Image:
+    """Strip residual magenta/pink from thin gold features (separators only).
+
+    The chroma key leaves de-spilled pink along the antialiased boundary and the
+    faded tips of very thin gold separators. A gold ramp ALWAYS has green above
+    blue (r >= g > b); magenta/pink residue has blue at or above green. Since
+    these assets are pure gold, force every non-gold pixel fully transparent.
+    """
+    a = np.asarray(img).astype(np.float32) / 255.0
+    r, g, b = a[..., 0], a[..., 1], a[..., 2]
+    non_gold = b > (g * 0.70)
+    a[..., 3][non_gold] = 0.0
+    return Image.fromarray((a * 255.0).astype(np.uint8), "RGBA")
+
+
 def trim_to_alpha(img: Image.Image, pad: int = 0) -> Image.Image:
     """Crop to the bounding box of non-transparent pixels."""
     a = np.asarray(img)[..., 3]
@@ -158,6 +173,28 @@ def split_rows(img: Image.Image, n: int):
     return [img.crop((0, y0, img.width, y1)) for y0, y1 in runs]
 
 
+def split_cols(img: Image.Image, n: int):
+    """Split a horizontally-stacked sheet into n sub-images by alpha gaps.
+
+    Finds the n largest contiguous runs of columns that contain opaque pixels.
+    """
+    a = np.asarray(img)[..., 3]
+    col_has = (a > 8).any(axis=0)
+    runs = []
+    start = None
+    for x, present in enumerate(col_has):
+        if present and start is None:
+            start = x
+        elif not present and start is not None:
+            runs.append((start, x))
+            start = None
+    if start is not None:
+        runs.append((start, len(col_has)))
+    runs.sort(key=lambda r: r[1] - r[0], reverse=True)
+    runs = sorted(runs[:n], key=lambda r: r[0])  # left-to-right order
+    return [img.crop((x0, 0, x1, img.height)) for x0, x1 in runs]
+
+
 def save(img: Image.Image, path: str, size=None):
     if size is not None:
         img = img.resize(size, Image.LANCZOS)
@@ -174,22 +211,29 @@ def main():
     args = ap.parse_args()
 
     art = os.path.join(repo, "addon", "Aftertale", "Art", "frame")
+    icons = os.path.join(repo, "addon", "Aftertale", "Art", "icons")
 
-    # Single-frame assets: (source, output-name, target-size-or-None)
+    # Single-frame assets: (source, output-name, target-size-or-None, kill_pink?)
     single = [
-        ("frame_square.png",    "frame-square.png",    (1024, 1024)),
-        ("frame_rectangle.png", "frame-rectangle.png", None),
-        ("flyout_left.png",     "flyout-left.png",     None),
-        ("flyout_right.png",    "flyout-right.png",    None),
-        ("inner_frame.png",     "inner-frame.png",     None),
+        ("frame_square.png",    "frame-square.png",    (1024, 1024), False),
+        ("frame_rectangle.png", "frame-rectangle.png", None,         False),
+        ("flyout_left.png",     "flyout-left.png",     None,         False),
+        ("flyout_right.png",    "flyout-right.png",    None,         False),
+        ("inner_frame.png",     "inner-frame.png",     None,         False),
+        ("hub_inner_cells.png", "inner-cell.png",      None,         False),
+        ("horiz_sep.png",       "sep-horizontal.png",  None,         True),
+        ("vert_sep.png",        "sep-vertical.png",    None,         True),
     ]
-    for src_name, out_name, size in single:
+    for src_name, out_name, size, pink in single:
         src = os.path.join(args.src, src_name)
         if not os.path.exists(src):
             print(f"SKIP (missing): {src}")
             continue
         print(f"{src_name}:")
-        keyed = trim_to_alpha(key_magenta(Image.open(src)))
+        keyed = key_magenta(Image.open(src))
+        if pink:
+            keyed = kill_pink(keyed)
+        keyed = trim_to_alpha(keyed)
         save(keyed, os.path.join(art, out_name), size)
 
     # buttons.png -> button-idle (purple, bottom) + button-hover (gold, top)
@@ -206,6 +250,35 @@ def main():
             print(f"  !! expected 2 rows, found {len(rows)}")
     else:
         print(f"SKIP (missing): {bsrc}")
+
+    # cta_buttons.png -> cta-chronicle-idle (violet, left) + -hover (gold, right)
+    csrc = os.path.join(args.src, "cta_buttons.png")
+    if os.path.exists(csrc):
+        print("cta_buttons.png:")
+        keyed = key_magenta(Image.open(csrc))
+        cols = split_cols(keyed, 2)
+        if len(cols) == 2:
+            left, right = cols  # left = violet = idle, right = gold = hover
+            save(trim_to_alpha(left),  os.path.join(art, "cta-chronicle-idle.png"))
+            save(trim_to_alpha(right), os.path.join(art, "cta-chronicle-hover.png"))
+        else:
+            print(f"  !! expected 2 cols, found {len(cols)}")
+    else:
+        print(f"SKIP (missing): {csrc}")
+
+    # Standalone icons -> Art/icons/
+    icon_set = [
+        ("question.png", "question.png"),
+        ("close.png",    "close.png"),
+    ]
+    for src_name, out_name in icon_set:
+        src = os.path.join(args.src, src_name)
+        if not os.path.exists(src):
+            print(f"SKIP (missing): {src}")
+            continue
+        print(f"{src_name}:")
+        keyed = trim_to_alpha(key_magenta(Image.open(src)))
+        save(keyed, os.path.join(icons, out_name))
 
 
 if __name__ == "__main__":
