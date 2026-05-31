@@ -7,6 +7,44 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Changed — Hub Overview re-skinned with new chrome assets *(2026-05-31)*
+
+Phase 1 of the mockup-parity pass. The Hub Overview tab now uses the
+new asset family directly instead of programmatically-drawn rectangles
+and lines, and the layout was rebuilt to match the high-res mockup.
+
+Layout changes:
+- Title + sigil moved to top-LEFT (was top-center), sitting on the
+  upper-left of the panel like the mockup.
+- Tab strip left-aligned starting under the title (was evenly spread
+  across the panel width).
+- Stat tiles now sit inside two `inner-frame` (9-sliced) columns —
+  "Story at a Glance" on the left, "Recent Moments" on the right —
+  with no vertical separator between them.
+- "Recording since…" is now its own `inner-cell` pill at the bottom
+  of the left column, with a pulsing violet recording dot prefix.
+- Buttons at the bottom of the right column: "View All Moments" uses
+  the muted `button-idle/hover` pair; "Open Chronicle" uses the baked-
+  text `cta-chronicle-idle/hover` CTA pair.
+
+Component changes:
+- Stat tile backgrounds: `inner-cell.png` instead of a programmatic
+  flat panel + border.
+- Stat tile dimensions tightened to 120×120, icons to 44px, value to
+  20pt Cinzel, labels rendered title-case (not letter-spaced caps).
+- Recent Moments rows now support an optional metadata tag (e.g.
+  `+1.2k XP` on quest-turnin rows), surfaced from the captured
+  `xpReward` arg when present.
+- Close X swapped from a Cinzel × FontString to the `icons/close.png`
+  asset via `S.AddCloseButton`.
+- Tab separator now uses `sep-horizontal.png` (was a 1px CreateRule).
+
+New helpers in `Style.lua`: `CreateInnerFrame` (9-sliced),
+`CreateInnerCell`, `CreateImageButton`, `CreateCTAButton`,
+`AddSeparator`, `AddCloseButton`, `AddHelpIcon`, `AddRecordingDot`.
+All shared so Phases 2-6 can compose them without re-deriving the
+texture/anchoring math.
+
 ### Added — Lua 5.1 compat hook + `/ship` slash command *(2026-05-31)*
 
 Two quick-win additions from the `/insights` audit, both targeting bugs

@@ -541,3 +541,257 @@ function S.AddMuted(parent, text, size)
   fs:SetSpacing(2)
   return fs
 end
+
+------------------------------------------------------------------------
+-- Asset chrome helpers (Phase 0 of the mockup-parity build).
+--
+-- Several of the new whole-texture art assets sit on top of a stretched
+-- background; others need 9-slicing so corner ornaments stay sharp at any
+-- aspect. Helpers below cover the patterns the Hub + Popover + other
+-- screens repeat: column wrappers, stat-tile backgrounds, button pairs,
+-- separators, close + help icons, and a pulsing recording indicator.
+------------------------------------------------------------------------
+
+local function artPath(rel)
+  return (NS.ADDON_PATH or ("Interface\\AddOns\\" .. ADDON_NAME)) .. "\\Art\\" .. rel
+end
+
+------------------------------------------------------------------------
+-- S.CreateInnerFrame: 9-sliced wrapper around inner-frame.png.
+--
+-- Source asset is 1433x920 with gold corner stars + mid-edge diamond
+-- ornaments. 9-slicing keeps the corner stars proportional and crisp at
+-- any displayed size while the mid-edge diamonds stay centered along
+-- each edge (they live in the texture-center of each edge slice, so as
+-- the edge strip stretches, the diamond stays centered).
+--
+-- Slice values are pre-baked for inner-frame.png: 100px corner in source
+-- gives normalized slice coords (0.0698, 0.9302) horizontally and
+-- (0.1087, 0.8913) vertically. opts.corner controls the on-screen corner
+-- cell size; opts.padding controls the interior content inset.
+--
+-- Returns the outer frame + .content child (pre-inset for the caller).
+------------------------------------------------------------------------
+
+function S.CreateInnerFrame(parent, w, h, opts)
+  opts = opts or {}
+  local CORNER = opts.corner  or 32
+  local PAD    = opts.padding or 18
+  local SC_X, LC_X = 0.0698, 0.9302
+  local SC_Y, LC_Y = 0.1087, 0.8913
+  local tex = artPath("frame\\inner-frame.png")
+
+  local f = CreateFrame("Frame", nil, parent)
+  f:SetSize(w, h)
+
+  local function mkTex(coords, layer)
+    local t = f:CreateTexture(nil, layer or "BORDER")
+    t:SetTexture(tex)
+    t:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+    return t
+  end
+
+  local tl = mkTex({ 0,    SC_X, 0,    SC_Y }); tl:SetSize(CORNER, CORNER); tl:SetPoint("TOPLEFT",     f, "TOPLEFT")
+  local tr = mkTex({ LC_X, 1,    0,    SC_Y }); tr:SetSize(CORNER, CORNER); tr:SetPoint("TOPRIGHT",    f, "TOPRIGHT")
+  local bl = mkTex({ 0,    SC_X, LC_Y, 1    }); bl:SetSize(CORNER, CORNER); bl:SetPoint("BOTTOMLEFT",  f, "BOTTOMLEFT")
+  local br = mkTex({ LC_X, 1,    LC_Y, 1    }); br:SetSize(CORNER, CORNER); br:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT")
+
+  local top = mkTex({ SC_X, LC_X, 0,    SC_Y })
+  top:SetHeight(CORNER)
+  top:SetPoint("TOPLEFT",  tl, "TOPRIGHT")
+  top:SetPoint("TOPRIGHT", tr, "TOPLEFT")
+
+  local bot = mkTex({ SC_X, LC_X, LC_Y, 1 })
+  bot:SetHeight(CORNER)
+  bot:SetPoint("BOTTOMLEFT",  bl, "BOTTOMRIGHT")
+  bot:SetPoint("BOTTOMRIGHT", br, "BOTTOMLEFT")
+
+  local left = mkTex({ 0, SC_X, SC_Y, LC_Y })
+  left:SetWidth(CORNER)
+  left:SetPoint("TOPLEFT",    tl, "BOTTOMLEFT")
+  left:SetPoint("BOTTOMLEFT", bl, "TOPLEFT")
+
+  local right = mkTex({ LC_X, 1, SC_Y, LC_Y })
+  right:SetWidth(CORNER)
+  right:SetPoint("TOPRIGHT",    tr, "BOTTOMRIGHT")
+  right:SetPoint("BOTTOMRIGHT", br, "TOPRIGHT")
+
+  local center = mkTex({ SC_X, LC_X, SC_Y, LC_Y }, "BACKGROUND")
+  center:SetPoint("TOPLEFT",     tl, "BOTTOMRIGHT")
+  center:SetPoint("BOTTOMRIGHT", br, "TOPLEFT")
+
+  local content = CreateFrame("Frame", nil, f)
+  content:SetPoint("TOPLEFT",     f, "TOPLEFT",      PAD, -PAD)
+  content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -PAD,  PAD)
+  f.content = content
+  return f
+end
+
+------------------------------------------------------------------------
+-- S.CreateInnerCell: whole-texture inner-cell.png stretch.
+--
+-- The asset is just a rounded plum panel with no border ornaments, so a
+-- plain stretch works at any aspect. Used for stat tiles, callout pills
+-- (Recording since, Latest Moment), URL display boxes.
+------------------------------------------------------------------------
+
+function S.CreateInnerCell(parent, w, h, opts)
+  opts = opts or {}
+  local PAD = opts.padding or 8
+  local f = CreateFrame("Frame", nil, parent)
+  f:SetSize(w, h)
+  local tex = f:CreateTexture(nil, "BACKGROUND")
+  tex:SetTexture(artPath("frame\\inner-cell.png"))
+  tex:SetAllPoints(f)
+  local content = CreateFrame("Frame", nil, f)
+  content:SetPoint("TOPLEFT",     f, "TOPLEFT",      PAD, -PAD)
+  content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -PAD,  PAD)
+  f.content = content
+  return f
+end
+
+------------------------------------------------------------------------
+-- S.CreateImageButton: generic button-idle/hover texture pair.
+--
+-- Pass the relative paths under Art/ (typically "frame\\button-idle.png"
+-- + "frame\\button-hover.png"). Optional labelText is drawn over the
+-- texture in letter-spaced gold caps. Caller hooks `:SetScript("OnClick",
+-- ...)` as usual.
+------------------------------------------------------------------------
+
+function S.CreateImageButton(parent, idleRel, hoverRel, w, h, labelText)
+  local b = CreateFrame("Button", nil, parent)
+  b:SetSize(w, h)
+
+  local idle = b:CreateTexture(nil, "BACKGROUND")
+  idle:SetTexture(artPath(idleRel))
+  idle:SetAllPoints(b)
+
+  local hover = b:CreateTexture(nil, "BACKGROUND")
+  hover:SetTexture(artPath(hoverRel))
+  hover:SetAllPoints(b)
+  hover:Hide()
+
+  if labelText and labelText ~= "" then
+    local lbl = b:CreateFontString(nil, "OVERLAY")
+    S.UseDisplayFont(lbl, 11, "")
+    lbl:SetText(S.Kicker(labelText))
+    lbl:SetPoint("CENTER", 0, 0)
+    lbl:SetTextColor(S.rgba("goldBright"))
+    b.label = lbl
+  end
+
+  b:SetScript("OnEnter", function() hover:Show() end)
+  b:SetScript("OnLeave", function() hover:Hide() end)
+  return b
+end
+
+------------------------------------------------------------------------
+-- S.CreateCTAButton: the canonical "Open Chronicle" CTA button.
+--
+-- Uses cta-chronicle-idle/hover.png which have "OPEN CHRONICLE" + the
+-- external-link arrow baked into the texture, so no label is drawn over.
+-- Used wherever the user is invited to go to aftertale.gg.
+------------------------------------------------------------------------
+
+function S.CreateCTAButton(parent, w, h)
+  local b = CreateFrame("Button", nil, parent)
+  b:SetSize(w, h)
+  local idle = b:CreateTexture(nil, "BACKGROUND")
+  idle:SetTexture(artPath("frame\\cta-chronicle-idle.png"))
+  idle:SetAllPoints(b)
+  local hover = b:CreateTexture(nil, "BACKGROUND")
+  hover:SetTexture(artPath("frame\\cta-chronicle-hover.png"))
+  hover:SetAllPoints(b)
+  hover:Hide()
+  b:SetScript("OnEnter", function() hover:Show() end)
+  b:SetScript("OnLeave", function() hover:Hide() end)
+  return b
+end
+
+------------------------------------------------------------------------
+-- S.AddSeparator: thin gold horizontal or vertical rule using sep-*.png.
+------------------------------------------------------------------------
+
+function S.AddSeparator(parent, orientation, length)
+  local t = parent:CreateTexture(nil, "ARTWORK")
+  if orientation == "vertical" then
+    t:SetTexture(artPath("frame\\sep-vertical.png"))
+    t:SetWidth(8)
+    if length then t:SetHeight(length) end
+  else
+    t:SetTexture(artPath("frame\\sep-horizontal.png"))
+    t:SetHeight(8)
+    if length then t:SetWidth(length) end
+  end
+  return t
+end
+
+------------------------------------------------------------------------
+-- S.AddCloseButton: icons/close.png as a clickable button with hover
+-- tint. Default size 22. Caller hooks OnClick.
+------------------------------------------------------------------------
+
+function S.AddCloseButton(parent, size)
+  size = size or 22
+  local b = CreateFrame("Button", nil, parent)
+  b:SetSize(size, size)
+  local icon = b:CreateTexture(nil, "ARTWORK")
+  icon:SetTexture(artPath("icons\\close.png"))
+  icon:SetAllPoints(b)
+  icon:SetVertexColor(S.rgba("fgMuted"))
+  b:SetScript("OnEnter", function() icon:SetVertexColor(S.rgba("goldBright")) end)
+  b:SetScript("OnLeave", function() icon:SetVertexColor(S.rgba("fgMuted")) end)
+  return b
+end
+
+------------------------------------------------------------------------
+-- S.AddHelpIcon: icons/question.png with a hover-driven GameTooltip.
+-- Used next to settings rows + Memorable Moments label.
+------------------------------------------------------------------------
+
+function S.AddHelpIcon(parent, size, tooltipText)
+  size = size or 14
+  local b = CreateFrame("Button", nil, parent)
+  b:SetSize(size, size)
+  local icon = b:CreateTexture(nil, "ARTWORK")
+  icon:SetTexture(artPath("icons\\question.png"))
+  icon:SetAllPoints(b)
+  icon:SetVertexColor(S.rgba("fgMuted"))
+  b:SetScript("OnEnter", function(self)
+    icon:SetVertexColor(S.rgba("gold"))
+    if tooltipText and GameTooltip then
+      GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+      GameTooltip:SetText(tooltipText, 1, 1, 1, 1, true)
+      GameTooltip:Show()
+    end
+  end)
+  b:SetScript("OnLeave", function()
+    icon:SetVertexColor(S.rgba("fgMuted"))
+    if GameTooltip then GameTooltip:Hide() end
+  end)
+  return b
+end
+
+------------------------------------------------------------------------
+-- S.AddRecordingDot: pulsing violet dot indicating "watch is active".
+-- Same treatment on every screen (Hub footer pill, Popover header, Story
+-- Captured footer). Pure code, no asset needed -- just a small accent-
+-- coloured frame with an OnUpdate sine-wave alpha pulse.
+------------------------------------------------------------------------
+
+function S.AddRecordingDot(parent, size)
+  size = size or 8
+  local dot = CreateFrame("Frame", nil, parent)
+  dot:SetSize(size, size)
+  local tex = dot:CreateTexture(nil, "OVERLAY")
+  tex:SetAllPoints(dot)
+  tex:SetColorTexture(S.rgba("accent"))
+  local t = 0
+  dot:SetScript("OnUpdate", function(self, dt)
+    t = t + dt
+    local phase = (math.sin(t * 4.5) + 1) * 0.5  -- 0..1
+    self:SetAlpha(0.4 + phase * 0.6)
+  end)
+  return dot
+end

@@ -67,48 +67,6 @@ local DEFAULT_TAB = "overview"
 -- Shared helpers (used by every tab the Hub will eventually own)
 ------------------------------------------------------------------------
 
--- Flat brand button. `primary` toggles the gold wash + bolder border.
-local function makeButton(parent, w, h, text, primary)
-  local b = CreateFrame("Button", nil, parent)
-  b:SetSize(w, h)
-
-  local fill = primary and "panel" or "inset"
-  local bg = b:CreateTexture(nil, "BACKGROUND")
-  bg:SetAllPoints(b)
-  bg:SetColorTexture(S.rgba(fill))
-  b.bg = bg
-
-  if primary then
-    local wash = b:CreateTexture(nil, "BACKGROUND", nil, 1)
-    wash:SetAllPoints(b)
-    wash:SetColorTexture(S.rgba("gold", 0.10))
-  end
-
-  local borderAlpha = primary and 0.9 or 0.45
-  local function edge(p1, p2, vertical)
-    local t = b:CreateTexture(nil, "BORDER")
-    t:SetColorTexture(S.rgba("border", borderAlpha))
-    t:SetPoint(p1); t:SetPoint(p2)
-    if vertical then t:SetWidth(1) else t:SetHeight(1) end
-  end
-  edge("TOPLEFT", "TOPRIGHT", false)
-  edge("BOTTOMLEFT", "BOTTOMRIGHT", false)
-  edge("TOPLEFT", "BOTTOMLEFT", true)
-  edge("TOPRIGHT", "BOTTOMRIGHT", true)
-
-  local label = b:CreateFontString(nil, "OVERLAY")
-  S.UseDisplayFont(label, 12, "")
-  label:SetPoint("CENTER", 0, 0)
-  label:SetText(S.Kicker(text or ""))
-  label:SetTextColor(S.rgba(primary and "goldBright" or "gold"))
-  b.label = label
-
-  local hr, hg, hb, ha = S.rgba(primary and "gold" or "accent", primary and 0.18 or 0.10)
-  b:SetScript("OnEnter", function() bg:SetColorTexture(hr, hg, hb, ha) end)
-  b:SetScript("OnLeave", function() bg:SetColorTexture(S.rgba(fill)) end)
-  return b
-end
-
 -- A clickable tab in the top strip. selected = true draws the gold rule.
 local function makeTab(parent, label, onClick)
   local t = CreateFrame("Button", nil, parent)
@@ -150,32 +108,34 @@ local function makeTab(parent, label, onClick)
   return t
 end
 
--- A single stat tile: illustrated icon up top, big gold number, two-line
--- caps label beneath. Icons are 512px sources downscaled to 56px here.
+-- A single stat tile: rounded plum inner-cell background, illustrated icon
+-- on top, gold number beneath, title-case 2-line label at the bottom.
+-- Sized for 6 tiles in a 3x2 grid inside the left column inner-frame.
 local function makeStatTile(parent, w, h, iconPath, label)
-  local tile = S.CreatePanel(parent, { fill = "inset", border = "border", borderAlpha = 0.35 })
-  tile:SetSize(w, h)
+  local tile = S.CreateInnerCell(parent, w, h, { padding = 6 })
 
   if iconPath then
     local icon = tile:CreateTexture(nil, "ARTWORK")
     icon:SetTexture(iconPath)
-    icon:SetSize(56, 56)
+    icon:SetSize(44, 44)
     icon:SetPoint("TOP", tile, "TOP", 0, -10)
     tile.icon = icon
   end
 
   local value = tile:CreateFontString(nil, "OVERLAY")
-  S.UseDisplayFont(value, 22, "")
+  S.UseDisplayFont(value, 20, "")
   value:SetText("0")
-  value:SetPoint("TOP", tile, "TOP", 0, -68)
+  value:SetPoint("TOP", tile, "TOP", 0, -56)
   value:SetTextColor(S.rgba("goldBright"))
   tile.value = value
 
+  -- Plain title case, no letter-spacing, two lines allowed. Matches the
+  -- mockup's "Moments Captured" / "Achievements Earned" treatment.
   local lbl = tile:CreateFontString(nil, "OVERLAY")
-  S.UseDisplayFont(lbl, 9, "")
-  lbl:SetText((label or ""):upper())
-  lbl:SetPoint("BOTTOMLEFT",  tile, "BOTTOMLEFT",   4, 8)
-  lbl:SetPoint("BOTTOMRIGHT", tile, "BOTTOMRIGHT", -4, 8)
+  S.UseDisplayFont(lbl, 10, "")
+  lbl:SetText(label or "")
+  lbl:SetPoint("BOTTOMLEFT",  tile, "BOTTOMLEFT",   4, 6)
+  lbl:SetPoint("BOTTOMRIGHT", tile, "BOTTOMRIGHT", -4, 6)
   lbl:SetJustifyH("CENTER")
   lbl:SetJustifyV("BOTTOM")
   lbl:SetWordWrap(true)
@@ -185,15 +145,19 @@ local function makeStatTile(parent, w, h, iconPath, label)
   return tile
 end
 
--- A single row in the Recent Moments list: per-event illustrated icon on
--- the left, label in the middle, timestamp right-aligned. Label anchors
--- to the timestamp's LEFT so it never bleeds under the time.
+-- A single row in the Recent Moments list. Layout: per-event illustrated
+-- icon on the left, label in the middle, optional gold metadata tag (e.g.
+-- "+1.2k XP" for quest-turnin), timestamp right-aligned.
+--
+-- The label's RIGHT anchor is updated in Refresh() based on whether the
+-- tag is shown, so a hidden tag doesn't leave dead space between the
+-- label and the timestamp.
 local function makeMomentRow(parent, w)
   local row = CreateFrame("Frame", nil, parent)
   row:SetSize(w, 32)
 
   local icon = row:CreateTexture(nil, "ARTWORK")
-  icon:SetSize(24, 24)
+  icon:SetSize(22, 22)
   icon:SetPoint("LEFT", row, "LEFT", 2, 0)
   row.icon = icon
 
@@ -205,9 +169,18 @@ local function makeMomentRow(parent, w)
   when:SetTextColor(S.rgba("fgFaint"))
   row.when = when
 
+  local tag = row:CreateFontString(nil, "OVERLAY")
+  S.UseDisplayFont(tag, 11, "")
+  tag:SetPoint("RIGHT", when, "LEFT", -10, 0)
+  tag:SetJustifyH("RIGHT")
+  tag:SetTextColor(S.rgba("gold"))
+  tag:Hide()
+  row.tag = tag
+
   local label = S.AddBody(row, "", 13)
-  label:SetPoint("LEFT", icon, "RIGHT", 8, 0)
-  label:SetPoint("RIGHT", when, "LEFT", -12, 0)
+  label:SetPoint("LEFT", icon, "RIGHT", 10, 0)
+  -- Label RIGHT anchor is set dynamically in Refresh -- either to tag.LEFT
+  -- (when a tag is present) or directly to when.LEFT.
   label:SetJustifyH("LEFT")
   label:SetWordWrap(false)
   label:SetNonSpaceWrap(false)
@@ -296,6 +269,13 @@ local function computeStats(db)
     ENCOUNTER_END = "Encounter ended",
     PLAYER_DEAD = "Fell",
   }
+  -- "+1234" -> "+1.2k XP", "+250" -> "+250 XP". Returns nil for <= 0 or nil.
+  local function formatXpTag(xp)
+    if not xp or xp <= 0 then return nil end
+    if xp >= 1000 then return string.format("+%.1fk XP", xp / 1000) end
+    return string.format("+%d XP", xp)
+  end
+
   local picked = {}
   for i = #db.events, 1, -1 do
     if #picked >= 5 then break end
@@ -303,10 +283,14 @@ local function computeStats(db)
     if NARRATIVE[e.event] then
       local enr = e.enrichment or {}
       local label = NARRATIVE[e.event]
+      local tag = nil
       if e.event == "ZONE_CHANGED_NEW_AREA" and enr.zoneText then
         label = "Entered " .. enr.zoneText
       elseif e.event == "QUEST_TURNED_IN" and enr.questTitle then
         label = "Completed: " .. enr.questTitle
+        -- QUEST_TURNED_IN args: (questID, xpReward, moneyReward). args are
+        -- packed as strings; tonumber handles the conversion safely.
+        if e.args and e.args[2] then tag = formatXpTag(tonumber(e.args[2])) end
       elseif e.event == "QUEST_ACCEPTED" and enr.questTitle then
         label = "Took up: " .. enr.questTitle
       elseif e.event == "PLAYER_LEVEL_UP" and enr.level then
@@ -316,7 +300,7 @@ local function computeStats(db)
       elseif e.event == "ENCOUNTER_END" and enr.encounterName then
         label = (enr.success and "Defeated: " or "Fell to: ") .. enr.encounterName
       end
-      table.insert(picked, { label = label, when = e.ts or "", event = e.event })
+      table.insert(picked, { label = label, when = e.ts or "", event = e.event, tag = tag })
     end
   end
   s.recentEvents = picked
@@ -388,64 +372,99 @@ local function buildOverviewTab(parent)
   local tab = CreateFrame("Frame", nil, parent)
   tab:SetAllPoints(parent)
 
-  -- LEFT: kicker + 3x2 stat grid
-  local kicker = S.AddKicker(tab, "Story at a Glance")
-  kicker:SetPoint("TOPLEFT", tab, "TOPLEFT", 4, -4)
+  -- TWO COLUMNS, each wrapped in inner-frame (9-sliced so the gold corner
+  -- stars stay sharp at the ~0.89:1 column aspect). No vertical separator
+  -- between them -- mockup just uses a visual gap.
+  local COL_W   = math.floor((parent:GetWidth() or 860) / 2) - 8
+  local COL_H   = parent:GetHeight() > 0 and parent:GetHeight() or 479
+  local COL_GAP = 16
 
-  local TILE_W, TILE_H, GAP = 140, 140, 12
-  local gridX, gridY = 0, -28
+  local leftCol  = S.CreateInnerFrame(tab, COL_W, COL_H, { padding = 18 })
+  leftCol:SetPoint("TOPLEFT", tab, "TOPLEFT", 0, 0)
+
+  local rightCol = S.CreateInnerFrame(tab, COL_W, COL_H, { padding = 18 })
+  rightCol:SetPoint("TOPLEFT", leftCol, "TOPRIGHT", COL_GAP, 0)
+
+  local LC = leftCol.content
+  local RC = rightCol.content
+
+  --------------------------------------------------------------------
+  -- LEFT COLUMN: Story at a Glance kicker + 3x2 stat grid + recording pill
+  --------------------------------------------------------------------
+
+  local leftKicker = S.AddKicker(LC, "Story at a Glance")
+  leftKicker:SetPoint("TOPLEFT", LC, "TOPLEFT", 0, 0)
+
+  local TILE_W, TILE_H, TILE_GAP = 120, 120, 6
   tab.tiles = {}
   for i, def in ipairs(STATS_LAYOUT) do
     local col = (i - 1) % 3
     local row = math.floor((i - 1) / 3)
-    local tile = makeStatTile(tab, TILE_W, TILE_H, def.icon, def.label)
-    tile:SetPoint("TOPLEFT", tab, "TOPLEFT",
-      gridX + col * (TILE_W + GAP),
-      gridY - row * (TILE_H + GAP))
+    local tile = makeStatTile(LC, TILE_W, TILE_H, def.icon, def.label)
+    tile:SetPoint("TOPLEFT", LC, "TOPLEFT",
+      col * (TILE_W + TILE_GAP),
+      -28 - row * (TILE_H + TILE_GAP))
     tab.tiles[def.key] = tile
   end
-  local gridW = 3 * TILE_W + 2 * GAP
-  local gridH = 2 * TILE_H + GAP
 
-  -- RIGHT: kicker + Recent Moments list
-  local rightX = gridW + 24
-  local rightKicker = S.AddKicker(tab, "Recent Moments")
-  rightKicker:SetPoint("TOPLEFT", tab, "TOPLEFT", rightX, -4)
+  -- "Recording since ..." pill at the bottom of the left column, with the
+  -- pulsing violet dot indicating the watch is active.
+  tab.recordingPill = S.CreateInnerCell(LC, 280, 32, { padding = 10 })
+  tab.recordingPill:SetPoint("BOTTOMLEFT", LC, "BOTTOMLEFT", 0, 0)
 
-  local rule = S.CreateRule(tab, "accent", 0.35)
-  rule:SetPoint("TOPLEFT", rightKicker, "BOTTOMLEFT", 0, -8)
-  rule:SetPoint("RIGHT", tab, "RIGHT", -4, 0)
+  local pillContent = tab.recordingPill.content
+  local pillDot = S.AddRecordingDot(pillContent, 8)
+  pillDot:SetPoint("LEFT", pillContent, "LEFT", 0, 0)
+
+  tab.recordingSince = S.AddMuted(pillContent, "", 11)
+  tab.recordingSince:SetPoint("LEFT",  pillDot,      "RIGHT", 8, 0)
+  tab.recordingSince:SetPoint("RIGHT", pillContent,  "RIGHT", 0, 0)
+  tab.recordingSince:SetJustifyH("LEFT")
+
+  --------------------------------------------------------------------
+  -- RIGHT COLUMN: Recent Moments kicker + separator + 5 rows + buttons
+  --------------------------------------------------------------------
+
+  local rightKicker = S.AddKicker(RC, "Recent Moments")
+  rightKicker:SetPoint("TOPLEFT", RC, "TOPLEFT", 0, 0)
+
+  local rightRule = S.AddSeparator(RC, "horizontal")
+  rightRule:SetPoint("TOPLEFT",  rightKicker, "BOTTOMLEFT", 0, -8)
+  rightRule:SetPoint("TOPRIGHT", RC,          "TOPRIGHT",   0, -28)
 
   tab.rows = {}
-  local rowW = HUB_W - 2 * (CORNER + PADDING) - rightX - 4
   for i = 1, 5 do
-    local r = makeMomentRow(tab, rowW)
+    local r = makeMomentRow(RC, RC:GetWidth())
     if i == 1 then
-      r:SetPoint("TOPLEFT", rule, "BOTTOMLEFT", 0, -8)
+      r:SetPoint("TOPLEFT",  rightRule, "BOTTOMLEFT", 0, -8)
+      r:SetPoint("TOPRIGHT", rightRule, "BOTTOMRIGHT", 0, -8)
     else
-      r:SetPoint("TOPLEFT", tab.rows[i - 1], "BOTTOMLEFT", 0, -4)
+      r:SetPoint("TOPLEFT",  tab.rows[i - 1], "BOTTOMLEFT",  0, -4)
+      r:SetPoint("TOPRIGHT", tab.rows[i - 1], "BOTTOMRIGHT", 0, -4)
     end
     tab.rows[i] = r
   end
 
-  -- FOOTER: recording-since on the left, two buttons on the right.
-  tab.recordingSince = S.AddMuted(tab, "", 11)
-  tab.recordingSince:SetPoint("BOTTOMLEFT", tab, "BOTTOMLEFT", 4, 14)
+  -- Two buttons at the bottom of the right column. "View All Moments" is
+  -- the muted action; "Open Chronicle" uses the gold CTA with baked text.
+  local BTN_W, BTN_H = 175, 42
 
-  tab.openChronicleBtn = makeButton(tab, 200, 36, "Open Chronicle", true)
-  tab.openChronicleBtn:SetPoint("BOTTOMRIGHT", tab, "BOTTOMRIGHT", -4, 6)
+  tab.viewMomentsBtn = S.CreateImageButton(RC,
+    "frame\\button-idle.png", "frame\\button-hover.png",
+    BTN_W, BTN_H, "View All Moments")
+  tab.viewMomentsBtn:SetPoint("BOTTOMLEFT", RC, "BOTTOMLEFT", 0, 0)
+  tab.viewMomentsBtn:SetScript("OnClick", function()
+    if NS.OpenHubTab then NS.OpenHubTab("moments") end
+  end)
+
+  tab.openChronicleBtn = S.CreateCTAButton(RC, BTN_W, BTN_H)
+  tab.openChronicleBtn:SetPoint("BOTTOMRIGHT", RC, "BOTTOMRIGHT", 0, 0)
   tab.openChronicleBtn:SetScript("OnClick", function()
     if NS.ShowChronicleURL then
       NS.ShowChronicleURL()
     else
       print(NS.CHAT_TAG .. " " .. (NS.GetConfig().webAppUrl or "https://aftertale.gg/"))
     end
-  end)
-
-  tab.viewMomentsBtn = makeButton(tab, 200, 36, "View All Moments", false)
-  tab.viewMomentsBtn:SetPoint("BOTTOMRIGHT", tab.openChronicleBtn, "BOTTOMLEFT", -10, 0)
-  tab.viewMomentsBtn:SetScript("OnClick", function()
-    if NS.OpenHubTab then NS.OpenHubTab("moments") end
   end)
 
   function tab:Refresh()
@@ -470,6 +489,19 @@ local function buildOverviewTab(parent)
         row.icon:SetTexture(icon)
         row.label:SetText(e.label)
         row.when:SetText(formatWhen(e.when))
+
+        -- Optional metadata tag ("+1.2k XP", "+150 XP", etc.). Anchor the
+        -- label's RIGHT to either the tag's LEFT (if present) or the
+        -- timestamp's LEFT (if not), so we don't leave dead space.
+        if e.tag and e.tag ~= "" then
+          row.tag:SetText(e.tag)
+          row.tag:Show()
+          row.label:SetPoint("RIGHT", row.tag, "LEFT", -10, 0)
+        else
+          row.tag:Hide()
+          row.label:SetPoint("RIGHT", row.when, "LEFT", -10, 0)
+        end
+
         row:Show()
       else
         row:Hide()
@@ -542,57 +574,50 @@ local function build()
   _G["AftertaleHub"] = hub
   table.insert(UISpecialFrames, "AftertaleHub") -- ESC closes
 
-  -- Floating compass-star sigil straddling the top gold border. Anchored to
-  -- the outer frame (not the inset content child) so it can overlap the gold
-  -- edge the way the mockup does. OVERLAY layer puts it above the BORDER
-  -- 9-slice textures.
-  local sigil = hub:CreateTexture(nil, "OVERLAY")
-  sigil:SetTexture(SIGIL_HEADER)
-  sigil:SetSize(72, 72)
-  sigil:SetPoint("CENTER", hub, "TOP", 0, 0)
-
   local C_AREA = hub.content
 
-  -- HEADER: gold Cinzel title + close X. Title nudged down a touch to clear
-  -- the sigil that now overlaps the top frame edge.
-  local title = S.AddHeading(C_AREA, "Aftertale", 26)
-  title:SetPoint("TOP", C_AREA, "TOP", 0, -10)
+  -- HEADER (top-left): sigil + "Aftertale" title sit side-by-side at the
+  -- top-left of the panel, matching the mockup. Sigil overhangs the gold
+  -- top border so its center sits on the edge; title anchors next to it.
+  local sigil = hub:CreateTexture(nil, "OVERLAY")
+  sigil:SetTexture(SIGIL_HEADER)
+  sigil:SetSize(64, 64)
+  -- Anchor sigil center to top-left of the CONTENT area (not the outer
+  -- frame) so it lands inside the panel rather than overhanging the corner.
+  sigil:SetPoint("CENTER", C_AREA, "TOPLEFT", 24, 0)
 
-  local close = CreateFrame("Button", nil, C_AREA)
-  close:SetSize(24, 24)
-  close:SetPoint("TOPRIGHT", C_AREA, "TOPRIGHT", -2, -2)
-  local x = close:CreateFontString(nil, "OVERLAY")
-  x:SetFont((GameFontNormalLarge or GameFontNormal):GetFont(), 18, "")
-  x:SetPoint("CENTER", 0, 0)
-  x:SetText("\195\151") -- × (decimal escape -- WoW Lua 5.1 has no \xNN)
-  x:SetTextColor(S.rgba("fgMuted"))
-  close:SetScript("OnEnter", function() x:SetTextColor(S.rgba("goldBright")) end)
-  close:SetScript("OnLeave", function() x:SetTextColor(S.rgba("fgMuted")) end)
+  local title = S.AddHeading(C_AREA, "Aftertale", 26)
+  title:SetPoint("LEFT", C_AREA, "TOPLEFT", 64, -10)
+
+  -- Close X (top-right) using the close icon asset.
+  local close = S.AddCloseButton(C_AREA, 22)
+  close:SetPoint("TOPRIGHT", C_AREA, "TOPRIGHT", -2, -4)
   close:SetScript("OnClick", function() hub:Hide() end)
 
-  -- TABS: row of buttons under the title.
+  -- TABS: left-aligned strip under the title. Mockup puts them flush left
+  -- starting at the same x as the title.
+  local TAB_W   = 130
+  local TAB_X0  = 0  -- start at the content-area's left edge
+  local TAB_Y   = -50 -- below the title row
   local tabStrip = CreateFrame("Frame", nil, C_AREA)
-  tabStrip:SetSize(C_AREA:GetWidth() or (HUB_W - 100), 36)
-  tabStrip:SetPoint("TOP", title, "BOTTOM", 0, -8)
-  tabStrip:SetPoint("LEFT", C_AREA, "LEFT", 0, 0)
-  tabStrip:SetPoint("RIGHT", C_AREA, "RIGHT", 0, 0)
+  tabStrip:SetHeight(32)
+  tabStrip:SetPoint("TOPLEFT",  C_AREA, "TOPLEFT",  TAB_X0,  TAB_Y)
+  tabStrip:SetPoint("TOPRIGHT", C_AREA, "TOPRIGHT", 0,       TAB_Y)
 
   hub.tabButtons = {}
   hub.tabFrames  = {}
 
-  -- A divider rule under the tabs.
-  local tabsRule = S.CreateRule(C_AREA, "border", 0.35)
-  tabsRule:SetPoint("TOPLEFT", tabStrip, "BOTTOMLEFT", 0, -2)
-  tabsRule:SetPoint("TOPRIGHT", tabStrip, "BOTTOMRIGHT", 0, -2)
+  -- Gold separator under the tab strip (replaces the old CreateRule line).
+  local tabsRule = S.AddSeparator(C_AREA, "horizontal")
+  tabsRule:SetPoint("TOPLEFT",  tabStrip, "BOTTOMLEFT",  0, -4)
+  tabsRule:SetPoint("TOPRIGHT", tabStrip, "BOTTOMRIGHT", 0, -4)
 
   -- CONTENT BODY: child frame each tab attaches into.
   local body = CreateFrame("Frame", nil, C_AREA)
-  body:SetPoint("TOPLEFT",     tabsRule, "BOTTOMLEFT",     0, -14)
-  body:SetPoint("BOTTOMRIGHT", C_AREA,   "BOTTOMRIGHT",    0, 0)
+  body:SetPoint("TOPLEFT",     tabsRule, "BOTTOMLEFT",  0, -14)
+  body:SetPoint("BOTTOMRIGHT", C_AREA,   "BOTTOMRIGHT", 0, 0)
   hub.body = body
 
-  -- Build each tab's content frame (hidden until selected). Overview is
-  -- the only fleshed-out one for now; the others render a placeholder.
   hub.tabFrames.overview   = buildOverviewTab(body)
   hub.tabFrames.moments    = buildPlaceholderTab(body, "Moments")
   hub.tabFrames.milestones = buildPlaceholderTab(body, "Milestones")
@@ -600,15 +625,12 @@ local function build()
   hub.tabFrames.settings   = buildPlaceholderTab(body, "Settings")
   for _, f in pairs(hub.tabFrames) do f:Hide() end
 
-  -- Build tab buttons and lay them out evenly across the strip.
-  local TAB_W = 140
-  local total = TAB_W * #TABS
-  local startX = math.floor(((tabStrip:GetWidth() or (HUB_W - 100)) - total) / 2)
+  -- Tabs left-aligned starting at the strip's left edge.
   for i, tab in ipairs(TABS) do
     local btn = makeTab(tabStrip, tab.label, function()
       NS.OpenHubTab(tab.id)
     end)
-    btn:SetPoint("LEFT", tabStrip, "LEFT", startX + (i - 1) * TAB_W, 0)
+    btn:SetPoint("LEFT", tabStrip, "LEFT", (i - 1) * TAB_W, 0)
     hub.tabButtons[tab.id] = btn
   end
 
