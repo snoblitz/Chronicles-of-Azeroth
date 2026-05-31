@@ -7,6 +7,25 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Added — brand frame art set + whole-texture Hub frame *(2026-05-31)*
+
+The artist delivered a restrained gold-on-deep-plum frame family (magenta
+chroma-keyed). Two-part landing:
+
+- **`tools/prep-frames.py`** keys the magenta background to alpha — feathered
+  key + colour de-spill + edge-bleed + a plum catch-all so WoW's bilinear
+  filtering can never sample a hidden-magenta halo. Outputs 7 clean RGBA
+  frames: `frame-square`, `frame-rectangle`, `flyout-left/right`,
+  `inner-frame`, and `button-idle` (violet) / `button-hover` (gold) split
+  from the stacked button sheet.
+- **`S.CreateArtFramedPanel`** (new, separate from `CreateFramedPanel`) draws
+  a whole pre-rendered frame texture instead of a stretched 9-slice, so the
+  baked corner + centered-edge ornaments never smear. The **Hub** now uses it
+  (`frame-rectangle`), with the window re-proportioned to the art's 1.419
+  aspect (960×677) so the border stays uniform and undistorted. This swaps
+  the old bright-purple heavy-gold frame for the moody, restrained look from
+  the mockup — directly addressing the "too bright / too heavy frame" misses.
+
 ### Changed — illustrated icon set re-cut from the iconsheet *(2026-05-30)*
 
 You pushed `iconsheet.png` — one 1536×1024 RGBA sheet, 4×3 grid, transparent

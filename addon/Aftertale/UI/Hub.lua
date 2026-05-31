@@ -13,7 +13,7 @@
 local ADDON_NAME, NS = ...
 local S = NS.Style
 
-local HUB_W, HUB_H = 960, 620
+local HUB_W, HUB_H = 960, 677
 local CORNER       = 36
 local PADDING      = 14
 
@@ -513,14 +513,16 @@ local hub
 local function build()
   if hub then return hub end
 
-  -- 9-slice framed panel with shadow + inner bloom enabled. Children anchor
-  -- to hub.content; never to hub. The Hub is the addon's most visually
-  -- prominent surface so it earns the heavier shadow depth.
-  hub = S.CreateFramedPanel(UIParent, {
-    cornerSize = CORNER,
-    padding    = PADDING,
-    shadow     = { depth = 32, alpha = 0.6 },
-    bloom      = { depth = 16, alpha = 0.20 },
+  -- Whole-texture art frame (preserves the baked corner + centered-edge
+  -- ornaments that a stretched 9-slice would smear). Hub size is matched to
+  -- the art's 1.419 aspect so the border stays uniform and undistorted.
+  -- Content inset kept at CORNER+PADDING so the existing layout math holds.
+  -- Children anchor to hub.content; never to hub.
+  hub = S.CreateArtFramedPanel(UIParent, {
+    art    = "frame-rectangle",
+    insetX = CORNER + PADDING,
+    insetY = CORNER + PADDING,
+    shadow = { depth = 32, alpha = 0.6 },
   })
   hub:SetSize(HUB_W, HUB_H)
   hub:SetPoint("CENTER", UIParent, "CENTER", 0, 0)

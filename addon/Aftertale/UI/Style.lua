@@ -428,6 +428,71 @@ function S.CreateFramedPanel(parent, opts)
 end
 
 ------------------------------------------------------------------------
+-- Art-framed panel -- like CreateFramedPanel but backed by a SINGLE
+-- pre-rendered frame texture (its own corner + centered-edge ornaments and
+-- interior fill baked in) instead of a stretched 9-slice. The 9-slice path
+-- smears the artist's centered edge flourishes when the edge band stretches;
+-- for a fixed-aspect surface (the Hub) drawing the whole texture preserves
+-- every ornament. Kept as a SEPARATE constructor so it never disturbs the
+-- CreateFramedPanel contract.
+--
+-- The frame art lives in Art\frame\<name>.png and already carries its own
+-- magenta-keyed transparency, so the texture is drawn whole with the world
+-- showing through outside the rounded corners.
+--
+-- opts = {
+--   art    = "frame-rectangle" (default) | "frame-square" | "inner-frame"
+--            | "flyout-left" | "flyout-right",
+--   insetX = px content inset L/R   (default 48),
+--   insetY = px content inset T/B   (default 48),
+--   shadow = false | true | { depth, alpha }  (default on),
+--   bloom  = false | true | { depth, alpha }  (default OFF -- the art already
+--            carries its own border glow),
+-- }
+-- Returns the outer frame with a pre-inset `.content` child, matching the
+-- CreateFramedPanel contract so call sites are interchangeable.
+------------------------------------------------------------------------
+
+function S.CreateArtFramedPanel(parent, opts)
+  opts = opts or {}
+  local art    = opts.art    or "frame-rectangle"
+  local insetX = opts.insetX or 48
+  local insetY = opts.insetY or 48
+
+  local base = (NS.ADDON_PATH or ("Interface\\AddOns\\" .. ADDON_NAME))
+  local tex  = base .. "\\Art\\frame\\" .. art .. ".png"
+
+  local f = CreateFrame("Frame", nil, parent)
+
+  -- Drop shadow under the frame so the panel reads as lifted off the world.
+  if opts.shadow ~= false then
+    local depth = (type(opts.shadow) == "table" and opts.shadow.depth) or 28
+    local alpha = (type(opts.shadow) == "table" and opts.shadow.alpha) or 0.55
+    S.AddDropShadow(f, depth, alpha)
+  end
+
+  -- The whole frame: interior fill + border ornament in one texture.
+  local frameTex = f:CreateTexture(nil, "BORDER")
+  frameTex:SetAllPoints(f)
+  frameTex:SetTexture(tex)
+  f.frameTexture = frameTex
+
+  -- Optional inner bloom (off by default -- the baked border already glows).
+  if opts.bloom and opts.bloom ~= false then
+    local depth = (type(opts.bloom) == "table" and opts.bloom.depth) or 14
+    local alpha = (type(opts.bloom) == "table" and opts.bloom.alpha) or 0.18
+    S.AddInnerBloom(f, math.max(insetX, insetY), depth, alpha)
+  end
+
+  local content = CreateFrame("Frame", nil, f)
+  content:SetPoint("TOPLEFT", f, "TOPLEFT", insetX, -insetY)
+  content:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -insetX, insetY)
+  f.content = content
+
+  return f
+end
+
+------------------------------------------------------------------------
 -- Text helpers -- consistent type scale + colour, all in one place.
 ------------------------------------------------------------------------
 
