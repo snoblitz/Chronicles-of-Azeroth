@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 # tools/prep-icon-set.py
 #
-# One-shot processor for the AI-generated icon set (addon/Aftertale/Art/1.png
-# .. 13.png). For each input:
-#   * chroma-keys out the magenta (or white for #3) background to transparent
-#     so the icon drops cleanly onto any panel color
-#   * resizes to a power-of-two square (1024x1024) for Classic compatibility
-#     (Vanilla/TBC/Wrath/etc. render non-POT UI textures blank)
-#   * renames + relocates to the addon's Art tree under descriptive names
-#   * mirrors the frame + book assets into public/ for the web side
+# Two pipelines, picked by what's actually present in addon/Aftertale/Art/:
 #
-# Run once after dropping 1.png..13.png into addon/Aftertale/Art/.
+# A) Iconsheet pipeline (preferred). Looks for iconsheet.png — a single
+#    4-column x 3-row grid of pre-illustrated icons on a transparent
+#    background. Splits the grid, crops each cell to the icon's actual
+#    bounding box, centers it on a 1024^2 transparent canvas, renames to
+#    descriptive paths under icons/.
+#
+# B) Numbered-files pipeline (legacy). Looks for 1.png..13.png — individual
+#    AI generations on a chroma-key background. Removes the magenta with
+#    spill suppression, resizes to power-of-two, renames + relocates.
+#
+# Mirrors the frame/book/sigil into public/ for the web side either way.
+#
+# Run once after you push a new icon source.
 
 from __future__ import annotations
 import shutil
@@ -23,21 +28,33 @@ ICON_DIR = ART_DIR / "icons"
 PUBLIC   = ROOT / "public"
 ICON_DIR.mkdir(parents=True, exist_ok=True)
 
-# (numbered source, destination path under ART_DIR, chroma-key color, tolerance, target size)
-JOBS = [
-    # The frame asset replaces the existing one. Keep at 1024 (already POT).
+# Iconsheet grid layout: 4 columns x 3 rows, position -> (filename, row, col).
+SHEET = ART_DIR / "iconsheet.png"
+SHEET_GRID = (4, 3)   # cols, rows
+SHEET_TARGET_SIZE = 1024   # output canvas (POT for Classic compatibility)
+SHEET_SUBJECT_FRAC = 0.80  # icon takes up this fraction of the output canvas
+
+SHEET_MAP = [
+    # (col, row, dest_rel_path)
+    (0, 0, "icons/quests.png"),
+    (1, 0, "icons/level.png"),
+    (2, 0, "icons/discoveries.png"),
+    (3, 0, "icons/feats.png"),
+    (0, 1, "icons/moments.png"),
+    (1, 1, "icons/time.png"),
+    (2, 1, "icons/zones.png"),
+    (3, 1, "icons/dungeons.png"),
+    (0, 2, "icons/death.png"),
+    (1, 2, "icons/items.png"),
+    (2, 2, "icons/chronicle.png"),
+    (3, 2, "icons/settings.png"),
+]
+
+# Numbered-files pipeline (kept for when we go back to individual AI gens).
+NUMBERED_JOBS = [
     ("1.png",  "frame/aftertale-9slice-frame.png", (255, 0, 255), 36, 1024),
-    # The floating header sigil. 1024 keeps mip detail crisp at small display
-    # sizes (we render it ~56-72px on screen; the bigger source means the GPU
-    # picks a higher-resolution mip level when sampling).
     ("2.png",  "sigil-header.png",                  (255, 0, 255), 36, 1024),
-    # 3.png has a white background with a purple vignette; key out the white
-    # tightly so the vignette survives as part of the art.
     ("3.png",  "icons/moments.png",                 (255, 255, 255), 24, 1024),
-    # Remaining icons all came back on bright magenta. Source size 1024 (up
-    # from 512) -- icons get rendered ~56px on stat tiles and 24px on rows,
-    # and the bigger source eliminates the soft/pixelated look of the first
-    # pass without a meaningful file-size cost (~600KB each, 6MB total).
     ("4.png",  "icons/time.png",                    (255, 0, 255), 36, 1024),
     ("5.png",  "icons/zones.png",                   (255, 0, 255), 36, 1024),
     ("6.png",  "icons/quests.png",                  (255, 0, 255), 36, 1024),
@@ -47,37 +64,25 @@ JOBS = [
     ("10.png", "icons/level.png",                   (255, 0, 255), 36, 1024),
     ("11.png", "icons/death.png",                   (255, 0, 255), 36, 1024),
     ("12.png", "icons/items.png",                   (255, 0, 255), 36, 1024),
-    # Book already came back on dark violet -- no chroma key, just resize.
     ("13.png", "book.png",                          None,            0, 1024),
 ]
 
 
 def chroma_key(img: Image.Image, target: tuple[int, int, int], tol: int) -> Image.Image:
-    """Remove a chroma background. Two algorithms:
+    """Hue-aware magenta key with spill suppression (or per-channel for white).
 
-    * For magenta (the AI-gen default) we use a hue-aware key with spill
-      suppression. Pixels are scored by how "magenta-leaning" they are
-      (deficit = min(R,B) - G). Strong deficit -> fully transparent; moderate
-      deficit (the soft pink halo at the edge of foreground objects) -> partial
-      alpha + green channel lifted to neutralize the pink tint, so we get a
-      clean soft edge instead of a colored fringe.
+    For magenta (the AI chroma): pixels with strong red+blue and low green are
+    scored by "deficit" = min(R,B) - G. Strong deficit -> fully transparent;
+    moderate deficit (soft pink halo at edges) -> partial alpha + green lifted
+    to neutralize the pink tint.
 
-    * For any other key colour we fall back to a per-channel tolerance check.
-
-    Returns an RGBA image."""
+    For other key colours: plain per-channel tolerance."""
     img = img.convert("RGBA")
     px = img.load()
     w, h = img.size
 
-    is_magenta = target == (255, 0, 255)
-
-    if is_magenta:
-        # Tunable thresholds in terms of the magenta "deficit" -- how much
-        # less green there is than the min of red/blue. Deeply magenta pixels
-        # (BG) have deficit near 255; foreground pixels have deficit near 0;
-        # soft anti-aliased edges sit between.
-        SOFT = 30   # below this, treat as foreground (keep)
-        HARD = 150  # above this, fully transparent
+    if target == (255, 0, 255):
+        SOFT, HARD = 30, 150
         for y in range(h):
             for x in range(w):
                 r, g, b, a = px[x, y]
@@ -92,15 +97,11 @@ def chroma_key(img: Image.Image, target: tuple[int, int, int], tol: int) -> Imag
                 if deficit >= HARD:
                     px[x, y] = (r, g, b, 0)
                 else:
-                    # Partial alpha across the soft band, with spill suppression:
-                    # lift green to match min(R,B) so the pixel reads neutral
-                    # instead of pink as it fades out.
                     t = (deficit - SOFT) / (HARD - SOFT)
                     alpha = int(255 * (1 - t))
                     px[x, y] = (r, mn, b, alpha)
         return img
 
-    # Generic per-channel key (used for the white BG on the moments icon).
     tr, tg, tb = target
     for y in range(h):
         for x in range(w):
@@ -113,8 +114,7 @@ def chroma_key(img: Image.Image, target: tuple[int, int, int], tol: int) -> Imag
 
 
 def fit_square_pot(img: Image.Image, size: int) -> Image.Image:
-    """Resize the image into a `size x size` square (POT), preserving aspect by
-    centering on a transparent canvas if the source isn't square."""
+    """Resize into a `size x size` square centered on a transparent canvas."""
     iw, ih = img.size
     scale = size / max(iw, ih)
     nw, nh = int(round(iw * scale)), int(round(ih * scale))
@@ -126,21 +126,152 @@ def fit_square_pot(img: Image.Image, size: int) -> Image.Image:
     return canvas
 
 
-def process(job) -> Path:
-    src_name, dst_rel, key, tol, target_size = job
-    src = ART_DIR / src_name
-    dst = ART_DIR / dst_rel
-    dst.parent.mkdir(parents=True, exist_ok=True)
+def main_subject_bbox(img: Image.Image, proximity: int = 40, alpha_thresh: int = 32):
+    """Bbox of the largest connected mass of opaque pixels, plus any smaller
+    blobs whose bbox is within `proximity` pixels of the LARGEST blob's bbox.
 
-    print(f"  {src_name:7s} -> {dst_rel}")
-    img = Image.open(src)
-    if key is not None:
-        img = chroma_key(img, key, tol)
-    else:
-        img = img.convert("RGBA")
-    img = fit_square_pot(img, target_size)
-    img.save(dst, "PNG", optimize=True)
-    return dst
+    Two rules keep accent details (Moments' corner diamonds) while discarding
+    bleed from neighboring grid cells:
+
+    1. Proximity is measured against the ORIGINAL largest blob's bbox, not the
+       expanding merged bbox. This prevents the merged bbox from snowballing
+       outward to swallow distant orphan content.
+    2. Any blob other than the largest that TOUCHES a cell edge is treated as
+       bleed-over from the neighboring cell and discarded. The main subject is
+       allowed to touch edges (some intentionally do); accent details don't.
+
+    Returns (left, top, right, bottom) or None if the image is empty."""
+    alpha = img.convert("RGBA").getchannel("A")
+    w, h = alpha.size
+    px = alpha.load()
+    visited = bytearray(w * h)
+
+    blobs = []  # (size, min_x, max_x, min_y, max_y)
+    for sy in range(h):
+        row = sy * w
+        for sx in range(w):
+            if visited[row + sx] or px[sx, sy] < alpha_thresh:
+                continue
+            stack = [(sx, sy)]
+            min_x = max_x = sx
+            min_y = max_y = sy
+            size = 0
+            while stack:
+                x, y = stack.pop()
+                if x < 0 or x >= w or y < 0 or y >= h:
+                    continue
+                idx = y * w + x
+                if visited[idx] or px[x, y] < alpha_thresh:
+                    continue
+                visited[idx] = 1
+                size += 1
+                if x < min_x: min_x = x
+                if x > max_x: max_x = x
+                if y < min_y: min_y = y
+                if y > max_y: max_y = y
+                stack.append((x + 1, y))
+                stack.append((x - 1, y))
+                stack.append((x, y + 1))
+                stack.append((x, y - 1))
+            blobs.append((size, min_x, max_x, min_y, max_y))
+
+    if not blobs:
+        return None
+
+    blobs.sort(key=lambda b: -b[0])
+    main_size, main_min_x, main_max_x, main_min_y, main_max_y = blobs[0]
+
+    # Initial merged bbox is the main blob; expand only with qualifying blobs.
+    merged_min_x, merged_max_x = main_min_x, main_max_x
+    merged_min_y, merged_max_y = main_min_y, main_max_y
+
+    for size, bx0, bx1, by0, by1 in blobs[1:]:
+        # Rule 2: drop any non-main blob touching a cell edge (bleed signature).
+        if bx0 == 0 or by0 == 0 or bx1 == w - 1 or by1 == h - 1:
+            continue
+        # Rule 1: proximity against the ORIGINAL main bbox.
+        dx = max(0, max(bx0 - main_max_x, main_min_x - bx1))
+        dy = max(0, max(by0 - main_max_y, main_min_y - by1))
+        if dx <= proximity and dy <= proximity:
+            merged_min_x = min(merged_min_x, bx0)
+            merged_max_x = max(merged_max_x, bx1)
+            merged_min_y = min(merged_min_y, by0)
+            merged_max_y = max(merged_max_y, by1)
+
+    return (merged_min_x, merged_min_y, merged_max_x + 1, merged_max_y + 1)
+
+
+def process_iconsheet() -> list[Path]:
+    """Split the 4x3 iconsheet into 12 isolated icons, each centered on a
+    1024^2 transparent canvas at SHEET_SUBJECT_FRAC of the canvas size."""
+    sheet = Image.open(SHEET).convert("RGBA")
+    sw, sh = sheet.size
+    cols, rows = SHEET_GRID
+    cw, ch = sw // cols, sh // rows
+
+    print(f"  sheet : {sw}x{sh} ({cols}x{rows} grid, {cw}x{ch} per cell)")
+
+    produced = []
+    target_subject = int(SHEET_TARGET_SIZE * SHEET_SUBJECT_FRAC)
+
+    for col, row, dest_rel in SHEET_MAP:
+        cell = sheet.crop((col * cw, row * ch, (col + 1) * cw, (row + 1) * ch))
+        bbox = main_subject_bbox(cell)
+        if not bbox:
+            print(f"  WARN ({col},{row}) -> {dest_rel}: cell is fully transparent, skipping")
+            continue
+        # Pad bbox slightly so the violet glow (when applied) has room to fade.
+        # 4% of cell width on each side is enough breathing room without
+        # leaving too much dead space when the icon is centered.
+        pad = max(cw, ch) // 25
+        left, top, right, bottom = bbox
+        left   = max(0,  left   - pad)
+        top    = max(0,  top    - pad)
+        right  = min(cw, right  + pad)
+        bottom = min(ch, bottom + pad)
+        icon = cell.crop((left, top, right, bottom))
+
+        # Scale so the longer side fits `target_subject`, then center on the
+        # full 1024^2 transparent canvas.
+        iw, ih = icon.size
+        scale = target_subject / max(iw, ih)
+        nw, nh = int(round(iw * scale)), int(round(ih * scale))
+        scaled = icon.resize((nw, nh), Image.LANCZOS)
+
+        canvas = Image.new("RGBA", (SHEET_TARGET_SIZE, SHEET_TARGET_SIZE), (0, 0, 0, 0))
+        canvas.paste(scaled,
+                     ((SHEET_TARGET_SIZE - nw) // 2,
+                      (SHEET_TARGET_SIZE - nh) // 2),
+                     scaled)
+
+        dst = ART_DIR / dest_rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        canvas.save(dst, "PNG", optimize=True)
+        print(f"  ({col},{row}) -> {dest_rel}")
+        produced.append(dst)
+
+    return produced
+
+
+def process_numbered() -> list[Path]:
+    """Legacy individual-generation pipeline (kept for future use)."""
+    produced = []
+    for src_name, dst_rel, key, tol, target_size in NUMBERED_JOBS:
+        src = ART_DIR / src_name
+        if not src.exists():
+            continue
+        dst = ART_DIR / dst_rel
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        print(f"  {src_name:7s} -> {dst_rel}")
+        img = Image.open(src)
+        if key is not None:
+            img = chroma_key(img, key, tol)
+        else:
+            img = img.convert("RGBA")
+        img = fit_square_pot(img, target_size)
+        img.save(dst, "PNG", optimize=True)
+        produced.append(dst)
+    return produced
 
 
 def main() -> int:
@@ -148,23 +279,30 @@ def main() -> int:
     print(f"  output : {ART_DIR}\n")
 
     produced = []
-    for job in JOBS:
-        produced.append(process(job))
+    if SHEET.exists():
+        print("  pipeline: iconsheet\n")
+        produced.extend(process_iconsheet())
+    if any((ART_DIR / f"{n}.png").exists() for n in range(1, 14)):
+        print("\n  pipeline: numbered\n")
+        produced.extend(process_numbered())
 
-    # Mirror the frame and book illustration into public/ for the web side.
+    # Mirror web-facing assets into public/ if they exist.
+    print()
     pairs = [
         (ART_DIR / "frame" / "aftertale-9slice-frame.png",
          PUBLIC  / "frame" / "aftertale-9slice-frame.png"),
-        (ART_DIR / "book.png",          PUBLIC / "book.png"),
-        (ART_DIR / "sigil-header.png",  PUBLIC / "sigil-header.png"),
+        (ART_DIR / "book.png",         PUBLIC / "book.png"),
+        (ART_DIR / "sigil-header.png", PUBLIC / "sigil-header.png"),
     ]
-    print()
     for src, dst in pairs:
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(src, dst)
-        print(f"  mirrored -> {dst.relative_to(ROOT)}")
+        if src.exists():
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(src, dst)
+            print(f"  mirrored -> {dst.relative_to(ROOT)}")
 
-    # Clean up the numbered originals so the Art tree stays tidy.
+    # Clean up numbered originals if the iconsheet pipeline was used (or
+    # numbered pipeline produced them). The iconsheet itself is kept since
+    # we may want to regenerate from it.
     print()
     for n in range(1, 14):
         f = ART_DIR / f"{n}.png"
@@ -178,3 +316,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

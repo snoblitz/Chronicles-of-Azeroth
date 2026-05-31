@@ -23,16 +23,18 @@ local function artPath(rel)
 end
 
 local ICON = {
-  moments   = artPath("icons\\moments.png"),
-  time      = artPath("icons\\time.png"),
-  zones     = artPath("icons\\zones.png"),
-  quests    = artPath("icons\\quests.png"),
-  feats     = artPath("icons\\feats.png"),
-  dungeons  = artPath("icons\\dungeons.png"),
-  character = artPath("icons\\character.png"),
-  level     = artPath("icons\\level.png"),
-  death     = artPath("icons\\death.png"),
-  items     = artPath("icons\\items.png"),
+  moments     = artPath("icons\\moments.png"),
+  time        = artPath("icons\\time.png"),
+  zones       = artPath("icons\\zones.png"),
+  quests      = artPath("icons\\quests.png"),
+  feats       = artPath("icons\\feats.png"),
+  dungeons    = artPath("icons\\dungeons.png"),
+  level       = artPath("icons\\level.png"),
+  death       = artPath("icons\\death.png"),
+  items       = artPath("icons\\items.png"),
+  discoveries = artPath("icons\\discoveries.png"),
+  chronicle   = artPath("icons\\chronicle.png"),
+  settings    = artPath("icons\\settings.png"),
 }
 local SIGIL_HEADER = artPath("sigil-header.png")
 

@@ -7,6 +7,36 @@ Phase 1 ships.
 
 ## [Unreleased] — Phase 0 shipped 🎉
 
+### Changed — illustrated icon set re-cut from the iconsheet *(2026-05-30)*
+
+You pushed `iconsheet.png` — one 1536×1024 RGBA sheet, 4×3 grid, transparent
+background, hand-illustrated antique-gold style. Updated `tools/prep-icon-set.py`
+with a second pipeline that splits the sheet into 12 isolated icons, each
+centered on a 1024² transparent canvas.
+
+The hard part was bleed between cells (the small accent diamonds from one
+icon's design crossing into the neighbor's cell, and the top of the Death
+helm bleeding up into the Moments cell). Solved with two rules in the
+bounding-box logic:
+
+1. **Proximity from main, not merged.** Accent dots get merged with the main
+   subject only if they're close to the *original largest blob*, not the
+   growing merged bbox. Prevents the bbox from snowballing outward to swallow
+   bleed.
+2. **Edge-touching small blobs are bleed.** Any blob other than the largest
+   that touches a cell boundary is treated as content from the neighboring
+   cell and dropped. The main subject is allowed to touch edges; accents
+   aren't.
+
+Result: Moments keeps its 4 corner diamonds, Settings keeps its left+right
+diamonds, Chronicle keeps its companion swoosh, and no neighboring-cell
+bleed survives.
+
+Three new icons land in this pass — `discoveries.png`, `chronicle.png`,
+`settings.png` — added to the Hub's `ICON` table for future wiring (Hub
+tab icons, First Launch tile icons, Chronicle Preview screen). The stale
+`character.png` from the previous set was deleted.
+
 ### Fixed — icon art re-rendered at 1024px (anti-pixelation) *(2026-05-30)*
 
 First in-game screenshot of the wired icons showed them as soft / pixelated.
